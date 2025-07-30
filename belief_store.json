@@ -1,0 +1,87 @@
+{
+  "beliefs": [
+    {
+      "id": "belief_1752840734363_0",
+      "content": "change the world",
+      "belief_type": "personal",
+      "certainty": "moderate",
+      "source": "text_extraction",
+      "timestamp": "2025-07-18T12:12:14.363604",
+      "user": "test_user",
+      "context": {},
+      "supporting_evidence": [
+        "I believe AI will change the world"
+      ],
+      "contradictions": [],
+      "confidence_score": 0.6,
+      "last_confirmed": "2025-07-18T12:12:14.363614",
+      "tags": [
+        "personal"
+      ]
+    },
+    {
+      "id": "belief_1752840734364_1",
+      "content": "ai will change the world",
+      "belief_type": "opinion",
+      "certainty": "moderate",
+      "source": "text_extraction",
+      "timestamp": "2025-07-18T12:12:14.364034",
+      "user": "test_user",
+      "context": {},
+      "supporting_evidence": [
+        "I believe AI will change the world"
+      ],
+      "contradictions": [],
+      "confidence_score": 0.7,
+      "last_confirmed": "2025-07-18T12:12:14.364041",
+      "tags": [
+        "opinion"
+      ]
+    },
+    {
+      "id": "belief_1752879858142_0",
+      "content": "happy",
+      "belief_type": "personal",
+      "certainty": "moderate",
+      "source": "text_extraction",
+      "timestamp": "2025-07-18T23:04:18.142148",
+      "user": "test_user",
+      "context": {},
+      "supporting_evidence": [
+        "I am happy"
+      ],
+      "contradictions": [],
+      "confidence_score": 0.6,
+      "last_confirmed": "2025-07-18T23:04:18.142156",
+      "tags": [
+        "personal"
+      ]
+    },
+    {
+      "id": "belief_1752879921737_0",
+      "content": "hello buddy, how you?",
+      "belief_type": "factual",
+      "certainty": "moderate",
+      "source": "text_extraction",
+      "timestamp": "2025-07-18T23:05:21.737605",
+      "user": "test_user",
+      "context": {},
+      "supporting_evidence": [
+        "Hello Buddy, how are you?"
+      ],
+      "contradictions": [],
+      "confidence_score": 0.7,
+      "last_confirmed": "2025-07-18T23:05:21.737611",
+      "tags": [
+        "factual"
+      ]
+    }
+  ],
+  "contradictions": [],
+  "last_updated": "2025-07-18T23:05:21.738698",
+  "metadata": {
+    "total_beliefs": 4,
+    "total_contradictions": 0,
+    "unresolved_contradictions": 0
+  }
+}

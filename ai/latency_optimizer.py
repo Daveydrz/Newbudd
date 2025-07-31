@@ -14,7 +14,8 @@ from enum import Enum
 # Import optimization components
 try:
     from ai.optimized_prompt_builder import (
-        build_optimized_prompt, 
+        build_optimized_prompt,
+        OptimizedPromptBuilder,
         PromptOptimizationLevel, 
         ConsciousnessTier,
         get_optimization_performance_stats
@@ -25,6 +26,18 @@ try:
 except ImportError as e:
     print(f"[LatencyOptimizer] ❌ Optimization modules not available: {e}")
     OPTIMIZATION_AVAILABLE = False
+    # Define fallback enums if imports fail
+    from enum import Enum
+    class ConsciousnessTier(Enum):
+        MINIMAL = "minimal"
+        STANDARD = "standard"
+        COMPREHENSIVE = "comprehensive"
+        DEBUG = "debug"
+    
+    class PromptOptimizationLevel(Enum):
+        SPEED_FOCUSED = "speed"
+        BALANCED = "balanced"
+        INTELLIGENCE_FOCUSED = "intelligence"
 
 # Import LLM components - CONSCIOUSNESS ONLY
 try:

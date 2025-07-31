@@ -500,6 +500,31 @@ optimized_prompt_builders = {
     PromptOptimizationLevel.INTELLIGENCE_FOCUSED: OptimizedPromptBuilder(PromptOptimizationLevel.INTELLIGENCE_FOCUSED)
 }
 
+def build_optimized_prompt(user_input: str,
+                          user_id: str,
+                          context: Dict[str, Any] = None,
+                          optimization_level: PromptOptimizationLevel = PromptOptimizationLevel.BALANCED,
+                          force_tier: ConsciousnessTier = None) -> Tuple[str, Dict[str, Any]]:
+    """
+    Standalone function for building optimized prompts
+    
+    Args:
+        user_input: User's input text
+        user_id: User identifier
+        context: Additional context
+        optimization_level: Optimization level to use
+        force_tier: Force specific consciousness tier
+        
+    Returns:
+        Tuple of (optimized_prompt, build_metadata)
+    """
+    builder = optimized_prompt_builders.get(optimization_level)
+    if not builder:
+        # Fallback to balanced if requested level not available
+        builder = optimized_prompt_builders[PromptOptimizationLevel.BALANCED]
+    
+    return builder.build_optimized_prompt(user_input, user_id, context, force_tier)
+
 def get_optimization_performance_stats() -> Dict[str, Any]:
     """Get performance statistics for all optimization levels"""
     stats = {}

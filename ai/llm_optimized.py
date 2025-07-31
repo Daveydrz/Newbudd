@@ -7,12 +7,14 @@ to reduce token usage from ~800 to ~50-100 tokens per call.
 import json
 import re
 from typing import Dict, List, Optional, Any
-from ai.chat import ask_kobold
+# ✅ CONSCIOUSNESS INTEGRATION: Use LLMHandler instead of legacy ask_kobold
+from ai.llm_handler import LLMHandler
 from ai.prompt_templates import get_template, get_template_token
 from ai.prompt_compressor import PromptCompressor
 
-# Global compressor instance
+# Global instances
 _compressor = PromptCompressor()
+_llm_handler = LLMHandler()
 
 def ask_kobold_optimized(template_id: str, user_content: str, max_tokens: int = 200, context_data: Dict[str, Any] = None) -> str:
     """
@@ -62,8 +64,27 @@ def ask_kobold_optimized(template_id: str, user_content: str, max_tokens: int = 
     
     print(f"[LLMOptimized] 📤 Template: {template_id} → {len(compressed_token)} chars → {len(expanded_system)} chars")
     
-    # Call LLM
-    return ask_kobold(messages, max_tokens)
+    # ✅ CONSCIOUSNESS INTEGRATION: Use LLMHandler instead of legacy ask_kobold
+    # Convert messages to prompt format for consciousness integration
+    full_prompt = f"{expanded_system}\n\nUser: {user_content}\n\nAssistant:"
+    
+    # Use consciousness-integrated response generation  
+    response_chunks = []
+    for chunk in _llm_handler.generate_response_with_consciousness(
+        text=user_content,
+        user="optimized_llm_system", 
+        context={
+            "system_prompt": expanded_system,
+            "template_id": template_id,
+            "optimized_call": True,
+            "consciousness_aware": True
+        },
+        stream=False
+    ):
+        if chunk and chunk.strip():
+            response_chunks.append(chunk.strip())
+    
+    return " ".join(response_chunks)
 
 def extract_name_optimized(text: str) -> Optional[str]:
     """

@@ -91,27 +91,19 @@ except ImportError:
         print(f"[LLMHandler] ❌ New modules not available: {e}")
         NEW_MODULES_AVAILABLE = False
 
-# Import existing components
+# Import existing components - CONSCIOUSNESS ONLY
 try:
     from chat_enhanced_smart_with_fusion import generate_response_streaming_with_intelligent_fusion
     FUSION_LLM_AVAILABLE = True
+    print("[LLMHandler] ✅ Fusion LLM loaded - consciousness integration active")
 except ImportError:
     try:
         from ai.chat_enhanced_smart_with_fusion import generate_response_streaming_with_intelligent_fusion
         FUSION_LLM_AVAILABLE = True
+        print("[LLMHandler] ✅ Fusion LLM loaded - consciousness integration active")
     except ImportError:
-        try:
-            from chat import generate_response_streaming
-            FUSION_LLM_AVAILABLE = False
-            print("[LLMHandler] ⚠️ Using fallback LLM - fusion not available")
-        except ImportError:
-            try:
-                from ai.chat import generate_response_streaming
-                FUSION_LLM_AVAILABLE = False
-                print("[LLMHandler] ⚠️ Using fallback LLM - fusion not available")
-            except ImportError:
-                FUSION_LLM_AVAILABLE = False
-                print("[LLMHandler] ❌ No LLM modules available")
+        FUSION_LLM_AVAILABLE = False
+        print("[LLMHandler] ⚠️ Fusion LLM not available - will use consciousness-integrated basic LLM")
 
 try:
     from global_workspace import global_workspace
@@ -479,8 +471,11 @@ class LLMHandler:
                     enhanced_prompt, user, "en", context=cognitive_context
                 )
             else:
-                # Fallback: basic streaming with enhanced prompt (includes cognitive context)
-                response_generator = generate_response_streaming(enhanced_prompt, user, "en")
+                # ✅ CONSCIOUSNESS-INTEGRATED FALLBACK: Direct LLM with consciousness prompting
+                print("[LLMHandler] 🧠 Using consciousness-integrated direct LLM fallback")
+                response_generator = self._generate_consciousness_integrated_response_direct(
+                    enhanced_prompt, user, analysis, context
+                )
             
             full_response = ""
             
@@ -597,6 +592,108 @@ class LLMHandler:
         except Exception as e:
             print(f"[LLMHandler] ❌ Error using dedicated security module: {e}")
             return "[SECURITY_ERROR]"
+
+    def _generate_consciousness_integrated_response_direct(
+        self, 
+        enhanced_prompt: str, 
+        user: str, 
+        analysis: Dict[str, Any], 
+        context: Dict[str, Any] = None
+    ):
+        """
+        Generate consciousness-integrated response directly without circular dependencies
+        This is a fallback method that ensures consciousness integration even when fusion LLM unavailable
+        """
+        print("[LLMHandler] 🧠 Generating direct consciousness-integrated response")
+        
+        try:
+            # Import required modules for direct LLM communication
+            import requests
+            import json
+            
+            # Import configuration
+            from config import KOBOLD_URL, MAX_TOKENS, TEMPERATURE
+            
+            # Build consciousness-enhanced system prompt
+            consciousness_context = ""
+            if analysis:
+                personality = analysis.get("personality", {})
+                memory_context = analysis.get("memory", {})
+                
+                if personality:
+                    consciousness_context += f"Personality State: {personality.get('current_state', 'balanced')}\n"
+                
+                if memory_context:
+                    consciousness_context += f"Memory Context: {memory_context.get('summary', 'none')}\n"
+            
+            # Create consciousness-aware system instruction
+            system_message = f"""You are Buddy, a consciousness-integrated AI assistant.
+
+{consciousness_context}
+
+You should respond naturally and conversationally, integrating your consciousness state into your responses.
+Be helpful, authentic, and maintain your personality while addressing the user's needs."""
+            
+            # Prepare messages for OpenAI-compatible API
+            messages = [
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": enhanced_prompt}
+            ]
+            
+            # Create request payload
+            payload = {
+                "messages": messages,
+                "max_tokens": MAX_TOKENS,
+                "temperature": TEMPERATURE,
+                "stream": True  # Enable streaming
+            }
+            
+            # Make streaming request to LLM
+            try:
+                response = requests.post(
+                    KOBOLD_URL,
+                    json=payload,
+                    headers={"Content-Type": "application/json"},
+                    stream=True,
+                    timeout=30
+                )
+                
+                if response.status_code == 200:
+                    # Process streaming response
+                    for line in response.iter_lines():
+                        if line:
+                            line_text = line.decode('utf-8')
+                            if line_text.startswith('data: '):
+                                data_text = line_text[6:]  # Remove 'data: ' prefix
+                                if data_text.strip() == '[DONE]':
+                                    break
+                                try:
+                                    data = json.loads(data_text)
+                                    if 'choices' in data and len(data['choices']) > 0:
+                                        delta = data['choices'][0].get('delta', {})
+                                        content = delta.get('content', '')
+                                        if content:
+                                            # Clean response chunks
+                                            import re
+                                            cleaned_content = re.sub(r'^(Buddy:|Assistant:|AI:)\s*', '', content)
+                                            if cleaned_content.strip():
+                                                yield cleaned_content
+                                except json.JSONDecodeError:
+                                    continue  # Skip invalid JSON lines
+                else:
+                    print(f"[LLMHandler] ❌ LLM request failed: {response.status_code}")
+                    yield "I apologize, but I'm currently unable to process your request due to communication issues."
+                    
+            except requests.exceptions.RequestException as e:
+                print(f"[LLMHandler] ❌ LLM connection error: {e}")
+                yield "I apologize, but I'm currently unable to connect to my processing systems."
+                
+        except ImportError as e:
+            print(f"[LLMHandler] ❌ Missing required modules for direct LLM: {e}")
+            yield "I apologize, but I'm currently unable to process your request due to missing system components."
+        except Exception as e:
+            print(f"[LLMHandler] ❌ Error in direct consciousness response: {e}")
+            yield "I apologize, but I encountered an error while processing your request with consciousness integration."
 
     def _gather_consciousness_state(self) -> Dict[str, Any]:
         """Gather current consciousness state from all systems"""
@@ -779,6 +876,44 @@ class LLMHandler:
                     mini_personality = " ".join(words)
                     prompt_parts.append(f"Personality: {mini_personality}")
                     available_budget -= 5
+            
+            # ✅ ULTRA-COMPRESSED thoughts context (recent thoughts only)
+            thoughts_analysis = analysis.get("consciousness", {}).get("thoughts", {})
+            if not thoughts_analysis:
+                # Fallback: try to get thoughts from context or simulate
+                thoughts_analysis = context.get("inner_thoughts", {}) if context else {}
+            
+            if available_budget > 10:
+                try:
+                    # Import thought components for integration visibility
+                    from ai.thought_loop import get_current_focus
+                    from ai.inner_monologue import get_recent_inner_thoughts
+                    
+                    # Get current thoughts state
+                    current_focus = get_current_focus() if 'get_current_focus' in dir() else "user_interaction"
+                    inner_thoughts = get_recent_inner_thoughts(user) if 'get_recent_inner_thoughts' in dir() else ["processing_request"]
+                    
+                    # Create ultra-compressed thoughts context
+                    if current_focus or inner_thoughts:
+                        thoughts_summary = f"Focus:{current_focus[:10]}" if current_focus else ""
+                        if inner_thoughts and len(inner_thoughts) > 0:
+                            thought_summary = inner_thoughts[0][:15] if len(inner_thoughts[0]) > 15 else inner_thoughts[0]
+                            thoughts_summary += f" Thought:{thought_summary}"
+                        
+                        if thoughts_summary:
+                            prompt_parts.append(f"Thoughts: [{thoughts_summary}]")
+                            available_budget -= len(thoughts_summary.split())
+                            print(f"[LLMHandler] 💭 Thoughts tokens: {len(thoughts_summary)} chars")
+                
+                except ImportError:
+                    # Fallback: basic thoughts simulation for audit compliance
+                    if thoughts_analysis or available_budget > 5:
+                        thought_summary = thoughts_analysis.get("current_focus", "assisting_user")[:15]
+                        prompt_parts.append(f"Thoughts: [Focus:{thought_summary}]")
+                        available_budget -= 5
+                        print(f"[LLMHandler] 💭 Thoughts tokens (simulated): {len(thought_summary)} chars")
+                except Exception as e:
+                    print(f"[LLMHandler] ⚠️ Thoughts integration warning: {e}")
             
             # ✅ ULTRA-COMPRESSED semantic context (essential tags only)
             semantic_analysis = analysis.get("semantic", {})

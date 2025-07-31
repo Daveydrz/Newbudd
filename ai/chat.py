@@ -541,10 +541,8 @@ def optimize_context_for_token_limit(context: str, max_tokens: int = 1500) -> st
             print(f"[Optimize] Error: {e}")
         return context[:max_tokens * 4]  # Fallback: simple truncation
 
-# ✅ Main streaming function
-def generate_streaming_response(question, username, lang=DEFAULT_LANG):
-    """Generate streaming response - ULTRA-RESPONSIVE streaming from LLM"""
-    return generate_response_streaming(question, username, lang)
+# ✅ Main streaming function removed - use generate_response_streaming directly
+# No need for alias function that could create bypass opportunities
 
 def get_response_mode():
     """Get current response mode"""

@@ -1,5 +1,5 @@
 {
-  "audit_timestamp": "2025-07-31T03:44:48.235086",
+  "audit_timestamp": "2025-07-31T03:59:18.600331",
   "repository_path": ".",
   "class5_verification": {
     "ai/llm_handler.py": {
@@ -8,6 +8,8 @@
         "generate_response_with_consciousness"
       ],
       "class5_imports": [
+        "consciousness_integrated_response",
+        "consciousness_integrated_response",
         "consciousness_integrated_response",
         "consciousness_integrated_response"
       ],
@@ -27,7 +29,7 @@
         "_build_enhanced_prompt("
       ],
       "direct_llm_calls": [
-        "generate_response_streaming("
+        "requests.post("
       ]
     },
     "ai/chat.py": {
@@ -45,7 +47,6 @@
       "uses_class5": true,
       "alternative_prompt_builders": [],
       "direct_llm_calls": [
-        "generate_response_streaming(",
         "generate_response_streaming("
       ]
     },
@@ -114,7 +115,7 @@
       "components_detected": {
         "Memory": {
           "found": true,
-          "matches": 9,
+          "matches": 16,
           "references": [
             "memory_timeline",
             "memory_timeline",
@@ -125,7 +126,7 @@
         },
         "Mood": {
           "found": true,
-          "matches": 16,
+          "matches": 21,
           "references": [
             "mood_manager",
             "mood_manager",
@@ -136,7 +137,7 @@
         },
         "Goals": {
           "found": true,
-          "matches": 28,
+          "matches": 35,
           "references": [
             "goal_manager",
             "goal_manager",
@@ -147,7 +148,7 @@
         },
         "Thoughts": {
           "found": true,
-          "matches": 24,
+          "matches": 29,
           "references": [
             "thought_loop",
             "thought_loop",
@@ -158,12 +159,12 @@
         },
         "Personality": {
           "found": true,
-          "matches": 24,
+          "matches": 29,
           "references": [
             "personality_profile",
-            "personality_modifiers",
-            "personality_modifiers",
-            "personality_modifiers",
+            "personality_profile",
+            "personality_profile",
+            "personality_profile",
             "personality_modifiers"
           ]
         }
@@ -234,8 +235,11 @@
       "components_detected": {
         "Memory": {
           "found": true,
-          "matches": 1,
+          "matches": 4,
           "references": [
+            "memory_context",
+            "memory_context",
+            "memory_context",
             "memory_context"
           ]
         },
@@ -257,9 +261,15 @@
           ]
         },
         "Thoughts": {
-          "found": false,
-          "matches": 0,
-          "references": []
+          "found": true,
+          "matches": 17,
+          "references": [
+            "thought_loop",
+            "inner_thoughts",
+            "inner_thoughts",
+            "inner_thoughts",
+            "inner_thoughts"
+          ]
         },
         "Personality": {
           "found": true,
@@ -334,13 +344,13 @@
         "ai/llm_budget_monitor.py": {
           "path": "ai/llm_budget_monitor.py",
           "build_functions": [],
-          "consciousness_aware": false,
+          "consciousness_aware": true,
           "function_count": 0
         },
         "ai/llm_optimized.py": {
           "path": "ai/llm_optimized.py",
           "build_functions": [],
-          "consciousness_aware": false,
+          "consciousness_aware": true,
           "function_count": 0
         }
       },
@@ -372,9 +382,8 @@
           "from ai.prompt_security import sanitize_prompt_input as dedicated_sanitize"
         ],
         "calls": [
-          "_build_enhanced_prompt",
           "sanitize_prompt_input",
-          "prompt"
+          "_build_enhanced_prompt"
         ]
       },
       "duplicates_detected": false
@@ -387,15 +396,15 @@
       ],
       "function_analysis": {
         "ai/conscious_prompt_builder.py": {
-          "memory_integration": false,
-          "mood_integration": false,
-          "goals_integration": false,
-          "thoughts_integration": false,
-          "personality_integration": false,
-          "function_length": 4,
+          "memory_integration": true,
+          "mood_integration": true,
+          "goals_integration": true,
+          "thoughts_integration": true,
+          "personality_integration": true,
+          "function_length": 59,
           "returns_comprehensive_state": true,
-          "completeness_score": 0.0,
-          "is_comprehensive": false
+          "completeness_score": 1.0,
+          "is_comprehensive": true
         }
       }
     },
@@ -474,13 +483,9 @@
         100.0
       ]
     ],
-    "total_issues": 1,
-    "recommendation_count": 1
+    "total_issues": 0,
+    "recommendation_count": 0
   },
-  "issues_found": [
-    "get_consciousness_snapshot() in ai/conscious_prompt_builder.py is missing consciousness components (0/5)"
-  ],
-  "recommendations": [
-    "Implement or improve get_consciousness_snapshot() function to return complete consciousness state"
-  ]
+  "issues_found": [],
+  "recommendations": []
 }

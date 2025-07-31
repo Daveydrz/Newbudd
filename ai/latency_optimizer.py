@@ -26,17 +26,22 @@ except ImportError as e:
     print(f"[LatencyOptimizer] ❌ Optimization modules not available: {e}")
     OPTIMIZATION_AVAILABLE = False
 
-# Import LLM components
+# Import LLM components - CONSCIOUSNESS ONLY
 try:
     from ai.chat_enhanced_smart_with_fusion import generate_response_streaming_with_intelligent_fusion
     FUSION_LLM_AVAILABLE = True
+    print("[LatencyOptimizer] ✅ Fusion LLM loaded - consciousness integration active")
 except ImportError:
+    # ✅ CONSCIOUSNESS-INTEGRATED FALLBACK: Import LLMHandler instead of direct chat functions
     try:
-        from ai.chat import generate_response_streaming
+        from ai.llm_handler import LLMHandler
         FUSION_LLM_AVAILABLE = False
+        LLM_HANDLER_AVAILABLE = True
+        print("[LatencyOptimizer] 🧠 Using consciousness-integrated LLMHandler fallback")
     except ImportError:
         FUSION_LLM_AVAILABLE = False
-        print("[LatencyOptimizer] ❌ No LLM modules available")
+        LLM_HANDLER_AVAILABLE = False
+        print("[LatencyOptimizer] ❌ No consciousness-integrated LLM modules available")
 
 class LatencyOptimizationMode(Enum):
     """Latency optimization modes with different performance/intelligence trade-offs"""
@@ -160,8 +165,19 @@ class LatencyOptimizer:
                     optimized_prompt, user_id, "en", context=cognitive_context
                 )
             else:
-                # Use basic LLM for maximum speed
-                response_generator = generate_response_streaming(optimized_prompt, user_id, "en")
+                # ✅ CONSCIOUSNESS-INTEGRATED FALLBACK: Use LLMHandler instead of direct chat
+                if LLM_HANDLER_AVAILABLE:
+                    llm_handler = LLMHandler()
+                    response_generator = llm_handler.generate_response_with_consciousness(
+                        text=optimized_prompt,
+                        user=user_id,
+                        context={"latency_optimized": True, "optimization_mode": "fast"},
+                        stream=True
+                    )
+                else:
+                    # Ultimate fallback with error message
+                    yield "I apologize, but I'm having technical difficulties processing your request."
+                    return
             
             # Phase 3: Stream response with performance monitoring
             full_response = ""
@@ -223,9 +239,14 @@ class LatencyOptimizer:
                 response_generator = generate_response_streaming_with_intelligent_fusion(
                     f"You are Buddy. Respond to: {user_input}", user_id, "en"
                 )
-            elif 'generate_response_streaming' in globals():
-                response_generator = generate_response_streaming(
-                    f"You are Buddy. Respond to: {user_input}", user_id, "en"
+            elif LLM_HANDLER_AVAILABLE:
+                # ✅ CONSCIOUSNESS-INTEGRATED FALLBACK: Use LLMHandler
+                llm_handler = LLMHandler()
+                response_generator = llm_handler.generate_response_with_consciousness(
+                    text=f"You are Buddy. Respond to: {user_input}",
+                    user=user_id,
+                    context={"latency_optimized": True, "fallback_mode": True},
+                    stream=True
                 )
             else:
                 # Ultimate fallback

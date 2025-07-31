@@ -1,0 +1,68 @@
+{
+  "working_memory": {
+    "active_contexts": {
+      "ctx_1753966049_0": {
+        "context_id": "ctx_1753966049_0",
+        "event_type": "general_event",
+        "description": "my name is sarah",
+        "place": null,
+        "time_reference": null,
+        "status": "planned",
+        "priority": 1,
+        "timestamp": "2025-07-31 12:47:29",
+        "related_contexts": [],
+        "completion_status": 0.0
+      },
+      "ctx_1753966049_1": {
+        "context_id": "ctx_1753966049_1",
+        "event_type": "general_event",
+        "description": "i love hiking",
+        "place": null,
+        "time_reference": null,
+        "status": "planned",
+        "priority": 2,
+        "timestamp": "2025-07-31 12:47:29",
+        "related_contexts": [],
+        "completion_status": 0.0
+      },
+      "ctx_1753966049_2": {
+        "context_id": "ctx_1753966049_2",
+        "event_type": "general_event",
+        "description": "what's the difference between python",
+        "place": null,
+        "time_reference": null,
+        "status": "planned",
+        "priority": 1,
+        "timestamp": "2025-07-31 12:47:29",
+        "related_contexts": [],
+        "completion_status": 0.0
+      },
+      "ctx_1753966049_3": {
+        "context_id": "ctx_1753966049_3",
+        "event_type": "general_event",
+        "description": "java?",
+        "place": null,
+        "time_reference": null,
+        "status": "planned",
+        "priority": 2,
+        "timestamp": "2025-07-31 12:47:29",
+        "related_contexts": [],
+        "completion_status": 0.0
+      }
+    },
+    "last_action": "what's the difference between python",
+    "last_place": "do you think about consciousness?",
+    "last_topic": "python",
+    "last_goal": "for 2 weeks",
+    "last_timestamp": "2025-07-31 12:47:29",
+    "action_status": "planned",
+    "context_sequence": [
+      "ctx_1753966049_0",
+      "ctx_1753966049_1",
+      "ctx_1753966049_2",
+      "ctx_1753966049_3"
+    ]
+  },
+  "intent_slots": {},
+  "reference_history": []
+}

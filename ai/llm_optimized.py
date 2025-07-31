@@ -68,7 +68,7 @@ def ask_kobold_optimized(template_id: str, user_content: str, max_tokens: int = 
     # Convert messages to prompt format for consciousness integration
     full_prompt = f"{expanded_system}\n\nUser: {user_content}\n\nAssistant:"
     
-    # Use consciousness-integrated response generation  
+    # Use consciousness-integrated response generation (disable optimization to prevent circular calls)
     response_chunks = []
     for chunk in _llm_handler.generate_response_with_consciousness(
         text=user_content,
@@ -79,7 +79,8 @@ def ask_kobold_optimized(template_id: str, user_content: str, max_tokens: int = 
             "optimized_call": True,
             "consciousness_aware": True
         },
-        stream=False
+        stream=False,
+        use_optimization=False  # Prevent circular dependency with latency optimizer
     ):
         if chunk and chunk.strip():
             response_chunks.append(chunk.strip())

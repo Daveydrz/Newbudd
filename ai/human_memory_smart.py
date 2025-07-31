@@ -356,13 +356,14 @@ Return only valid JSON array:"""
             system_content = "You are a precise JSON extraction assistant. Return only valid JSON arrays. Extract ONLY real events, appointments, or emotional states worth remembering."
             combined_prompt = f"{system_content}\n\n{detection_prompt}"
             
-            # Use consciousness-integrated response generation
+            # Use consciousness-integrated response generation (disable optimization to prevent circular calls)
             llm_response = ""
             for chunk in llm_handler.generate_response_with_consciousness(
                 text=combined_prompt,
                 user=self.username,
                 context={"purpose": "event_detection", "max_tokens": 300},
-                stream=False
+                stream=False,
+                use_optimization=False  # Prevent circular dependency with latency optimizer
             ):
                 if chunk and chunk.strip():
                     llm_response += chunk.strip() + " "

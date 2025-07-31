@@ -186,13 +186,14 @@ Analyze ONLY the actual data provided. Do not invent details."""
             system_content = "You are an expert identity analyst. Analyze ONLY the actual data provided in user profiles. Never fabricate or assume information not present. Respond with precise JSON analysis based solely on the given data."
             combined_prompt = f"{system_content}\n\n{analysis_prompt}"
             
-            # Use consciousness-integrated response generation
+            # Use consciousness-integrated response generation (disable optimization to prevent circular calls)
             llm_response = ""
             for chunk in llm_handler.generate_response_with_consciousness(
                 text=combined_prompt,
                 user="system_analyzer",
                 context={"purpose": "memory_similarity_analysis", "max_tokens": 200},
-                stream=False
+                stream=False,
+                use_optimization=False  # Prevent circular dependency with latency optimizer
             ):
                 if chunk and chunk.strip():
                     llm_response += chunk.strip() + " "
@@ -687,13 +688,14 @@ Respond ONLY in this exact JSON format:
             system_content = "You are a memory conflict resolver. Analyze conflicting memory values and choose the most accurate one. Consider nicknames, full names, and context. Respond with precise JSON."
             combined_prompt = f"{system_content}\n\n{conflict_prompt}"
             
-            # Use consciousness-integrated response generation
+            # Use consciousness-integrated response generation (disable optimization to prevent circular calls)
             response = ""
             for chunk in llm_handler.generate_response_with_consciousness(
                 text=combined_prompt,
                 user="system_resolver",
                 context={"purpose": "memory_conflict_resolution", "max_tokens": 400},
-                stream=False
+                stream=False,
+                use_optimization=False  # Prevent circular dependency with latency optimizer
             ):
                 if chunk and chunk.strip():
                     response += chunk.strip() + " "

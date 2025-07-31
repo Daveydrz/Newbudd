@@ -1,5 +1,5 @@
 {
-  "audit_timestamp": "2025-07-31T01:59:45.118058",
+  "audit_timestamp": "2025-07-31T02:51:54.478904",
   "repository_path": ".",
   "class5_verification": {
     "ai/llm_handler.py": {
@@ -38,28 +38,13 @@
       ],
       "class5_imports": [],
       "consciousness_calls": [
+        "generate_response_with_consciousness(",
+        "generate_response_with_consciousness(",
         "generate_response_with_consciousness("
       ],
       "uses_class5": true,
-      "alternative_prompt_builders": [
-        "compress_prompt(",
-        "compress_prompt(",
-        "compress_prompt(",
-        "compress_prompt(",
-        "expand_prompt(",
-        "expand_prompt(",
-        "from ai.prompt_compressor import",
-        "from ai.prompt_compressor import",
-        "from ai.prompt_compressor import",
-        "from ai.prompt_compressor import"
-      ],
+      "alternative_prompt_builders": [],
       "direct_llm_calls": [
-        "ask_kobold(",
-        "ask_kobold(",
-        "ask_kobold_streaming(",
-        "ask_kobold_streaming(",
-        "requests.post(",
-        "requests.post(",
         "generate_response_streaming(",
         "generate_response_streaming("
       ]
@@ -70,13 +55,13 @@
         "generate_response_with_human_memory"
       ],
       "class5_imports": [],
-      "consciousness_calls": [],
-      "uses_class5": false,
+      "consciousness_calls": [
+        "generate_response_with_consciousness(",
+        "generate_response_with_consciousness("
+      ],
+      "uses_class5": true,
       "alternative_prompt_builders": [],
-      "direct_llm_calls": [
-        "generate_response_streaming(",
-        "generate_response_streaming("
-      ]
+      "direct_llm_calls": []
     },
     "ai/chat_enhanced_smart.py": {
       "file_exists": true,
@@ -84,12 +69,12 @@
         "generate_response_streaming_with_smart_memory"
       ],
       "class5_imports": [],
-      "consciousness_calls": [],
-      "uses_class5": false,
+      "consciousness_calls": [
+        "generate_response_with_consciousness("
+      ],
+      "uses_class5": true,
       "alternative_prompt_builders": [],
-      "direct_llm_calls": [
-        "generate_response_streaming("
-      ]
+      "direct_llm_calls": []
     },
     "ai/chat_enhanced_smart_with_fusion.py": {
       "file_exists": true,
@@ -97,15 +82,15 @@
         "generate_response_streaming_with_intelligent_fusion"
       ],
       "class5_imports": [],
-      "consciousness_calls": [],
-      "uses_class5": false,
+      "consciousness_calls": [
+        "generate_response_with_consciousness(",
+        "generate_response_with_consciousness(",
+        "generate_response_with_consciousness(",
+        "generate_response_with_consciousness("
+      ],
+      "uses_class5": true,
       "alternative_prompt_builders": [],
-      "direct_llm_calls": [
-        "generate_response_streaming(",
-        "generate_response_streaming(",
-        "generate_response_streaming(",
-        "generate_response_streaming("
-      ]
+      "direct_llm_calls": []
     },
     "main.py": {
       "file_exists": true,
@@ -241,7 +226,6 @@
         }
       },
       "prompt_build_functions": [
-        "def build_optimized_prompt(",
         "def build_optimized_prompt("
       ],
       "consciousness_integration": true
@@ -295,16 +279,8 @@
       "consciousness_integration": true
     },
     "builder_detection": {
-      "total_files": 10,
+      "total_files": 9,
       "file_analysis": {
-        "ai/conscious_prompt_builder_backup.py": {
-          "path": "ai/conscious_prompt_builder_backup.py",
-          "build_functions": [
-            "build_consciousness_integrated_prompt"
-          ],
-          "consciousness_aware": true,
-          "function_count": 1
-        },
         "ai/conscious_prompt_builder.py": {
           "path": "ai/conscious_prompt_builder.py",
           "build_functions": [
@@ -318,11 +294,10 @@
         "ai/optimized_prompt_builder.py": {
           "path": "ai/optimized_prompt_builder.py",
           "build_functions": [
-            "build_optimized_prompt",
             "build_optimized_prompt"
           ],
           "consciousness_aware": true,
-          "function_count": 2
+          "function_count": 1
         },
         "ai/chat.py": {
           "path": "ai/chat.py",
@@ -339,13 +314,13 @@
         "ai/chat_enhanced_smart.py": {
           "path": "ai/chat_enhanced_smart.py",
           "build_functions": [],
-          "consciousness_aware": false,
+          "consciousness_aware": true,
           "function_count": 0
         },
         "ai/chat_enhanced.py": {
           "path": "ai/chat_enhanced.py",
           "build_functions": [],
-          "consciousness_aware": false,
+          "consciousness_aware": true,
           "function_count": 0
         },
         "ai/llm_handler.py": {
@@ -371,10 +346,6 @@
       },
       "build_prompt_functions": [
         [
-          "build_consciousness_integrated_prompt",
-          "ai/conscious_prompt_builder_backup.py"
-        ],
-        [
           "build_consciousness_prompt",
           "ai/conscious_prompt_builder.py"
         ],
@@ -391,10 +362,6 @@
           "ai/optimized_prompt_builder.py"
         ],
         [
-          "build_optimized_prompt",
-          "ai/optimized_prompt_builder.py"
-        ],
-        [
           "_build_enhanced_prompt",
           "ai/llm_handler.py"
         ]
@@ -405,32 +372,20 @@
           "from ai.prompt_security import sanitize_prompt_input as dedicated_sanitize"
         ],
         "calls": [
-          "sanitize_prompt_input",
           "_build_enhanced_prompt",
+          "sanitize_prompt_input",
           "prompt"
         ]
       },
-      "duplicates_detected": true
+      "duplicates_detected": false
     }
   },
   "consciousness_components": {
     "snapshot_function": {
       "locations": [
-        "ai/conscious_prompt_builder_backup.py",
         "ai/conscious_prompt_builder.py"
       ],
       "function_analysis": {
-        "ai/conscious_prompt_builder_backup.py": {
-          "memory_integration": false,
-          "mood_integration": false,
-          "goals_integration": false,
-          "thoughts_integration": false,
-          "personality_integration": false,
-          "function_length": 4,
-          "returns_comprehensive_state": true,
-          "completeness_score": 0.0,
-          "is_comprehensive": false
-        },
         "ai/conscious_prompt_builder.py": {
           "memory_integration": false,
           "mood_integration": false,
@@ -502,13 +457,13 @@
     }
   },
   "integration_status": {
-    "overall_score": 75.0,
-    "status": "GOOD",
-    "status_emoji": "\ud83d\udfe1",
+    "overall_score": 91.66666666666667,
+    "status": "EXCELLENT",
+    "status_emoji": "\ud83d\udfe2",
     "component_scores": [
       [
         "Class 5 Integration",
-        50.0
+        100.0
       ],
       [
         "Prompt Consciousness",
@@ -519,20 +474,13 @@
         100.0
       ]
     ],
-    "total_issues": 6,
-    "recommendation_count": 3
+    "total_issues": 1,
+    "recommendation_count": 1
   },
   "issues_found": [
-    "LLM functions in ai/chat_enhanced.py do not use Class 5 consciousness integration",
-    "LLM functions in ai/chat_enhanced_smart.py do not use Class 5 consciousness integration",
-    "LLM functions in ai/chat_enhanced_smart_with_fusion.py do not use Class 5 consciousness integration",
-    "get_consciousness_snapshot() in ai/conscious_prompt_builder_backup.py is missing consciousness components (0/5)",
-    "get_consciousness_snapshot() in ai/conscious_prompt_builder.py is missing consciousness components (0/5)",
-    "Duplicate prompt building functions detected"
+    "get_consciousness_snapshot() in ai/conscious_prompt_builder.py is missing consciousness components (0/5)"
   ],
   "recommendations": [
-    "Implement Class 5 consciousness integration in all LLM handler functions",
-    "Implement or improve get_consciousness_snapshot() function to return complete consciousness state",
-    "Consolidate duplicate prompt builders to avoid confusion and maintenance issues"
+    "Implement or improve get_consciousness_snapshot() function to return complete consciousness state"
   ]
 }

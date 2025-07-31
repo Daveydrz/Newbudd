@@ -1,76 +1,8 @@
 {
-  "files_not_using_consciousness": {
-    "ai/chat_enhanced.py": {
-      "functions": [
-        "generate_response_with_human_memory"
-      ],
-      "alternative_prompt_builders": [],
-      "direct_llm_calls": [
-        "generate_response_streaming(",
-        "generate_response_streaming("
-      ],
-      "instead_uses": [
-        "Direct LLM call: generate_response_streaming(",
-        "Delegates to: from ai.chat import generate_response",
-        "Delegates to: generate_response_streaming(",
-        "Delegates to: generate_response_streaming("
-      ]
-    },
-    "ai/chat_enhanced_smart.py": {
-      "functions": [
-        "generate_response_streaming_with_smart_memory"
-      ],
-      "alternative_prompt_builders": [],
-      "direct_llm_calls": [
-        "generate_response_streaming("
-      ],
-      "instead_uses": [
-        "Direct LLM call: generate_response_streaming(",
-        "Delegates to: from ai.chat import generate_response",
-        "Delegates to: generate_response_streaming("
-      ]
-    },
-    "ai/chat_enhanced_smart_with_fusion.py": {
-      "functions": [
-        "generate_response_streaming_with_intelligent_fusion"
-      ],
-      "alternative_prompt_builders": [],
-      "direct_llm_calls": [
-        "generate_response_streaming(",
-        "generate_response_streaming(",
-        "generate_response_streaming(",
-        "generate_response_streaming("
-      ],
-      "instead_uses": [
-        "Direct LLM call: generate_response_streaming(",
-        "Delegates to: from ai.chat import generate_response",
-        "Delegates to: generate_response_streaming(",
-        "Delegates to: generate_response_streaming(",
-        "Delegates to: generate_response_streaming(",
-        "Delegates to: generate_response_streaming("
-      ]
-    }
-  },
-  "duplicate_prompt_builders": [
-    {
-      "function_name": "build_consciousness_integrated_prompt",
-      "files": [
-        "ai/conscious_prompt_builder_backup.py",
-        "ai/conscious_prompt_builder.py"
-      ],
-      "is_exact_duplicate": true
-    },
-    {
-      "function_name": "build_optimized_prompt",
-      "files": [
-        "ai/optimized_prompt_builder.py",
-        "ai/optimized_prompt_builder.py"
-      ],
-      "is_exact_duplicate": true
-    }
-  ],
+  "files_not_using_consciousness": {},
+  "duplicate_prompt_builders": [],
   "summary": {
-    "total_non_consciousness_files": 3,
-    "total_duplicate_patterns": 2
+    "total_non_consciousness_files": 0,
+    "total_duplicate_patterns": 0
   }
 }

@@ -411,7 +411,7 @@ except ImportError as e:
         print("[AdvancedBuddy] 🧹 clear_audio_queue fallback - queue clearing disabled")
         pass
 
-from ai.chat import generate_response  # Keep for fallback
+from ai.chat import generate_response  # Now consciousness-integrated fallback
 from ai.memory import add_to_conversation_history
 from voice.database import load_known_users, known_users, anonymous_clusters
 from voice.recognition import identify_speaker

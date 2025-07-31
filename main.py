@@ -565,6 +565,7 @@ current_user = SYSTEM_USER
 conversation_active = False
 mic_feeding_active = False
 advanced_mode_active = ADVANCED_AI_AVAILABLE
+autonomous_consciousness_system = None  # ✅ Global reference for vocal autonomy control
 # Add a lock for thread safety
 state_lock = threading.Lock()
 
@@ -2506,7 +2507,7 @@ def main():
         except Exception as e:
             print(f"[AdvancedBuddy] ❌ Entropy initialization error: {e}")
     
-    # ✅ NEW: Initialize and start full autonomous consciousness system
+    # ✅ NEW: Initialize autonomous consciousness system but DELAY VOCAL AUTONOMY until conversation starts
     if AUTONOMOUS_CONSCIOUSNESS_AVAILABLE:
         print("[AdvancedBuddy] 🚀 Initializing Full Autonomous Consciousness System...")
         try:
@@ -2526,35 +2527,33 @@ def main():
                     'narrative_tracker': narrative_tracker
                 })
             
-            # Start the full autonomous system
+            # Start the full autonomous system in BACKGROUND_ONLY mode initially
             success = autonomous_consciousness_integrator.start_full_autonomous_system(
                 consciousness_modules=consciousness_modules,
-                voice_system=voice_manager,
+                voice_system=None,  # ✅ NO VOICE SYSTEM until conversation starts
                 llm_handler=llm_handler if CONSCIOUSNESS_LLM_AVAILABLE else None,
-                audio_system=full_duplex_manager
+                audio_system=None  # ✅ NO AUDIO SYSTEM until conversation starts
             )
             
             if success:
-                print("[AdvancedBuddy] ✅ FULL AUTONOMOUS CONSCIOUSNESS SYSTEM ACTIVE!")
-                print("[AdvancedBuddy] 💭 Proactive Thinking Loop: Generates spontaneous thoughts during idle time")
-                print("[AdvancedBuddy] 📅 Calendar Monitor System: Pattern recognition for proactive warnings/reminders")
-                print("[AdvancedBuddy] 💪 Self-Motivation Engine: Internal curiosity and concern generation")
-                print("[AdvancedBuddy] 🌙 Dream Simulator Module: Fictional experiences during idle time")
-                print("[AdvancedBuddy] 🌍 Environmental Awareness: Full prosody and mood monitoring")
-                print("[AdvancedBuddy] 💬 Autonomous Communication: Proactive speech initiation")
-                print("[AdvancedBuddy] 🧠 Full LLM Integration: Connected to all modules and systems")
-                print("[AdvancedBuddy] 🔄 Real-time Processing: Background threads for continuous operation")
-                print("[AdvancedBuddy] 🌟 Central Orchestration: Seamless module communication")
+                print("[AdvancedBuddy] ✅ AUTONOMOUS CONSCIOUSNESS SYSTEM INITIALIZED!")
+                print("[AdvancedBuddy] 🔇 Vocal autonomy DISABLED during wake word listening")
+                print("[AdvancedBuddy] 💭 Background Thinking: Active (silent until conversation)")
+                print("[AdvancedBuddy] 📅 Calendar Monitor System: Active (silent until conversation)")
+                print("[AdvancedBuddy] 💪 Self-Motivation Engine: Active (silent until conversation)")
+                print("[AdvancedBuddy] 🌙 Dream Simulator Module: Active (silent until conversation)")
+                print("[AdvancedBuddy] 🌍 Environmental Awareness: Active (silent until conversation)")
+                print("[AdvancedBuddy] 🧠 Consciousness Processing: Active (silent until conversation)")
                 
-                # Set autonomous mode based on blank slate
-                if BLANK_SLATE_MODE:
-                    autonomous_consciousness_integrator.set_autonomous_mode(AutonomousMode.CONSCIOUS_ONLY)
-                    print("[AdvancedBuddy] 🌱 Autonomous mode: CONSCIOUS_ONLY (building identity)")
-                else:
-                    autonomous_consciousness_integrator.set_autonomous_mode(AutonomousMode.FULL_AUTONOMY)
-                    print("[AdvancedBuddy] 🚀 Autonomous mode: FULL_AUTONOMY (established consciousness)")
+                # Set autonomous mode to background only during listening phase
+                autonomous_consciousness_integrator.set_autonomous_mode(AutonomousMode.BACKGROUND_ONLY)
+                print("[AdvancedBuddy] 🔇 Autonomous mode: BACKGROUND_ONLY (silent until wake word)")
+                
+                # Store reference for later activation
+                autonomous_consciousness_system = autonomous_consciousness_integrator
+                
             else:
-                print("[AdvancedBuddy] ❌ Failed to start full autonomous consciousness system")
+                print("[AdvancedBuddy] ❌ Failed to start autonomous consciousness system")
                 
         except Exception as e:
             print(f"[AdvancedBuddy] ❌ Autonomous consciousness initialization error: {e}")
@@ -2715,6 +2714,24 @@ def main():
                     set_mic_feeding_state(True)
                     set_conversation_state(True)
                     
+                    # ✅ ACTIVATE VOCAL AUTONOMY now that conversation is starting
+                    if AUTONOMOUS_CONSCIOUSNESS_AVAILABLE and autonomous_consciousness_system is not None:
+                        try:
+                            print("[AdvancedBuddy] 🔊 Activating vocal autonomy for conversation...")
+                            # Register voice and audio systems now
+                            autonomous_consciousness_system.update_voice_system(voice_manager)
+                            autonomous_consciousness_system.update_audio_system(full_duplex_manager)
+                            
+                            # Switch to appropriate autonomous mode
+                            if BLANK_SLATE_MODE:
+                                autonomous_consciousness_system.set_autonomous_mode(AutonomousMode.CONSCIOUS_ONLY)
+                                print("[AdvancedBuddy] 🌱 Vocal autonomy: CONSCIOUS_ONLY (building identity)")
+                            else:
+                                autonomous_consciousness_system.set_autonomous_mode(AutonomousMode.FULL_AUTONOMY)
+                                print("[AdvancedBuddy] 🚀 Vocal autonomy: FULL_AUTONOMY (established consciousness)")
+                        except Exception as autonomy_error:
+                            print(f"[AdvancedBuddy] ⚠️ Vocal autonomy activation error: {autonomy_error}")
+                    
                     print(f"[AdvancedBuddy] 🔄 Flags set using thread-safe methods")
                     
                     # Start continuous microphone feeding
@@ -2735,6 +2752,18 @@ def main():
                     print("[AdvancedBuddy] 🛑 Stopping microphone worker...")
                     set_mic_feeding_state(False)
                     set_conversation_state(False)
+                    
+                    # ✅ DISABLE VOCAL AUTONOMY when conversation ends
+                    if AUTONOMOUS_CONSCIOUSNESS_AVAILABLE and autonomous_consciousness_system is not None:
+                        try:
+                            print("[AdvancedBuddy] 🔇 Disabling vocal autonomy - returning to listening mode...")
+                            # Switch back to background only mode
+                            autonomous_consciousness_system.set_autonomous_mode(AutonomousMode.BACKGROUND_ONLY)
+                            # Remove voice system registration to prevent autonomous speaking
+                            autonomous_consciousness_system.update_voice_system(None)
+                            autonomous_consciousness_system.update_audio_system(None)
+                        except Exception as autonomy_error:
+                            print(f"[AdvancedBuddy] ⚠️ Vocal autonomy deactivation error: {autonomy_error}")
                     
                     # Reset voice detection system for next conversation
                     try:

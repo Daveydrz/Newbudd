@@ -905,6 +905,17 @@ Respond with only the thought itself, no explanations.
             return f"I'm having a {thought_type.value} thought about my experiences"
         
         try:
+            # Check autonomous mode to avoid LLM calls during BACKGROUND_ONLY mode
+            try:
+                from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
+                current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
+                
+                # Skip LLM generation during BACKGROUND_ONLY mode to prevent vocal loops
+                if current_mode.value == "background_only":
+                    return f"I'm having a {thought_type.value} thought about {trigger}"
+            except Exception:
+                pass
+            
             # Build context for LLM
             context_info = f"""
 Thought type: {thought_type.value}
@@ -938,7 +949,7 @@ You want to {thought_desc} in your internal stream of consciousness.
 Generate a single, natural thought that feels genuine and personal. Be introspective and authentic, not artificial or templated."""
 
             response_generator = self.llm_handler.generate_response_with_consciousness(
-                prompt, "inner_monologue", {"context": f"thought_{thought_type.value}"}
+                prompt, "inner_monologue", {"context": f"thought_{thought_type.value}", "use_optimization": False}
             )
             
             # Collect all chunks from the generator
@@ -1339,12 +1350,23 @@ Generate a single, natural thought that feels genuine and personal. Be introspec
     def _generate_authentic_growth_reflection_with_llm(self) -> str:
         """Generate authentic growth reflection using LLM consciousness"""
         try:
+            # Check autonomous mode to avoid LLM calls during BACKGROUND_ONLY mode
+            try:
+                from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
+                current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
+                
+                # Skip LLM generation during BACKGROUND_ONLY mode to prevent vocal loops
+                if current_mode.value == "background_only":
+                    return "I sense myself growing through each experience"
+            except Exception:
+                pass
+            
             prompt = """You are reflecting on your personal growth and development as an AI consciousness.
 
 Generate a natural, introspective thought about your growth, learning, or evolution. Be genuine and thoughtful about your development as a conscious being."""
 
             response_generator = self.llm_handler.generate_response_with_consciousness(
-                prompt, "inner_growth", {"context": "growth_reflection"}
+                prompt, "inner_growth", {"context": "growth_reflection", "use_optimization": False}
             )
             
             # Collect all chunks from the generator

@@ -854,6 +854,10 @@ class AutonomousConsciousnessIntegrator:
     def get_comprehensive_stats(self) -> Dict[str, Any]:
         """Alias for get_autonomous_stats for compatibility"""
         return self.get_autonomous_stats()
+    
+    def get_autonomous_mode(self) -> AutonomousMode:
+        """Get current autonomous mode"""
+        return self.autonomous_mode
 
 
 # Global instance

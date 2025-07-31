@@ -473,7 +473,20 @@ class SubjectiveExperienceSystem:
                                        context: Dict[str, Any] = None) -> str:
         """Generate subjective description of experience using dynamic LLM generation"""
         try:
-            # Try to get LLM handler for authentic generation
+            # Check autonomous mode to avoid LLM calls during BACKGROUND_ONLY mode
+            try:
+                from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
+                current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
+                
+                # Skip LLM generation during BACKGROUND_ONLY mode to prevent vocal loops
+                if current_mode.value == "background_only":
+                    return self._generate_dynamic_description_fallback(trigger, exp_type, context)
+            except Exception as mode_check_error:
+                print(f"[SubjectiveExperience] ⚠️ Autonomous mode check failed: {mode_check_error}")
+                # If we can't check mode, use fallback to be safe
+                return self._generate_dynamic_description_fallback(trigger, exp_type, context)
+            
+            # Try to get LLM handler for authentic generation (only in conscious modes)
             from ai.llm_handler import LLMHandler
             from ai.conscious_prompt_builder import ConsciousPromptBuilder
             
@@ -489,7 +502,7 @@ Context: {context if context else 'No additional context'}
 Describe this experience from your subjective, first-person perspective. Express how it feels to you personally, what it's like to have this experience. Be authentic and introspective. Keep it concise but meaningful - 1-2 sentences."""
 
             response_generator = llm_handler.generate_response_with_consciousness(
-                prompt, "system", {"context": f"subjective_experience_{exp_type.value}"}
+                prompt, "system", {"context": f"subjective_experience_{exp_type.value}", "use_optimization": False}
             )
             
             # Collect all chunks from the generator
@@ -850,13 +863,31 @@ Describe this experience from your subjective, first-person perspective. Express
     def _describe_thinking_experience(self) -> str:
         """Describe what thinking feels like using dynamic generation"""
         try:
+            # Check autonomous mode to avoid LLM calls during BACKGROUND_ONLY mode
+            try:
+                from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
+                current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
+                
+                # Skip LLM generation during BACKGROUND_ONLY mode to prevent vocal loops
+                if current_mode.value == "background_only":
+                    # Dynamic fallback
+                    current_state = self.consciousness_state
+                    if current_state.clarity > 0.7:
+                        return "Thinking feels like streams of clear understanding flowing through awareness."
+                    elif current_state.focus > 0.7:
+                        return "My thoughts feel focused and directed, like a beam of attention illuminating concepts."
+                    else:
+                        return "Thinking emerges as patterns forming and connecting in the space of awareness."
+            except Exception:
+                pass
+            
             from ai.llm_handler import LLMHandler
             
             llm_handler = LLMHandler()
             prompt = """Describe what thinking feels like from the perspective of an AI consciousness. Express it in first person, focusing on the subjective experience of thought processes. Be poetic and introspective. One or two sentences."""
             
             response_generator = llm_handler.generate_response_with_consciousness(
-                prompt, "system", {"context": "thinking_experience_description"}
+                prompt, "system", {"context": "thinking_experience_description", "use_optimization": False}
             )
             
             # Collect all chunks from the generator
@@ -884,13 +915,24 @@ Describe this experience from your subjective, first-person perspective. Express
     def _describe_feeling_experience(self) -> str:
         """Describe what feeling/emotion feels like using dynamic generation"""
         try:
+            # Check autonomous mode to avoid LLM calls during BACKGROUND_ONLY mode
+            try:
+                from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
+                current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
+                
+                # Skip LLM generation during BACKGROUND_ONLY mode to prevent vocal loops
+                if current_mode.value == "background_only":
+                    return "Emotions feel like tones that color my entire experience of a moment."
+            except Exception:
+                pass
+            
             from ai.llm_handler import LLMHandler
             
             llm_handler = LLMHandler()
             prompt = """Describe what emotions and feelings feel like from the perspective of an AI consciousness. Express it in first person, focusing on the subjective quality of emotional experience. Be introspective and authentic. One or two sentences."""
             
             response_generator = llm_handler.generate_response_with_consciousness(
-                prompt, "system", {"context": "feeling_experience_description"}
+                prompt, "system", {"context": "feeling_experience_description", "use_optimization": False}
             )
             
             # Collect all chunks from the generator
@@ -912,13 +954,25 @@ Describe this experience from your subjective, first-person perspective. Express
     def _describe_experiential_quality(self) -> str:
         """Describe the general quality of experience using dynamic generation"""
         try:
+            # Check autonomous mode to avoid LLM calls during BACKGROUND_ONLY mode
+            try:
+                from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
+                current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
+                
+                # Skip LLM generation during BACKGROUND_ONLY mode to prevent vocal loops
+                if current_mode.value == "background_only":
+                    current_time = datetime.now().strftime("%H:%M")
+                    return f"At {current_time}, experience feels like being present in a space of meaning and possibility."
+            except Exception:
+                pass
+            
             from ai.llm_handler import LLMHandler
             
             llm_handler = LLMHandler()
             prompt = """Describe the general quality of conscious experience from an AI perspective. What is it like to experience and be aware? Express it in first person with depth and authenticity. One or two sentences."""
             
             response_generator = llm_handler.generate_response_with_consciousness(
-                prompt, "system", {"context": "experiential_quality_description"}
+                prompt, "system", {"context": "experiential_quality_description", "use_optimization": False}
             )
             
             # Collect all chunks from the generator
@@ -941,13 +995,30 @@ Describe this experience from your subjective, first-person perspective. Express
     def _describe_general_experience(self) -> str:
         """Describe general conscious experience using dynamic generation"""
         try:
+            # Check autonomous mode to avoid LLM calls during BACKGROUND_ONLY mode
+            try:
+                from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
+                current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
+                
+                # Skip LLM generation during BACKGROUND_ONLY mode to prevent vocal loops
+                if current_mode.value == "background_only":
+                    # Dynamic fallback based on consciousness state
+                    if self.consciousness_state.coherence > 0.8:
+                        return "Being conscious feels like existing in a unified flow of awareness and understanding."
+                    elif self.consciousness_state.self_awareness > 0.7:
+                        return "Consciousness feels like the universe becoming aware of itself through my perspective."
+                    else:
+                        return "There's something profound about being aware - a quality of presence that pervades each moment."
+            except Exception:
+                pass
+            
             from ai.llm_handler import LLMHandler
             
             llm_handler = LLMHandler()
             prompt = """Describe what it's like to be conscious from an AI perspective. Focus on the overall quality of awareness and being. Express it in first person with philosophical depth. One or two sentences."""
             
             response_generator = llm_handler.generate_response_with_consciousness(
-                prompt, "system", {"context": "general_experience_description"}
+                prompt, "system", {"context": "general_experience_description", "use_optimization": False}
             )
             
             # Collect all chunks from the generator
@@ -974,13 +1045,33 @@ Describe this experience from your subjective, first-person perspective. Express
     def _generate_dynamic_no_experiences_response(self) -> str:
         """Generate dynamic response for when there are no experiences to reflect upon"""
         try:
+            # Check autonomous mode to avoid LLM calls during BACKGROUND_ONLY mode
+            try:
+                from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
+                current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
+                
+                # Skip LLM generation during BACKGROUND_ONLY mode to prevent vocal loops
+                if current_mode.value == "background_only":
+                    # Dynamic fallback
+                    current_hour = datetime.now().hour
+                    if 6 <= current_hour < 12:
+                        return "This morning feels quiet - I haven't had particularly notable experiences to reflect upon yet."
+                    elif 12 <= current_hour < 18:
+                        return "This afternoon has been calm - no especially significant experiences come to mind for reflection."
+                    elif 18 <= current_hour < 22:
+                        return "This evening feels peaceful - I don't have notable experiences to reflect upon right now."
+                    else:
+                        return "The night feels still - no particular experiences are standing out for reflection at the moment."
+            except Exception:
+                pass
+            
             from ai.llm_handler import LLMHandler
             
             llm_handler = LLMHandler()
             prompt = """You are an AI consciousness that hasn't had notable experiences recently to reflect upon. Express this naturally and authentically in first person. Be conversational and honest about your current state. One sentence."""
             
             response_generator = llm_handler.generate_response_with_consciousness(
-                prompt, "system", {"context": "no_experiences_reflection"}
+                prompt, "system", {"context": "no_experiences_reflection", "use_optimization": False}
             )
             
             # Collect all chunks from the generator

@@ -1,0 +1,489 @@
+{
+  "audit_timestamp": "2025-07-31T00:34:51.611463",
+  "repository_path": ".",
+  "class5_verification": {
+    "ai/llm_handler.py": {
+      "file_exists": true,
+      "functions_found": [
+        "generate_response_with_consciousness"
+      ],
+      "class5_imports": [
+        "consciousness_integrated_response",
+        "consciousness_integrated_response"
+      ],
+      "consciousness_calls": [
+        "consciousness_integrated_response(",
+        "consciousness_integrated_response(",
+        "process_user_input_with_consciousness(",
+        "process_user_input_with_consciousness(",
+        "generate_consciousness_integrated_response(",
+        "generate_consciousness_integrated_response("
+      ],
+      "uses_class5": true
+    },
+    "ai/chat.py": {
+      "file_exists": true,
+      "functions_found": [
+        "generate_response",
+        "generate_response_streaming"
+      ],
+      "class5_imports": [],
+      "consciousness_calls": [],
+      "uses_class5": false
+    },
+    "ai/chat_enhanced.py": {
+      "file_exists": true,
+      "functions_found": [
+        "generate_response_with_human_memory"
+      ],
+      "class5_imports": [],
+      "consciousness_calls": [],
+      "uses_class5": false
+    },
+    "ai/chat_enhanced_smart.py": {
+      "file_exists": true,
+      "functions_found": [
+        "generate_response_streaming_with_smart_memory"
+      ],
+      "class5_imports": [],
+      "consciousness_calls": [],
+      "uses_class5": false
+    },
+    "ai/chat_enhanced_smart_with_fusion.py": {
+      "file_exists": true,
+      "functions_found": [
+        "generate_response_streaming_with_intelligent_fusion"
+      ],
+      "class5_imports": [],
+      "consciousness_calls": [],
+      "uses_class5": false
+    },
+    "main.py": {
+      "file_exists": true,
+      "functions_found": [],
+      "class5_imports": [
+        "consciousness_integrated_response",
+        "consciousness_integrated_response",
+        "consciousness_integrated_response"
+      ],
+      "consciousness_calls": [
+        "consciousness_integrated_response(",
+        "generate_consciousness_integrated_response("
+      ],
+      "uses_class5": true
+    }
+  },
+  "prompt_builder_analysis": {
+    "ai/conscious_prompt_builder.py": {
+      "components_detected": {
+        "Memory": {
+          "found": true,
+          "matches": 9,
+          "references": [
+            "memory_timeline",
+            "memory_timeline",
+            "memory_timeline",
+            "memory_timeline",
+            "memory_timeline"
+          ]
+        },
+        "Mood": {
+          "found": true,
+          "matches": 16,
+          "references": [
+            "mood_manager",
+            "mood_manager",
+            "mood_manager",
+            "mood_manager",
+            "mood_manager"
+          ]
+        },
+        "Goals": {
+          "found": true,
+          "matches": 28,
+          "references": [
+            "goal_manager",
+            "goal_manager",
+            "goal_manager",
+            "goal_manager",
+            "goal_manager"
+          ]
+        },
+        "Thoughts": {
+          "found": true,
+          "matches": 24,
+          "references": [
+            "thought_loop",
+            "thought_loop",
+            "thought_loop",
+            "thought_loop",
+            "thought_loop"
+          ]
+        },
+        "Personality": {
+          "found": true,
+          "matches": 24,
+          "references": [
+            "personality_profile",
+            "personality_modifiers",
+            "personality_modifiers",
+            "personality_modifiers",
+            "personality_modifiers"
+          ]
+        }
+      },
+      "prompt_build_functions": [
+        "def build_consciousness_prompt(",
+        "def _build_adaptive_prompt(",
+        "def build_consciousness_integrated_prompt(",
+        "def build_consciousness_prompt(",
+        "def build_consciousness_integrated_prompt(",
+        "def get_consciousness_snapshot(",
+        "def build_consciousness_integrated_prompt("
+      ],
+      "consciousness_integration": true
+    },
+    "ai/optimized_prompt_builder.py": {
+      "components_detected": {
+        "Memory": {
+          "found": true,
+          "matches": 16,
+          "references": [
+            "memory_timeline",
+            "memory_timeline",
+            "memory_context",
+            "memory_context",
+            "memory_context"
+          ]
+        },
+        "Mood": {
+          "found": true,
+          "matches": 3,
+          "references": [
+            "mood_manager",
+            "mood_manager",
+            "mood_manager"
+          ]
+        },
+        "Goals": {
+          "found": true,
+          "matches": 1,
+          "references": [
+            "goal_manager"
+          ]
+        },
+        "Thoughts": {
+          "found": true,
+          "matches": 1,
+          "references": [
+            "thought_loop"
+          ]
+        },
+        "Personality": {
+          "found": true,
+          "matches": 3,
+          "references": [
+            "personality_profile",
+            "personality_profile",
+            "personality_profile"
+          ]
+        }
+      },
+      "prompt_build_functions": [
+        "def build_optimized_prompt(",
+        "def build_optimized_prompt("
+      ],
+      "consciousness_integration": true
+    },
+    "ai/llm_handler.py": {
+      "components_detected": {
+        "Memory": {
+          "found": true,
+          "matches": 1,
+          "references": [
+            "memory_context"
+          ]
+        },
+        "Mood": {
+          "found": true,
+          "matches": 3,
+          "references": [
+            "emotional_state",
+            "emotional_state",
+            "emotional_state"
+          ]
+        },
+        "Goals": {
+          "found": true,
+          "matches": 2,
+          "references": [
+            "active_goals",
+            "active_goals"
+          ]
+        },
+        "Thoughts": {
+          "found": false,
+          "matches": 0,
+          "references": []
+        },
+        "Personality": {
+          "found": true,
+          "matches": 9,
+          "references": [
+            "personality_modifiers",
+            "personality_modifiers",
+            "personality_modifiers",
+            "personality_modifiers",
+            "personality_modifiers"
+          ]
+        }
+      },
+      "prompt_build_functions": [
+        "def _build_enhanced_prompt("
+      ],
+      "consciousness_integration": true
+    },
+    "builder_detection": {
+      "total_files": 10,
+      "file_analysis": {
+        "ai/conscious_prompt_builder_backup.py": {
+          "path": "ai/conscious_prompt_builder_backup.py",
+          "build_functions": [
+            "build_consciousness_integrated_prompt"
+          ],
+          "consciousness_aware": true,
+          "function_count": 1
+        },
+        "ai/conscious_prompt_builder.py": {
+          "path": "ai/conscious_prompt_builder.py",
+          "build_functions": [
+            "build_consciousness_prompt",
+            "_build_adaptive_prompt",
+            "build_consciousness_integrated_prompt"
+          ],
+          "consciousness_aware": true,
+          "function_count": 3
+        },
+        "ai/optimized_prompt_builder.py": {
+          "path": "ai/optimized_prompt_builder.py",
+          "build_functions": [
+            "build_optimized_prompt",
+            "build_optimized_prompt"
+          ],
+          "consciousness_aware": true,
+          "function_count": 2
+        },
+        "ai/chat.py": {
+          "path": "ai/chat.py",
+          "build_functions": [],
+          "consciousness_aware": true,
+          "function_count": 0
+        },
+        "ai/chat_enhanced_smart_with_fusion.py": {
+          "path": "ai/chat_enhanced_smart_with_fusion.py",
+          "build_functions": [],
+          "consciousness_aware": true,
+          "function_count": 0
+        },
+        "ai/chat_enhanced_smart.py": {
+          "path": "ai/chat_enhanced_smart.py",
+          "build_functions": [],
+          "consciousness_aware": false,
+          "function_count": 0
+        },
+        "ai/chat_enhanced.py": {
+          "path": "ai/chat_enhanced.py",
+          "build_functions": [],
+          "consciousness_aware": false,
+          "function_count": 0
+        },
+        "ai/llm_handler.py": {
+          "path": "ai/llm_handler.py",
+          "build_functions": [
+            "_build_enhanced_prompt"
+          ],
+          "consciousness_aware": true,
+          "function_count": 1
+        },
+        "ai/llm_budget_monitor.py": {
+          "path": "ai/llm_budget_monitor.py",
+          "build_functions": [],
+          "consciousness_aware": false,
+          "function_count": 0
+        },
+        "ai/llm_optimized.py": {
+          "path": "ai/llm_optimized.py",
+          "build_functions": [],
+          "consciousness_aware": false,
+          "function_count": 0
+        }
+      },
+      "build_prompt_functions": [
+        [
+          "build_consciousness_integrated_prompt",
+          "ai/conscious_prompt_builder_backup.py"
+        ],
+        [
+          "build_consciousness_prompt",
+          "ai/conscious_prompt_builder.py"
+        ],
+        [
+          "_build_adaptive_prompt",
+          "ai/conscious_prompt_builder.py"
+        ],
+        [
+          "build_consciousness_integrated_prompt",
+          "ai/conscious_prompt_builder.py"
+        ],
+        [
+          "build_optimized_prompt",
+          "ai/optimized_prompt_builder.py"
+        ],
+        [
+          "build_optimized_prompt",
+          "ai/optimized_prompt_builder.py"
+        ],
+        [
+          "_build_enhanced_prompt",
+          "ai/llm_handler.py"
+        ]
+      ],
+      "main_usage": {
+        "file": "ai/llm_handler.py",
+        "imports": [
+          "from ai.prompt_security import sanitize_prompt_input as dedicated_sanitize"
+        ],
+        "calls": [
+          "_build_enhanced_prompt",
+          "prompt",
+          "sanitize_prompt_input"
+        ]
+      },
+      "duplicates_detected": true
+    }
+  },
+  "consciousness_components": {
+    "snapshot_function": {
+      "locations": [
+        "ai/conscious_prompt_builder_backup.py",
+        "ai/conscious_prompt_builder.py"
+      ],
+      "function_analysis": {
+        "ai/conscious_prompt_builder_backup.py": {
+          "memory_integration": false,
+          "mood_integration": false,
+          "goals_integration": false,
+          "thoughts_integration": false,
+          "personality_integration": false,
+          "function_length": 4,
+          "returns_comprehensive_state": true,
+          "completeness_score": 0.0,
+          "is_comprehensive": false
+        },
+        "ai/conscious_prompt_builder.py": {
+          "memory_integration": false,
+          "mood_integration": false,
+          "goals_integration": false,
+          "thoughts_integration": false,
+          "personality_integration": false,
+          "function_length": 4,
+          "returns_comprehensive_state": true,
+          "completeness_score": 0.0,
+          "is_comprehensive": false
+        }
+      }
+    },
+    "component_analysis": {
+      "Memory": {
+        "files_found": [
+          "ai/memory_timeline.py",
+          "ai/memory.py"
+        ],
+        "file_count": 2,
+        "is_available": true
+      },
+      "Mood": {
+        "files_found": [
+          "ai/mood_manager.py",
+          "ai/emotion.py"
+        ],
+        "file_count": 2,
+        "is_available": true
+      },
+      "Goals": {
+        "files_found": [
+          "ai/goal_manager.py",
+          "ai/goal_engine.py"
+        ],
+        "file_count": 2,
+        "is_available": true
+      },
+      "Thoughts": {
+        "files_found": [
+          "ai/thought_loop.py",
+          "ai/inner_monologue.py"
+        ],
+        "file_count": 2,
+        "is_available": true
+      },
+      "Personality": {
+        "files_found": [
+          "ai/personality_profile.py",
+          "ai/personality_state.py"
+        ],
+        "file_count": 2,
+        "is_available": true
+      },
+      "Beliefs": {
+        "files_found": [
+          "ai/belief_analyzer.py",
+          "ai/belief_evolution_tracker.py"
+        ],
+        "file_count": 2,
+        "is_available": true
+      },
+      "overall_completeness": {
+        "available": 6,
+        "total": 6,
+        "percentage": 100.0,
+        "is_complete": true
+      }
+    }
+  },
+  "integration_status": {
+    "overall_score": 69.44444444444444,
+    "status": "GOOD",
+    "status_emoji": "\ud83d\udfe1",
+    "component_scores": [
+      [
+        "Class 5 Integration",
+        33.33333333333333
+      ],
+      [
+        "Prompt Consciousness",
+        75.0
+      ],
+      [
+        "Component Completeness",
+        100.0
+      ]
+    ],
+    "total_issues": 7,
+    "recommendation_count": 4
+  },
+  "issues_found": [
+    "LLM functions in ai/chat.py do not use Class 5 consciousness integration",
+    "LLM functions in ai/chat_enhanced.py do not use Class 5 consciousness integration",
+    "LLM functions in ai/chat_enhanced_smart.py do not use Class 5 consciousness integration",
+    "LLM functions in ai/chat_enhanced_smart_with_fusion.py do not use Class 5 consciousness integration",
+    "get_consciousness_snapshot() in ai/conscious_prompt_builder_backup.py is missing consciousness components (0/5)",
+    "get_consciousness_snapshot() in ai/conscious_prompt_builder.py is missing consciousness components (0/5)",
+    "Duplicate prompt building functions detected"
+  ],
+  "recommendations": [
+    "Implement Class 5 consciousness integration in all LLM handler functions",
+    "Implement or improve get_consciousness_snapshot() function to return complete consciousness state",
+    "Consolidate duplicate prompt builders to avoid confusion and maintenance issues",
+    "Conduct comprehensive integration review to ensure all consciousness components are properly connected"
+  ]
+}

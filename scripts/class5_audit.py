@@ -96,7 +96,9 @@ class Class5ConsciousnessAuditor:
                     "functions_found": [],
                     "class5_imports": [],
                     "consciousness_calls": [],
-                    "uses_class5": False
+                    "uses_class5": False,
+                    "alternative_prompt_builders": [],
+                    "direct_llm_calls": []
                 }
                 
                 # Check for function definitions
@@ -126,7 +128,8 @@ class Class5ConsciousnessAuditor:
                     r'build_consciousness_integrated_prompt\s*\(',
                     r'consciousness_integrated_response\s*\(',
                     r'process_user_input_with_consciousness\s*\(',
-                    r'generate_consciousness_integrated_response\s*\('
+                    r'generate_consciousness_integrated_response\s*\(',
+                    r'generate_response_with_consciousness\s*\('
                 ]
                 
                 for pattern in consciousness_calls:
@@ -134,6 +137,34 @@ class Class5ConsciousnessAuditor:
                     if matches:
                         file_analysis["consciousness_calls"].extend(matches)
                         file_analysis["uses_class5"] = True
+                
+                # Check for alternative prompt builders used instead
+                alt_prompt_patterns = [
+                    r'compress_prompt\s*\(',
+                    r'expand_prompt\s*\(',
+                    r'build_optimized_prompt\s*\(',
+                    r'_build_enhanced_prompt\s*\(',
+                    r'from\s+ai\.prompt_compressor\s+import',
+                    r'from\s+ai\.optimized_prompt_builder\s+import'
+                ]
+                
+                for pattern in alt_prompt_patterns:
+                    matches = re.findall(pattern, content)
+                    if matches:
+                        file_analysis["alternative_prompt_builders"].extend(matches)
+                
+                # Check for direct LLM calls (non-consciousness)
+                direct_llm_patterns = [
+                    r'ask_kobold\s*\(',
+                    r'ask_kobold_streaming\s*\(',
+                    r'requests\.post\s*\(',
+                    r'generate_response_streaming\s*\('
+                ]
+                
+                for pattern in direct_llm_patterns:
+                    matches = re.findall(pattern, content)
+                    if matches:
+                        file_analysis["direct_llm_calls"].extend(matches)
                 
                 consciousness_usage[file_path] = file_analysis
                 
@@ -147,6 +178,8 @@ class Class5ConsciousnessAuditor:
                     print(f"      ❌ No Class 5 consciousness usage found")
                     if file_analysis["functions_found"]:
                         print(f"         Functions found: {file_analysis['functions_found']}")
+                        print(f"         Alternative builders: {len(file_analysis['alternative_prompt_builders'])}")
+                        print(f"         Direct LLM calls: {len(file_analysis['direct_llm_calls'])}")
                         self.results["issues_found"].append(
                             f"LLM functions in {file_path} do not use Class 5 consciousness integration"
                         )
@@ -571,6 +604,108 @@ class Class5ConsciousnessAuditor:
             print(f"      • {component}: {score:.1f}%")
         print(f"   ⚠️ Issues Found: {len(self.results['issues_found'])}")
         print(f"   💡 Recommendations: {len(recommendations)}")
+    
+    def generate_detailed_non_consciousness_report(self) -> Dict[str, Any]:
+        """Generate detailed report of files not using generate_response_with_consciousness"""
+        
+        non_consciousness_files = {}
+        duplicate_builders = []
+        
+        # Analyze files that don't use Class 5 consciousness
+        for file_path, analysis in self.results["class5_verification"].items():
+            if isinstance(analysis, dict) and not analysis.get("uses_class5", False):
+                if analysis.get("functions_found"):
+                    non_consciousness_files[file_path] = {
+                        "functions": analysis["functions_found"],
+                        "alternative_prompt_builders": analysis.get("alternative_prompt_builders", []),
+                        "direct_llm_calls": analysis.get("direct_llm_calls", []),
+                        "instead_uses": self._determine_what_file_uses_instead(file_path, analysis)
+                    }
+        
+        # Collect all duplicate prompt builders
+        if "prompt_builder_analysis" in self.results and "builder_detection" in self.results["prompt_builder_analysis"]:
+            builder_data = self.results["prompt_builder_analysis"]["builder_detection"]
+            all_functions = builder_data.get("build_prompt_functions", [])
+            
+            # Group by function name to find duplicates
+            function_groups = {}
+            for func_name, file_path in all_functions:
+                if func_name not in function_groups:
+                    function_groups[func_name] = []
+                function_groups[func_name].append(file_path)
+            
+            # Find actual duplicates and similar functions
+            for func_name, files in function_groups.items():
+                if len(files) > 1:
+                    duplicate_builders.append({
+                        "function_name": func_name,
+                        "files": files,
+                        "is_exact_duplicate": True
+                    })
+            
+            # Add similar function names (build_*_prompt variations)
+            similar_patterns = {}
+            for func_name, files in function_groups.items():
+                base_pattern = re.sub(r'_?(build|prompt)_?', '', func_name.lower())
+                if 'prompt' in func_name.lower() and 'build' in func_name.lower():
+                    if base_pattern not in similar_patterns:
+                        similar_patterns[base_pattern] = []
+                    similar_patterns[base_pattern].append((func_name, files[0]))
+            
+            for pattern, variations in similar_patterns.items():
+                if len(variations) > 1:
+                    duplicate_builders.append({
+                        "pattern": pattern,
+                        "variations": variations,
+                        "is_exact_duplicate": False,
+                        "type": "similar_functionality"
+                    })
+        
+        return {
+            "files_not_using_consciousness": non_consciousness_files,
+            "duplicate_prompt_builders": duplicate_builders,
+            "summary": {
+                "total_non_consciousness_files": len(non_consciousness_files),
+                "total_duplicate_patterns": len(duplicate_builders)
+            }
+        }
+    
+    def _determine_what_file_uses_instead(self, file_path: str, analysis: Dict[str, Any]) -> List[str]:
+        """Determine what a file uses instead of consciousness integration"""
+        alternatives = []
+        
+        # Check alternative prompt builders
+        alt_builders = analysis.get("alternative_prompt_builders", [])
+        if alt_builders:
+            alternatives.extend([f"Alternative prompt builder: {builder}" for builder in set(alt_builders)])
+        
+        # Check direct LLM calls
+        direct_calls = analysis.get("direct_llm_calls", [])
+        if direct_calls:
+            alternatives.extend([f"Direct LLM call: {call}" for call in set(direct_calls)])
+        
+        # Check for delegation patterns
+        try:
+            full_path = self.repo_path / file_path
+            with open(full_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            # Look for imports and calls to other generate_response functions
+            delegation_patterns = [
+                r'from\s+ai\.chat\s+import\s+.*generate_response',
+                r'generate_response_streaming\s*\(',
+                r'from\s+ai\.llm_handler\s+import.*LLMHandler'
+            ]
+            
+            for pattern in delegation_patterns:
+                matches = re.findall(pattern, content)
+                if matches:
+                    alternatives.extend([f"Delegates to: {match}" for match in matches])
+                    
+        except Exception:
+            pass
+        
+        return alternatives if alternatives else ["Unknown - direct implementation"]
 
 
 def main():
@@ -580,6 +715,7 @@ def main():
     parser = argparse.ArgumentParser(description="Audit Class 5 Consciousness Integration")
     parser.add_argument("--repo-path", default=".", help="Path to repository root")
     parser.add_argument("--output", default="class5_audit_results.json", help="Output JSON file")
+    parser.add_argument("--detailed-report", default="class5_detailed_report.json", help="Detailed report JSON file")
     parser.add_argument("--verbose", action="store_true", help="Verbose output")
     
     args = parser.parse_args()
@@ -590,11 +726,48 @@ def main():
     # Run audit
     results = auditor.run_complete_audit()
     
+    # Generate detailed report for non-consciousness usage
+    detailed_report = auditor.generate_detailed_non_consciousness_report()
+    
     # Save results
     with open(args.output, 'w') as f:
         json.dump(results, f, indent=2)
     
+    with open(args.detailed_report, 'w') as f:
+        json.dump(detailed_report, f, indent=2)
+    
     print(f"\n💾 Results saved to: {args.output}")
+    print(f"💾 Detailed report saved to: {args.detailed_report}")
+    
+    # Print detailed summary for user
+    print("\n" + "="*80)
+    print("📋 DETAILED REPORT: Files NOT using generate_response_with_consciousness()")
+    print("="*80)
+    
+    for file_path, details in detailed_report["files_not_using_consciousness"].items():
+        print(f"\n📁 {file_path}")
+        print(f"   Functions: {', '.join(details['functions'])}")
+        print(f"   Uses instead:")
+        for alternative in details['instead_uses']:
+            print(f"      • {alternative}")
+    
+    print("\n" + "="*80)
+    print("🔄 DUPLICATE PROMPT BUILDERS")
+    print("="*80)
+    
+    for duplicate in detailed_report["duplicate_prompt_builders"]:
+        if duplicate.get("is_exact_duplicate", False):
+            print(f"\n❌ Exact duplicate: {duplicate['function_name']}")
+            for file_path in duplicate['files']:
+                print(f"      📁 {file_path}")
+        else:
+            print(f"\n⚠️ Similar functionality: {duplicate.get('pattern', 'unknown')}")
+            for func_name, file_path in duplicate.get('variations', []):
+                print(f"      📁 {file_path}: {func_name}")
+    
+    print(f"\n📊 Summary:")
+    print(f"   • Files not using consciousness: {detailed_report['summary']['total_non_consciousness_files']}")
+    print(f"   • Duplicate prompt patterns: {detailed_report['summary']['total_duplicate_patterns']}")
     
     # Return exit code based on critical issues
     critical_issues = len(results["issues_found"])

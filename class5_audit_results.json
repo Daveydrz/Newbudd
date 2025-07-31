@@ -1,5 +1,5 @@
 {
-  "audit_timestamp": "2025-07-31T00:34:51.611463",
+  "audit_timestamp": "2025-07-31T01:59:45.118058",
   "repository_path": ".",
   "class5_verification": {
     "ai/llm_handler.py": {
@@ -17,9 +17,18 @@
         "process_user_input_with_consciousness(",
         "process_user_input_with_consciousness(",
         "generate_consciousness_integrated_response(",
-        "generate_consciousness_integrated_response("
+        "generate_consciousness_integrated_response(",
+        "generate_response_with_consciousness(",
+        "generate_response_with_consciousness("
       ],
-      "uses_class5": true
+      "uses_class5": true,
+      "alternative_prompt_builders": [
+        "_build_enhanced_prompt(",
+        "_build_enhanced_prompt("
+      ],
+      "direct_llm_calls": [
+        "generate_response_streaming("
+      ]
     },
     "ai/chat.py": {
       "file_exists": true,
@@ -28,8 +37,32 @@
         "generate_response_streaming"
       ],
       "class5_imports": [],
-      "consciousness_calls": [],
-      "uses_class5": false
+      "consciousness_calls": [
+        "generate_response_with_consciousness("
+      ],
+      "uses_class5": true,
+      "alternative_prompt_builders": [
+        "compress_prompt(",
+        "compress_prompt(",
+        "compress_prompt(",
+        "compress_prompt(",
+        "expand_prompt(",
+        "expand_prompt(",
+        "from ai.prompt_compressor import",
+        "from ai.prompt_compressor import",
+        "from ai.prompt_compressor import",
+        "from ai.prompt_compressor import"
+      ],
+      "direct_llm_calls": [
+        "ask_kobold(",
+        "ask_kobold(",
+        "ask_kobold_streaming(",
+        "ask_kobold_streaming(",
+        "requests.post(",
+        "requests.post(",
+        "generate_response_streaming(",
+        "generate_response_streaming("
+      ]
     },
     "ai/chat_enhanced.py": {
       "file_exists": true,
@@ -38,7 +71,12 @@
       ],
       "class5_imports": [],
       "consciousness_calls": [],
-      "uses_class5": false
+      "uses_class5": false,
+      "alternative_prompt_builders": [],
+      "direct_llm_calls": [
+        "generate_response_streaming(",
+        "generate_response_streaming("
+      ]
     },
     "ai/chat_enhanced_smart.py": {
       "file_exists": true,
@@ -47,7 +85,11 @@
       ],
       "class5_imports": [],
       "consciousness_calls": [],
-      "uses_class5": false
+      "uses_class5": false,
+      "alternative_prompt_builders": [],
+      "direct_llm_calls": [
+        "generate_response_streaming("
+      ]
     },
     "ai/chat_enhanced_smart_with_fusion.py": {
       "file_exists": true,
@@ -56,7 +98,14 @@
       ],
       "class5_imports": [],
       "consciousness_calls": [],
-      "uses_class5": false
+      "uses_class5": false,
+      "alternative_prompt_builders": [],
+      "direct_llm_calls": [
+        "generate_response_streaming(",
+        "generate_response_streaming(",
+        "generate_response_streaming(",
+        "generate_response_streaming("
+      ]
     },
     "main.py": {
       "file_exists": true,
@@ -70,7 +119,9 @@
         "consciousness_integrated_response(",
         "generate_consciousness_integrated_response("
       ],
-      "uses_class5": true
+      "uses_class5": true,
+      "alternative_prompt_builders": [],
+      "direct_llm_calls": []
     }
   },
   "prompt_builder_analysis": {
@@ -354,9 +405,9 @@
           "from ai.prompt_security import sanitize_prompt_input as dedicated_sanitize"
         ],
         "calls": [
+          "sanitize_prompt_input",
           "_build_enhanced_prompt",
-          "prompt",
-          "sanitize_prompt_input"
+          "prompt"
         ]
       },
       "duplicates_detected": true
@@ -451,13 +502,13 @@
     }
   },
   "integration_status": {
-    "overall_score": 69.44444444444444,
+    "overall_score": 75.0,
     "status": "GOOD",
     "status_emoji": "\ud83d\udfe1",
     "component_scores": [
       [
         "Class 5 Integration",
-        33.33333333333333
+        50.0
       ],
       [
         "Prompt Consciousness",
@@ -468,11 +519,10 @@
         100.0
       ]
     ],
-    "total_issues": 7,
-    "recommendation_count": 4
+    "total_issues": 6,
+    "recommendation_count": 3
   },
   "issues_found": [
-    "LLM functions in ai/chat.py do not use Class 5 consciousness integration",
     "LLM functions in ai/chat_enhanced.py do not use Class 5 consciousness integration",
     "LLM functions in ai/chat_enhanced_smart.py do not use Class 5 consciousness integration",
     "LLM functions in ai/chat_enhanced_smart_with_fusion.py do not use Class 5 consciousness integration",
@@ -483,7 +533,6 @@
   "recommendations": [
     "Implement Class 5 consciousness integration in all LLM handler functions",
     "Implement or improve get_consciousness_snapshot() function to return complete consciousness state",
-    "Consolidate duplicate prompt builders to avoid confusion and maintenance issues",
-    "Conduct comprehensive integration review to ensure all consciousness components are properly connected"
+    "Consolidate duplicate prompt builders to avoid confusion and maintenance issues"
   ]
 }

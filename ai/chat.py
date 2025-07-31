@@ -398,9 +398,12 @@ def ask_kobold(messages, max_tokens=MAX_TOKENS):
         return _generate_dynamic_error_response(error_context)
 
 def generate_response_streaming(question, username, lang=DEFAULT_LANG):
-    """✅ ULTRA-RESPONSIVE: Generate AI response with TRUE streaming - speaks as it generates"""
+    """✅ CONSCIOUSNESS-INTEGRATED: Generate AI response with consciousness integration and streaming"""
     try:
-        print(f"[ChatStream] ⚡ Starting ULTRA-RESPONSIVE streaming generation for '{question}' from user '{username}'")
+        print(f"[ChatStream] 🧠 Starting consciousness-integrated streaming for '{question}' from user '{username}'")
+        
+        # Import LLMHandler for consciousness integration
+        from ai.llm_handler import LLMHandler
         
         # 🔧 FIX: Check for unified username from memory fusion
         try:
@@ -480,51 +483,41 @@ def generate_response_streaming(question, username, lang=DEFAULT_LANG):
         if follow_ups:
             follow_up_text = f"\nMight be worth asking: {follow_ups[0]}" if len(follow_ups) > 0 else ""
         
-        # Create enhanced system message using compressed tokens
-        from ai.prompt_compressor import compress_prompt, expand_prompt, estimate_tokens
-        
+        # Prepare enhanced context for consciousness integration
         context_text = f"Chat History & What I Remember:\n{context}" if context else ""
         name_instruction = f"You can call them {display_name}" if use_name else "Avoid using any names or just say 'hey' or 'mate'"
         
-        # Prepare context data for template expansion
-        context_data = {
+        # Build comprehensive context for consciousness system
+        consciousness_context = {
+            'username': username,
+            'display_name': display_name,
+            'use_name': use_name,
             'name_instruction': name_instruction,
             'current_location': current_location,
-            'time_12h': time_info['time_12h'],
-            'date': time_info['date'],
-            'context': context_text,
+            'time_info': time_info,
+            'context_text': context_text,
             'reminder_text': reminder_text,
             'follow_up_text': follow_up_text,
-            'natural_context': natural_context,  # 🧠 WORKING MEMORY: Natural context injection
-            'emotion': 'neutral',
-            'goal': 'assist_user'
+            'natural_context': natural_context,
+            'conversation_context': context,
+            'user_memory': {
+                'reminders': reminders,
+                'follow_ups': follow_ups
+            }
         }
         
-        # Create compressed system message
-        compressed_system_msg = compress_prompt("", context_data)
+        print(f"[ChatStream] 🧠 Using consciousness-integrated response generation...")
         
-        # For token budget estimation
-        if estimate_tokens(compressed_system_msg) > 100:
-            # Optimize context if still too large
-            from ai.prompt_compressor import prompt_compressor
-            optimized_context = prompt_compressor.optimize_context_for_budget(context_text, 30)
-            context_data['context'] = optimized_context
-            compressed_system_msg = compress_prompt("", context_data)
+        # ✅ Use consciousness-integrated LLM handler with streaming
+        llm_handler = LLMHandler()
         
-        print(f"[ChatStream] 🗜️ Using compressed prompt: {len(compressed_system_msg)} chars (~{estimate_tokens(compressed_system_msg)} tokens)")
-        
-        # Store compressed version for internal use, expand for LLM
-        system_msg = expand_prompt(compressed_system_msg, context_data)
-
-        messages = [
-            {"role": "system", "content": system_msg},
-            {"role": "user", "content": question}
-        ]
-        
-        print(f"[ChatStream] 🚀 Starting ULTRA-RESPONSIVE streaming generation...")
-        
-        # ✅ Stream the response chunks as they're generated with ultra-early trigger
-        for chunk in ask_kobold_streaming(messages):
+        # Stream the response chunks through consciousness system
+        for chunk in llm_handler.generate_response_with_consciousness(
+            text=question,
+            user=username,
+            context=consciousness_context,
+            stream=True
+        ):
             if chunk and chunk.strip():
                 # Clean chunk
                 cleaned_chunk = re.sub(r'^(Buddy:|Assistant:|Human:|AI:)\s*', '', chunk, flags=re.IGNORECASE)
@@ -536,10 +529,10 @@ def generate_response_streaming(question, username, lang=DEFAULT_LANG):
                 cleaned_chunk = cleaned_chunk.strip()
                 
                 if cleaned_chunk:
-                    print(f"[ChatStream] ⚡ Ultra-responsive yielding: '{cleaned_chunk}'")
+                    print(f"[ChatStream] 🧠 Consciousness chunk: '{cleaned_chunk}'")
                     yield cleaned_chunk
         
-        print(f"[ChatStream] ✅ Ultra-responsive streaming generation complete")
+        print(f"[ChatStream] ✅ Consciousness-integrated streaming complete")
         
     except Exception as e:
         print(f"[ChatStream] ❌ Streaming error: {e}")
@@ -555,9 +548,12 @@ def generate_response_streaming(question, username, lang=DEFAULT_LANG):
         yield error_response
 
 def generate_response(question, username, lang=DEFAULT_LANG):
-    """Original generate response function with dynamic personality (ADDED BACK)"""
+    """Consciousness-integrated response function (non-streaming)"""
     try:
-        print(f"[Chat] 🧠 Generating response for '{question}' from user '{username}'")
+        print(f"[Chat] 🧠 Generating consciousness-integrated response for '{question}' from user '{username}'")
+        
+        # Import LLMHandler for consciousness integration
+        from ai.llm_handler import LLMHandler
         
         # 🎯 NEW: Smart name handling - avoid Anonymous_001
         display_name = None
@@ -591,7 +587,7 @@ def generate_response(question, username, lang=DEFAULT_LANG):
             display_name = username if not username.startswith('Anonymous_') else None
             use_name = display_name is not None
         
-        # Check for simple questions first
+        # Check for simple questions first (before consciousness processing for efficiency)
         question_lower = question.lower()
         
         # Handle name questions with personality
@@ -666,52 +662,47 @@ def generate_response(question, username, lang=DEFAULT_LANG):
         if follow_ups:
             follow_up_text = f"\nMight be worth asking: {follow_ups[0]}" if len(follow_ups) > 0 else ""
         
-        # Create enhanced system message using compressed tokens
-        from ai.prompt_compressor import compress_prompt, expand_prompt, estimate_tokens
-        
+        # Prepare enhanced context for consciousness integration
         context_text = f"Chat History & What I Remember:\n{context}" if context else ""
         name_instruction = f"You can call them {display_name}" if use_name else "Avoid using any names or just say 'hey' or 'mate'"
         
-        # Prepare context data for template expansion
-        context_data = {
+        # Build comprehensive context for consciousness system
+        consciousness_context = {
+            'username': username,
+            'display_name': display_name,
+            'use_name': use_name,
             'name_instruction': name_instruction,
             'current_location': current_location,
-            'time_12h': time_info['time_12h'],
-            'date': time_info['date'],
-            'context': context_text,
+            'time_info': time_info,
+            'context_text': context_text,
             'reminder_text': reminder_text,
             'follow_up_text': follow_up_text,
-            'natural_context': natural_context,  # 🧠 WORKING MEMORY: Natural context injection
-            'emotion': 'neutral',
-            'goal': 'assist_user'
+            'natural_context': natural_context,
+            'conversation_context': context,
+            'user_memory': {
+                'reminders': reminders,
+                'follow_ups': follow_ups
+            }
         }
         
-        # Create compressed system message
-        compressed_system_msg = compress_prompt("", context_data)
+        print(f"[Chat] 🧠 Using consciousness-integrated response generation...")
         
-        # For token budget estimation
-        if estimate_tokens(compressed_system_msg) > 100:
-            # Optimize context if still too large
-            from ai.prompt_compressor import prompt_compressor
-            optimized_context = prompt_compressor.optimize_context_for_budget(context_text, 30)
-            context_data['context'] = optimized_context
-            compressed_system_msg = compress_prompt("", context_data)
+        # ✅ Use consciousness-integrated LLM handler (non-streaming)
+        llm_handler = LLMHandler()
         
-        print(f"[Chat] 🗜️ Using compressed prompt: {len(compressed_system_msg)} chars (~{estimate_tokens(compressed_system_msg)} tokens)")
-        
-        # Store compressed version for internal use, expand for LLM
-        system_msg = expand_prompt(compressed_system_msg, context_data)
-
-        messages = [
-            {"role": "system", "content": system_msg},
-            {"role": "user", "content": question}
-        ]
-        
-        print(f"[Chat] 🚀 Sending to KoboldCpp...")
-        response = ask_kobold(messages)
+        # Collect all chunks into a complete response
+        full_response = ""
+        for chunk in llm_handler.generate_response_with_consciousness(
+            text=question,
+            user=username,
+            context=consciousness_context,
+            stream=False  # Non-streaming mode
+        ):
+            if chunk and chunk.strip():
+                full_response += chunk.strip() + " "
         
         # Enhanced response cleaning
-        response = re.sub(r'^(Buddy:|Assistant:|Human:|AI:)\s*', '', response, flags=re.IGNORECASE)
+        response = re.sub(r'^(Buddy:|Assistant:|Human:|AI:)\s*', '', full_response, flags=re.IGNORECASE)
         response = response.strip()
         
         # Remove any remaining artifacts
@@ -720,7 +711,7 @@ def generate_response(question, username, lang=DEFAULT_LANG):
         response = re.sub(r'```.*?```', '', response, flags=re.DOTALL)  # Remove code blocks
         response = response.strip()
         
-        print(f"[Chat] ✅ Final response: '{response}'")
+        print(f"[Chat] ✅ Final consciousness response: '{response}'")
         
         return response
         

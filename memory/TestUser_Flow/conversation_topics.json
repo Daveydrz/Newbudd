@@ -1,0 +1,38 @@
+[
+  {
+    "topic": "weather",
+    "start_time": "2025-07-31 12:38:33",
+    "last_mentioned": "2025-07-31 12:38:33",
+    "message_count": 1,
+    "keywords": [
+      "what",
+      "s",
+      "the",
+      "weather"
+    ],
+    "emotional_context": "neutral",
+    "related_entities": []
+  },
+  {
+    "topic": "work",
+    "start_time": "2025-07-31 12:38:33",
+    "last_mentioned": "2025-07-31 12:38:35",
+    "message_count": 4,
+    "keywords": [
+      "how",
+      "do",
+      "you",
+      "work",
+      "what",
+      "s",
+      "my",
+      "name",
+      "does",
+      "your",
+      "voice",
+      "language"
+    ],
+    "emotional_context": "neutral",
+    "related_entities": []
+  }
+]

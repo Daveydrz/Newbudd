@@ -523,8 +523,8 @@ class LazyConsciousnessLoader:
     def _load_belief_tracker(self, user_id: str) -> Optional[Dict[str, Any]]:
         """Load belief tracker module"""
         try:
-            from ai.belief_evolution_tracker import get_belief_tracker
-            belief_tracker = get_belief_tracker(user_id)
+            from ai.belief_evolution_tracker import get_belief_evolution_tracker
+            belief_tracker = get_belief_evolution_tracker(user_id)
             active_beliefs = belief_tracker.get_active_beliefs()
             return {
                 'active_beliefs': [b.content[:60] for b in active_beliefs[:3]],

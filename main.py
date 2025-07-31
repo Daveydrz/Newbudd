@@ -2439,7 +2439,12 @@ def main():
         print("[AdvancedBuddy] 🧠 Initializing Core Consciousness Architecture...")
         
         try:
-            # Start all consciousness systems
+            # ✅ CRITICAL FIX: Set autonomous mode to BACKGROUND_ONLY BEFORE starting consciousness systems
+            # This prevents LLM calls during initialization that block wake word detection
+            autonomous_consciousness_integrator.set_autonomous_mode(AutonomousMode.BACKGROUND_ONLY)
+            print("[AdvancedBuddy] 🔇 Pre-startup mode: BACKGROUND_ONLY (prevent LLM loops during init)")
+            
+            # Start all consciousness systems (now in silent mode)
             global_workspace.start()
             self_model.start()
             emotion_engine.start()

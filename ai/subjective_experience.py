@@ -1228,6 +1228,20 @@ Describe this experience from your subjective, first-person perspective. Express
     
     def _integrate_recent_experiences(self):
         """Integrate recent experiences into understanding"""
+        try:
+            # Check autonomous mode to prevent LLM calls during BACKGROUND_ONLY mode
+            from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
+            current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
+            
+            # Skip experience integration during BACKGROUND_ONLY mode to prevent LLM loops
+            if current_mode.value == "background_only":
+                return
+                
+        except Exception as mode_check_error:
+            print(f"[SubjectiveExperience] ⚠️ Autonomous mode check failed in integration: {mode_check_error}")
+            # If we can't check mode, skip integration to be safe
+            return
+        
         recent_experiences = list(self.experiences.values())[-5:]
         
         if len(recent_experiences) >= 3:

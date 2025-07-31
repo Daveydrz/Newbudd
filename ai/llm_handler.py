@@ -229,11 +229,11 @@ class LLMHandler:
                     
                     # Inform motivation system about new goals
                     if 'motivation_system' in consciousness_systems:
-                        from ai.motivation import motivation_system
+                        from ai.motivation import motivation_system, MotivationType
                         intent_categories = [intent.value for intent in semantic_analysis.intent_categories] if hasattr(semantic_analysis, 'intent_categories') else []
                         for intent in intent_categories:
                             if intent in ['help_request', 'information_seeking', 'problem_solving']:
-                                motivation_system.add_derived_goal(f"address_{intent}", priority=0.7)
+                                motivation_system.add_goal(f"address_{intent}", MotivationType.ACHIEVEMENT, priority=0.7)
                     
                     # Inform global workspace about attention focus
                     if 'global_workspace' in consciousness_systems:

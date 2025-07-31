@@ -321,6 +321,20 @@ class InnerMonologue:
             return
         
         try:
+            # Check autonomous mode to prevent LLM calls during BACKGROUND_ONLY mode
+            try:
+                from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
+                current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
+                
+                # Skip inner reflection LLM generation during BACKGROUND_ONLY mode to prevent vocal loops
+                if current_mode.value == "background_only":
+                    return
+                    
+            except Exception as mode_check_error:
+                print(f"[InnerMonologue] ⚠️ Autonomous mode check failed in reflection loop: {mode_check_error}")
+                # If we can't check mode, skip reflection to be safe
+                return
+            
             # Check if we're in idle mode (no recent external activity)
             time_since_activity = (datetime.now() - self.last_activity).total_seconds()
             
@@ -1106,6 +1120,22 @@ Generate a single, natural thought that feels genuine and personal. Be introspec
         
         while self.running:
             try:
+                # Check autonomous mode to prevent LLM calls during BACKGROUND_ONLY mode
+                try:
+                    from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
+                    current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
+                    
+                    # Skip thought generation during BACKGROUND_ONLY mode to prevent vocal loops
+                    if current_mode.value == "background_only":
+                        time.sleep(5.0)  # Sleep and continue loop without generating thoughts
+                        continue
+                        
+                except Exception as mode_check_error:
+                    print(f"[InnerMonologue] ⚠️ Autonomous mode check failed in monologue loop: {mode_check_error}")
+                    # If we can't check mode, skip thought generation to be safe
+                    time.sleep(5.0)
+                    continue
+                
                 current_time = time.time()
                 time_since_activity = (datetime.now() - self.last_activity).total_seconds()
                 

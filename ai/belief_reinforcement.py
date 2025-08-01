@@ -101,7 +101,7 @@ class BeliefReinforcementSystem:
         print(f"[BeliefReinforcement] 🧠 Initialized with {len(self.belief_updates)} belief updates")
     
     def _should_skip_llm_call(self) -> bool:
-        """Check if LLM call should be skipped to prevent circular calls"""
+        """Enhanced check if LLM call should be skipped to prevent circular calls and consciousness floods"""
         
         # Check if already in LLM generation using global state (most important check)
         try:
@@ -111,6 +111,18 @@ class BeliefReinforcementSystem:
                 return True
         except Exception as e:
             print(f"[BeliefReinforcement] ⚠️ Could not check LLM generation state: {e}")
+        
+        # ✅ NEW: Enhanced conversation state check with cooldown period
+        try:
+            from main import get_conversation_state, get_mic_feeding_state
+            if get_conversation_state():
+                print("[BeliefReinforcement] ⚠️ Skipping LLM call - conversation state active (includes cooldown)")
+                return True
+            if get_mic_feeding_state():
+                print("[BeliefReinforcement] ⚠️ Skipping LLM call - mic feeding active")
+                return True
+        except ImportError:
+            pass
         
         # Check autonomous mode
         try:

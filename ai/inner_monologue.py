@@ -128,17 +128,15 @@ class InnerMonologue:
         logging.info("[InnerMonologue] 🧠 Inner monologue system initialized")
 
     def _should_skip_llm_call(self) -> bool:
-        """Check if LLM calls should be skipped to prevent circular loops"""
+        """Enhanced check for LLM calls to prevent circular loops and consciousness floods"""
         try:
-            # Import the global state check
+            # Check 1: Global LLM generation state
             from ai.llm_handler import is_llm_generation_in_progress
-            
-            # Check if global LLM generation is in progress
             if is_llm_generation_in_progress():
                 print("[InnerMonologue] ⚠️ Skipping LLM call - global generation in progress")
                 return True
             
-            # Check if we're in autonomous mode where consciousness should be silent
+            # Check 2: Autonomous mode status
             try:
                 from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
                 if hasattr(autonomous_consciousness_integrator, 'autonomous_mode'):
@@ -149,15 +147,29 @@ class InnerMonologue:
             except ImportError:
                 pass
             
-            # Check if there's an active conversation or mic feeding
+            # Check 3: Enhanced conversation state with cooldown period
             try:
                 from main import get_conversation_state, get_mic_feeding_state
-                if get_conversation_state() or get_mic_feeding_state():
-                    print("[InnerMonologue] ⚠️ Skipping LLM call - active conversation/mic feeding")
+                if get_conversation_state():
+                    print("[InnerMonologue] ⚠️ Skipping LLM call - conversation state active (includes cooldown period)")
+                    return True
+                if get_mic_feeding_state():
+                    print("[InnerMonologue] ⚠️ Skipping LLM call - mic feeding active")
                     return True
             except ImportError:
                 pass
             
+            # Check 4: Additional safety - prevent rapid consciousness activation
+            import time
+            current_time = time.time()
+            if hasattr(self, '_last_llm_call_time'):
+                time_since_last = current_time - self._last_llm_call_time
+                if time_since_last < 30.0:  # 30 second minimum between consciousness LLM calls
+                    print(f"[InnerMonologue] ⚠️ Skipping LLM call - too soon after last call ({time_since_last:.1f}s)")
+                    return True
+            
+            # If we reach here, it's safe to make LLM call
+            self._last_llm_call_time = current_time
             return False
             
         except Exception as e:

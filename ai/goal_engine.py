@@ -440,7 +440,7 @@ class GoalEngine:
         return existential_thoughts
     
     def _should_skip_llm_call(self) -> bool:
-        """Check if LLM calls should be skipped to prevent circular loops"""
+        """Enhanced check if LLM calls should be skipped to prevent circular loops and consciousness floods"""
         try:
             # Import the global state check
             from ai.llm_handler import is_llm_generation_in_progress
@@ -449,6 +449,18 @@ class GoalEngine:
             if is_llm_generation_in_progress():
                 print("[GoalEngine] ⚠️ Skipping LLM call - global generation in progress")
                 return True
+            
+            # ✅ NEW: Enhanced conversation state check with cooldown period
+            try:
+                from main import get_conversation_state, get_mic_feeding_state
+                if get_conversation_state():
+                    print("[GoalEngine] ⚠️ Skipping LLM call - conversation state active (includes cooldown)")
+                    return True
+                if get_mic_feeding_state():
+                    print("[GoalEngine] ⚠️ Skipping LLM call - mic feeding active")
+                    return True
+            except ImportError:
+                pass
             
             # Check if we're in autonomous mode where consciousness should be silent
             try:

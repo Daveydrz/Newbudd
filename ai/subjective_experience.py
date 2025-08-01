@@ -167,7 +167,7 @@ class SubjectiveExperienceSystem:
         print("[SubjectiveExperience] 🌟 Subjective experience system initialized")
     
     def _should_skip_llm_call(self, context: Dict[str, Any] = None) -> bool:
-        """Check if LLM call should be skipped to prevent circular calls"""
+        """Enhanced check if LLM call should be skipped to prevent circular calls and consciousness floods"""
         
         # Check for circular call context flag (fix None context handling)
         if context and isinstance(context, dict) and context.get('llm_generation_context'):
@@ -182,6 +182,18 @@ class SubjectiveExperienceSystem:
                 return True
         except Exception as e:
             print(f"[SubjectiveExperience] ⚠️ Could not check LLM generation state: {e}")
+        
+        # ✅ NEW: Enhanced conversation state check with cooldown period
+        try:
+            from main import get_conversation_state, get_mic_feeding_state
+            if get_conversation_state():
+                print("[SubjectiveExperience] ⚠️ Skipping LLM call - conversation state active (includes cooldown)")
+                return True
+            if get_mic_feeding_state():
+                print("[SubjectiveExperience] ⚠️ Skipping LLM call - mic feeding active")
+                return True
+        except ImportError:
+            pass
         
         # Check autonomous mode
         try:

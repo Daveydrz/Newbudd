@@ -584,9 +584,31 @@ def set_mic_feeding_state(active):
         print(f"[State] 🎤 mic_feeding_active set to: {active}")
 
 def get_conversation_state():
-    """Thread-safe way to get conversation state"""
+    """
+    Enhanced thread-safe conversation state with consciousness loop prevention
+    
+    Returns True if:
+    - Currently in active conversation
+    - Recent user interaction occurred (within last 15 seconds)  
+    """
     with state_lock:
-        return conversation_active
+        # Check basic conversation state
+        if conversation_active:
+            return True
+        
+        # ✅ NEW: Check for recent user interaction to prevent consciousness activation too soon
+        current_time = time.time()
+        if hasattr(get_conversation_state, 'last_user_interaction_time'):
+            time_since_interaction = current_time - get_conversation_state.last_user_interaction_time
+            if time_since_interaction < 15.0:  # 15 second conversation cooldown
+                return True
+        
+        return False
+
+def mark_user_interaction():
+    """Mark that a user interaction just occurred - prevents consciousness loops"""
+    get_conversation_state.last_user_interaction_time = time.time()
+    print(f"[ConversationState] 🎯 User interaction marked - consciousness cooldown started")
 
 def get_mic_feeding_state():
     """Thread-safe way to get mic feeding state"""
@@ -596,6 +618,9 @@ def get_mic_feeding_state():
 def handle_streaming_response(text, current_user):
     """✅ ENHANCED: Smart streaming with ADVANCED AI ASSISTANT features + VOICE-BASED IDENTITY + FULL CONSCIOUSNESS"""
     print(f"🚨🚨🚨 [CRITICAL_DEBUG] handle_streaming_response called with text='{text}', user='{current_user}' 🚨🚨🚨")
+    
+    # ✅ FIX: Mark user interaction immediately to prevent consciousness loops
+    mark_user_interaction()
     
     # ✅ NEW: Start cognitive debug logging
     interaction_id = None
@@ -1087,16 +1112,43 @@ def handle_streaming_response(text, current_user):
                 # ✅ CONSCIOUSNESS: Finalize consciousness processing (DELAYED to prevent loops)
                 if CONSCIOUSNESS_ARCHITECTURE_AVAILABLE:
                     try:
-                        # ✅ FIX: Delay consciousness finalization to prevent infinite loops
-                        # The global LLM state needs time to stabilize before consciousness systems activate
+                        # ✅ FIX: Enhanced consciousness finalization with proper timing controls
+                        # Prevent consciousness loops by ensuring adequate cooldown period
                         import threading
                         def delayed_consciousness_finalization():
                             try:
-                                time.sleep(2.0)  # Wait 2 seconds for LLM state to stabilize
-                                print("[AdvancedResponse] 🧠 Starting delayed consciousness finalization...")
+                                # ✅ EXTENDED DELAY: Wait longer for TTS to start and LLM state to fully stabilize
+                                time.sleep(5.0)  # Extended from 2s to 5s to prevent race conditions
+                                
+                                # ✅ ENHANCED SAFETY CHECKS: Multiple validation layers
+                                from ai.llm_handler import is_llm_generation_in_progress
+                                
+                                # Check 1: Ensure global LLM state is still stable
+                                if is_llm_generation_in_progress():
+                                    print("[AdvancedResponse] ⚠️ Consciousness finalization aborted - LLM generation active")
+                                    return
+                                
+                                # Check 2: Ensure conversation state allows consciousness activation
+                                if get_conversation_state():
+                                    print("[AdvancedResponse] ⚠️ Consciousness finalization delayed - conversation still active")
+                                    return
+                                
+                                # Check 3: Verify we're not in a rapid interaction sequence 
+                                current_time = time.time()
+                                if hasattr(delayed_consciousness_finalization, 'last_user_interaction'):
+                                    time_since_last = current_time - delayed_consciousness_finalization.last_user_interaction
+                                    if time_since_last < 10.0:  # 10 second minimum between consciousness activations
+                                        print(f"[AdvancedResponse] ⚠️ Consciousness finalization delayed - too soon after last interaction ({time_since_last:.1f}s)")
+                                        return
+                                
+                                # Update last interaction time
+                                delayed_consciousness_finalization.last_user_interaction = current_time
+                                
+                                print("[AdvancedResponse] 🧠 Starting enhanced consciousness finalization with safety checks...")
                                 _finalize_consciousness_response(text, full_response.strip(), current_user, consciousness_state)
+                                
                             except Exception as delayed_error:
-                                print(f"[AdvancedResponse] ⚠️ Delayed consciousness finalization error: {delayed_error}")
+                                print(f"[AdvancedResponse] ⚠️ Enhanced consciousness finalization error: {delayed_error}")
                         
                         # Run finalization in separate thread to prevent blocking
                         finalization_thread = threading.Thread(target=delayed_consciousness_finalization, daemon=True)

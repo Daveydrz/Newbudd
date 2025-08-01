@@ -162,10 +162,10 @@ class SubjectiveExperienceSystem:
         except Exception:
             pass
         
-        # Check if already in LLM generation
+        # Check if already in LLM generation using global state
         try:
-            from ai.llm_handler import llm_handler
-            if hasattr(llm_handler, '_llm_generation_in_progress') and llm_handler._llm_generation_in_progress:
+            from ai.llm_handler import is_llm_generation_in_progress
+            if is_llm_generation_in_progress():
                 return True
         except Exception:
             pass

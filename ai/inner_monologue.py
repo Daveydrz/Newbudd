@@ -936,8 +936,8 @@ Respond with only the thought itself, no explanations.
             
             # ✅ FIX: Check if already in LLM generation to prevent loops
             try:
-                from ai.llm_handler import llm_handler
-                if hasattr(llm_handler, '_llm_generation_in_progress') and llm_handler._llm_generation_in_progress:
+                from ai.llm_handler import is_llm_generation_in_progress
+                if is_llm_generation_in_progress():
                     return f"I'm having a {thought_type.value} thought about {trigger}"
             except Exception:
                 pass

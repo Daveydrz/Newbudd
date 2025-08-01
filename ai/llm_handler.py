@@ -132,6 +132,21 @@ except ImportError:
 # Set consciousness modules availability flag based on what we have
 CONSCIOUSNESS_MODULES_AVAILABLE = NEW_MODULES_AVAILABLE or CONSCIOUSNESS_AVAILABLE
 
+# ✅ GLOBAL circular call prevention
+_global_llm_generation_lock = threading.Lock()
+_global_llm_generation_in_progress = False
+
+def is_llm_generation_in_progress():
+    """Check if LLM generation is currently in progress (global state)"""
+    global _global_llm_generation_in_progress
+    return _global_llm_generation_in_progress
+
+def set_llm_generation_in_progress(in_progress: bool):
+    """Set global LLM generation state"""
+    global _global_llm_generation_in_progress, _global_llm_generation_lock
+    with _global_llm_generation_lock:
+        _global_llm_generation_in_progress = in_progress
+
 class LLMHandler:
     """Centralized LLM handler with full consciousness integration"""
     
@@ -387,13 +402,13 @@ class LLMHandler:
         Yields response chunks if streaming, otherwise returns complete response
         """
         try:
-            # ✅ FIX: Prevent circular consciousness calls
-            with self._generation_lock:
-                if self._llm_generation_in_progress:
-                    print("[LLMHandler] ⚠️ Circular LLM call detected - using fallback response")
-                    yield "I'm processing your request..."
-                    return
-                self._llm_generation_in_progress = True
+            # ✅ FIX: Prevent circular consciousness calls using global state
+            if is_llm_generation_in_progress():
+                print("[LLMHandler] ⚠️ Circular LLM call detected - using fallback response")
+                yield "I'm processing your request..."
+                return
+            
+            set_llm_generation_in_progress(True)
             
             try:
                 # 🚀 NEW LATENCY OPTIMIZATION SYSTEM
@@ -528,9 +543,8 @@ class LLMHandler:
                 yield f"I apologize, but I encountered an error while processing your request: {str(e)}"
         
         finally:
-            # ✅ FIX: Always reset the generation flag
-            with self._generation_lock:
-                self._llm_generation_in_progress = False
+            # ✅ FIX: Always reset the global generation flag
+            set_llm_generation_in_progress(False)
             
     def sanitize_prompt_input(self, text: str, user_id: str = "unknown") -> str:
         """

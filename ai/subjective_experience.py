@@ -190,11 +190,6 @@ class SubjectiveExperienceSystem:
             pass
         
         return False
-        
-        # Load existing state
-        self._load_experience_state()
-        
-        logging.info("[SubjectiveExperience] 🌟 Subjective experience system initialized")
     
     def start(self):
         """Start subjective experience processing"""

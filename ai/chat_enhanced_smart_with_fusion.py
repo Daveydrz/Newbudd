@@ -249,7 +249,8 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
                 text=optimized_question, 
                 user=username, 
                 context=fusion_context,
-                stream=True
+                stream=True,
+                is_primary_call=True
             )))
             
             # Check for alternative pathways based on uncertainty (only if not ultra-optimized)
@@ -270,7 +271,8 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
                         text=uncertain_question,
                         user=username,
                         context=uncertainty_context,
-                        stream=True
+                        stream=True,
+                        is_primary_call=True
                     )))
             
             # Probabilistic pathway selection
@@ -299,7 +301,8 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
                 text=fallback_question,
                 user=username,
                 context=fallback_context,
-                stream=True
+                stream=True,
+                is_primary_call=True
             )
     else:
         # No entropy system available - use basic consciousness optimization
@@ -322,7 +325,8 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
             text=optimized_question,
             user=username,
             context=basic_context,
-            stream=True
+            stream=True,
+            is_primary_call=True
         )
     
     # Step 5: Generate main response with unified memory context + CONSCIOUSNESS ENTROPY + TOKEN OPTIMIZATION

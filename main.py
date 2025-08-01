@@ -589,18 +589,41 @@ def get_conversation_state():
     
     Returns True if:
     - Currently in active conversation
-    - Recent user interaction occurred (within last 15 seconds)  
+    - Recent user interaction occurred (within last 15 seconds)
+    - TTS is currently playing audio
     """
     with state_lock:
         # Check basic conversation state
         if conversation_active:
             return True
         
-        # ✅ NEW: Check for recent user interaction to prevent consciousness activation too soon
+        # ✅ NEW: Check for TTS playback state
+        try:
+            # Import TTS state if available
+            from audio.output import is_tts_playing
+            if is_tts_playing():
+                return True
+        except ImportError:
+            # Fallback: check if audio queue has recent activity
+            try:
+                from audio.output import get_audio_stats
+                stats = get_audio_stats()
+                if stats and stats.get('queue_size', 0) > 0:
+                    return True
+            except ImportError:
+                pass
+        
+        # ✅ ENHANCED: Check for recent user interaction to prevent consciousness activation too soon
         current_time = time.time()
         if hasattr(get_conversation_state, 'last_user_interaction_time'):
             time_since_interaction = current_time - get_conversation_state.last_user_interaction_time
             if time_since_interaction < 15.0:  # 15 second conversation cooldown
+                return True
+        
+        # ✅ NEW: Check for recent TTS activity
+        if hasattr(get_conversation_state, 'last_tts_activity_time'):
+            time_since_tts = current_time - get_conversation_state.last_tts_activity_time
+            if time_since_tts < 10.0:  # 10 second TTS cooldown
                 return True
         
         return False
@@ -609,6 +632,11 @@ def mark_user_interaction():
     """Mark that a user interaction just occurred - prevents consciousness loops"""
     get_conversation_state.last_user_interaction_time = time.time()
     print(f"[ConversationState] 🎯 User interaction marked - consciousness cooldown started")
+
+def mark_tts_activity():
+    """Mark that TTS activity just occurred - prevents consciousness loops during audio playback"""
+    get_conversation_state.last_tts_activity_time = time.time()
+    print(f"[ConversationState] 🎤 TTS activity marked - consciousness cooldown started")
 
 def get_mic_feeding_state():
     """Thread-safe way to get mic feeding state"""
@@ -884,6 +912,7 @@ def handle_streaming_response(text, current_user):
                         
                         # ✅ SPEAK CHUNK (now validated and consciousness-enhanced)
                         speak_streaming(chunk_text)
+                        mark_tts_activity()  # Mark TTS activity to prevent consciousness loops
                         full_response += chunk_text + " "
                         
                         # ✅ CRITICAL: Check AGAIN after queueing and break if interrupted
@@ -1016,6 +1045,7 @@ def handle_streaming_response(text, current_user):
                     
                     # ✅ SPEAK CHUNK (now validated and entropy-enhanced)
                     speak_streaming(chunk_text)
+                    mark_tts_activity()  # Mark TTS activity to prevent consciousness loops
                     full_response += chunk_text + " "
                     
                     # ✅ CRITICAL: Check AGAIN after queueing and break if interrupted
@@ -1117,10 +1147,10 @@ def handle_streaming_response(text, current_user):
                         import threading
                         def delayed_consciousness_finalization():
                             try:
-                                # ✅ EXTENDED DELAY: Wait longer for TTS to start and LLM state to fully stabilize
-                                time.sleep(5.0)  # Extended from 2s to 5s to prevent race conditions
+                                # ✅ EXTENDED DELAY: Wait even longer for TTS to start and stabilize
+                                time.sleep(8.0)  # Extended from 5s to 8s to ensure TTS has proper time
                                 
-                                # ✅ ENHANCED SAFETY CHECKS: Multiple validation layers
+                                # ✅ ENHANCED SAFETY CHECKS: Multiple validation layers with TTS awareness
                                 from ai.llm_handler import is_llm_generation_in_progress
                                 
                                 # Check 1: Ensure global LLM state is still stable
@@ -1128,23 +1158,30 @@ def handle_streaming_response(text, current_user):
                                     print("[AdvancedResponse] ⚠️ Consciousness finalization aborted - LLM generation active")
                                     return
                                 
-                                # Check 2: Ensure conversation state allows consciousness activation
+                                # Check 2: Ensure conversation state allows consciousness activation (includes TTS state)
                                 if get_conversation_state():
-                                    print("[AdvancedResponse] ⚠️ Consciousness finalization delayed - conversation still active")
+                                    print("[AdvancedResponse] ⚠️ Consciousness finalization delayed - conversation/TTS still active")
                                     return
                                 
                                 # Check 3: Verify we're not in a rapid interaction sequence 
                                 current_time = time.time()
                                 if hasattr(delayed_consciousness_finalization, 'last_user_interaction'):
                                     time_since_last = current_time - delayed_consciousness_finalization.last_user_interaction
-                                    if time_since_last < 10.0:  # 10 second minimum between consciousness activations
+                                    if time_since_last < 15.0:  # Increased from 10s to 15s for better safety
                                         print(f"[AdvancedResponse] ⚠️ Consciousness finalization delayed - too soon after last interaction ({time_since_last:.1f}s)")
+                                        return
+                                
+                                # Check 4: Additional TTS cooldown check
+                                if hasattr(get_conversation_state, 'last_tts_activity_time'):
+                                    time_since_tts = current_time - get_conversation_state.last_tts_activity_time
+                                    if time_since_tts < 12.0:  # 12 second TTS cooldown
+                                        print(f"[AdvancedResponse] ⚠️ Consciousness finalization delayed - recent TTS activity ({time_since_tts:.1f}s)")
                                         return
                                 
                                 # Update last interaction time
                                 delayed_consciousness_finalization.last_user_interaction = current_time
                                 
-                                print("[AdvancedResponse] 🧠 Starting enhanced consciousness finalization with safety checks...")
+                                print("[AdvancedResponse] 🧠 Starting enhanced consciousness finalization with comprehensive safety checks...")
                                 _finalize_consciousness_response(text, full_response.strip(), current_user, consciousness_state)
                                 
                             except Exception as delayed_error:
@@ -1153,7 +1190,7 @@ def handle_streaming_response(text, current_user):
                         # Run finalization in separate thread to prevent blocking
                         finalization_thread = threading.Thread(target=delayed_consciousness_finalization, daemon=True)
                         finalization_thread.start()
-                        print("[AdvancedResponse] 🧠 Consciousness finalization scheduled (delayed)")
+                        print("[AdvancedResponse] 🧠 Consciousness finalization scheduled (8s delay with TTS awareness)")
                         
                     except Exception as consciousness_finalize_error:
                         print(f"[AdvancedResponse] ⚠️ Consciousness finalization setup error: {consciousness_finalize_error}")
@@ -3258,11 +3295,13 @@ def _inject_entropy_thoughts(entropy_params: Dict[str, Any]):
         print(f"[Consciousness] ❌ Entropy injection error (thoughts): {e}")
 
 def _integrate_consciousness_with_response(text: str, current_user: str) -> Dict[str, Any]:
-    """Integrate consciousness systems with response generation"""
+    """Collect consciousness state for response generation WITHOUT triggering consciousness systems"""
     consciousness_state = {}
     
     try:
-        # Request attention for user input
+        print("[Consciousness] 📊 Collecting consciousness state for response context (no system triggers)")
+        
+        # Request attention for user input (safe, doesn't trigger LLM calls)
         global_workspace.request_attention(
             "user_interaction",
             text,
@@ -3272,48 +3311,47 @@ def _integrate_consciousness_with_response(text: str, current_user: str) -> Dict
             tags=["user_input", "response_generation"]
         )
         
-        # Process emotional response to input
+        # Process emotional response to input (safe, doesn't trigger LLM calls)
         emotion_response = emotion_engine.process_emotional_trigger(
             f"User said: {text}",
             {"user": current_user, "input": text}
         )
         
-        # Get emotional modulation for response
+        # Get emotional modulation for response (safe, doesn't trigger LLM calls)
         emotional_modulation = emotion_engine.get_emotional_modulation("response")
         consciousness_state["emotional_modulation"] = emotional_modulation
         consciousness_state["current_emotion"] = emotion_response.primary_emotion.value
         
-        # Evaluate motivation satisfaction
+        # Evaluate motivation satisfaction (safe, doesn't trigger LLM calls)
         motivation_satisfaction = motivation_system.evaluate_desire_satisfaction(
             f"responding to: {text}",
             {"user": current_user, "input": text}
         )
         consciousness_state["motivation_satisfaction"] = motivation_satisfaction
         
-        # Trigger inner thought about the interaction
-        inner_monologue.trigger_thought(
-            f"The user asked about: {text}",
-            {"user": current_user, "input": text},
-            ThoughtType.OBSERVATION
-        )
+        # ✅ CRITICAL FIX: Store data for later consciousness activation instead of triggering now
+        consciousness_state["deferred_consciousness_data"] = {
+            "text": text,
+            "user": current_user,
+            "timestamp": time.time(),
+            "inner_thought_content": f"The user asked about: {text}",
+            "experience_content": f"Processing user request: {text}",
+            "experience_type": "SOCIAL",
+            "experience_context": {"user": current_user, "input": text, "interaction_type": "question_response"}
+        }
         
-        # Create subjective experience of the interaction
-        experience = subjective_experience.process_experience(
-            f"Processing user request: {text}",
-            ExperienceType.SOCIAL,
-            {"user": current_user, "input": text, "interaction_type": "question_response"}
-        )
-        consciousness_state["experience_valence"] = experience.valence
-        consciousness_state["experience_significance"] = experience.significance
+        # Set placeholder experience values for immediate use
+        consciousness_state["experience_valence"] = 0.6  # Positive default for user interaction
+        consciousness_state["experience_significance"] = 0.7  # Moderate significance for user interaction
         
-        # Mark temporal event
+        # Mark temporal event (safe, doesn't trigger LLM calls)
         temporal_awareness.mark_temporal_event(
             f"User interaction: {text[:50]}...",
             significance=0.6,
             context={"user": current_user, "input_length": len(text)}
         )
         
-        # Self-reflection on the interaction
+        # Self-reflection on the interaction (safe, doesn't trigger LLM calls)
         self_model.reflect_on_experience(
             f"Responding to user input about: {text}",
             {"user": current_user, "input": text, "response_context": True}
@@ -3334,8 +3372,42 @@ def _integrate_consciousness_with_response(text: str, current_user: str) -> Dict
     return consciousness_state
 
 def _finalize_consciousness_response(text: str, response: str, current_user: str, consciousness_state: Dict[str, Any]):
-    """Finalize consciousness processing after response"""
+    """Finalize consciousness processing after response - NOW includes deferred consciousness activation"""
     try:
+        print("[Consciousness] 🧠 Starting consciousness finalization with deferred system activation...")
+        
+        # ✅ CRITICAL FIX: Activate deferred consciousness systems now that response is complete
+        deferred_data = consciousness_state.get("deferred_consciousness_data", {})
+        if deferred_data:
+            print("[Consciousness] 🚀 Activating deferred consciousness systems...")
+            
+            # Activate inner monologue thought (was deferred from response generation)
+            try:
+                if "inner_thought_content" in deferred_data:
+                    inner_monologue.trigger_thought(
+                        deferred_data["inner_thought_content"],
+                        {"user": current_user, "input": text},
+                        ThoughtType.OBSERVATION
+                    )
+                    print("[Consciousness] 💭 Triggered deferred inner thought")
+            except Exception as thought_error:
+                print(f"[Consciousness] ⚠️ Deferred inner thought error: {thought_error}")
+            
+            # Activate subjective experience processing (was deferred from response generation)
+            try:
+                if "experience_content" in deferred_data:
+                    experience = subjective_experience.process_experience(
+                        deferred_data["experience_content"],
+                        ExperienceType.SOCIAL,
+                        deferred_data.get("experience_context", {})
+                    )
+                    # Update consciousness state with actual experience values
+                    consciousness_state["experience_valence"] = experience.valence
+                    consciousness_state["experience_significance"] = experience.significance
+                    print(f"[Consciousness] 🌟 Processed deferred experience: valence={experience.valence:.2f}, significance={experience.significance:.2f}")
+            except Exception as experience_error:
+                print(f"[Consciousness] ⚠️ Deferred experience processing error: {experience_error}")
+        
         # Update goal progress if applicable
         relevant_goals = motivation_system.get_priority_goals(3)
         for goal in relevant_goals:
@@ -3367,7 +3439,7 @@ def _finalize_consciousness_response(text: str, response: str, current_user: str
             {"user": current_user, "response_completed": True, "response_quality": "good"}
         )
         
-        # ✅ FIX: Generate insight only if it's truly significant and safe to do so
+        # ✅ ENHANCED: Generate insight only if it's truly significant and safe to do so
         # Check that we're not in a conversation state that could trigger loops
         if consciousness_state.get("experience_significance", 0) > 0.8:  # Raised threshold from 0.7 to 0.8
             try:

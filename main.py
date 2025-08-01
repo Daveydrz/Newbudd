@@ -163,20 +163,6 @@ print("[Main] ✅ UltraIntelligentNameManager assigned to voice_manager")
 
 from config import *
 
-# ✅ QA SYSTEM: Import event logger for QA analysis
-try:
-    from buddy_event_logger import buddy_event_logger
-    QA_LOGGING_ENABLED = True
-    print("[AdvancedBuddy] 📊 QA Event logging enabled")
-except ImportError as e:
-    print(f"[AdvancedBuddy] ⚠️ QA Event logging disabled: {e}")
-    QA_LOGGING_ENABLED = False
-    # Create dummy logger to prevent errors
-    class DummyLogger:
-        def __getattr__(self, name):
-            return lambda *args, **kwargs: None
-    buddy_event_logger = DummyLogger()
-
 # Import with better error handling
 try:
     from audio.full_duplex_manager import full_duplex_manager
@@ -831,16 +817,11 @@ def handle_streaming_response(text, current_user):
         
         # ✅ ENHANCED: MANDATORY Consciousness-integrated LLM handler with token optimization
         consciousness_success = False
-        llm_start_time = time.time()  # ✅ QA SYSTEM: Track LLM timing
         try:
             if CONSCIOUSNESS_LLM_AVAILABLE:
                 from ai.llm_handler import generate_consciousness_integrated_response
                 print("[AdvancedResponse] 🧠 Using MANDATORY CONSCIOUSNESS-INTEGRATED LLM HANDLER")
                 print("[AdvancedResponse] 🏷️ Token optimization: ACTIVE (40-85% reduction target)")
-                
-                # ✅ QA SYSTEM: Log LLM start
-                if QA_LOGGING_ENABLED:
-                    buddy_event_logger.log_llm_start(text, current_user, "consciousness_integrated")
                 
                 full_response = ""
                 chunk_count = 0
@@ -859,10 +840,6 @@ def handle_streaming_response(text, current_user):
                         chunk_count += 1
                         chunk_text = chunk.strip()
                         
-                        # ✅ QA SYSTEM: Log LLM chunk
-                        if QA_LOGGING_ENABLED:
-                            buddy_event_logger.log_llm_chunk(chunk_text, chunk_count)
-                        
                         if first_chunk:
                             print("[AdvancedResponse] 🎭 First CONSCIOUSNESS chunk ready - starting natural speech!")
                             first_chunk = False
@@ -880,20 +857,8 @@ def handle_streaming_response(text, current_user):
                             print(f"[MegaMemory] ⚠️ Validation error for chunk {chunk_count}: {validation_error}")
                             # Continue with original chunk if validation fails
                         
-                        # ✅ QA SYSTEM: Log TTS events around speak_streaming
-                        if QA_LOGGING_ENABLED:
-                            tts_chunk_id = f"consciousness_chunk_{chunk_count}"
-                            buddy_event_logger.log_tts_start(chunk_text, chunk_id=tts_chunk_id)
-                            tts_start_time = time.time()
-                        
                         # ✅ SPEAK CHUNK (now validated and consciousness-enhanced)
                         speak_streaming(chunk_text)
-                        
-                        # ✅ QA SYSTEM: Log TTS completion
-                        if QA_LOGGING_ENABLED:
-                            tts_latency = time.time() - tts_start_time
-                            buddy_event_logger.log_tts_finish(chunk_text, tts_latency, tts_chunk_id, success=True)
-                        
                         full_response += chunk_text + " "
                         
                         # ✅ CRITICAL: Check AGAIN after queueing and break if interrupted
@@ -905,17 +870,6 @@ def handle_streaming_response(text, current_user):
                         # Brief pause for natural flow (only if not interrupted)
                         if not (full_duplex_manager and full_duplex_manager.speech_interrupted):
                             time.sleep(0.05)
-                
-                # ✅ QA SYSTEM: Log LLM completion
-                if QA_LOGGING_ENABLED:
-                    llm_latency = time.time() - llm_start_time
-                    buddy_event_logger.log_llm_finish(
-                        full_response, 
-                        token_count=len(full_response.split()),
-                        tokens_per_sec=len(full_response.split()) / llm_latency if llm_latency > 0 else 0,
-                        latency=llm_latency,
-                        success=not response_interrupted
-                    )
                 
                 print(f"[AdvancedResponse] ✅ CONSCIOUSNESS-INTEGRATED response complete - {chunk_count} segments")
                 consciousness_success = True
@@ -1128,17 +1082,6 @@ def handle_streaming_response(text, current_user):
                 user_memory.add_episodic_turn(text, full_response.strip(), intent, entities, emotional_tone)
                 
                 add_to_conversation_history(current_user, text, full_response.strip())
-                
-                # ✅ QA SYSTEM: Log memory updates
-                if QA_LOGGING_ENABLED:
-                    buddy_event_logger.log_memory_update(
-                        "conversation", 
-                        current_user, 
-                        topic=intent,
-                        emotion=emotional_tone,
-                        details={"entities": entities, "interaction_id": interaction_id if 'interaction_id' in locals() else None}
-                    )
-                
                 print(f"[AdvancedResponse] ✅ ADVANCED AI streaming complete for VOICE USER {current_user} - {chunk_count} natural segments")
                 
                 # ✅ CONSCIOUSNESS: Finalize consciousness processing
@@ -1192,16 +1135,6 @@ def handle_streaming_response(text, current_user):
         print(f"[AdvancedResponse] ❌ Error: {e}")
         import traceback
         traceback.print_exc()
-        
-        # ✅ QA SYSTEM: Log runtime errors
-        if QA_LOGGING_ENABLED:
-            buddy_event_logger.log_error(
-                "runtime_error",
-                str(e),
-                "streaming_response_handler",
-                stack_trace=traceback.format_exc(),
-                context={"user": current_user, "input_text": text[:100]}
-            )
         
         # ✅ EMERGENCY CLEANUP
         try:
@@ -1639,9 +1572,6 @@ def handle_full_duplex_conversation():
     """✅ ADVANCED: Full duplex conversation with ADVANCED AI ASSISTANT features + FULL CONSCIOUSNESS"""
     global current_user
     
-    # ✅ QA SYSTEM: Track conversation timing
-    conversation_start_time = time.time()
-    
     # ✅ ADVANCED: Enhanced state management
     pending_question = None
     voice_recognition_in_progress = False
@@ -1716,19 +1646,6 @@ def handle_full_duplex_conversation():
             if speech_result:
                 text, audio_data = speech_result
                 print(f"[FullDuplex] 👤 User said: '{text}'")
-                
-                # ✅ QA SYSTEM: Log VAD detection and STT events
-                if QA_LOGGING_ENABLED:
-                    buddy_event_logger.log_vad_detection(
-                        "stop_speaking", 
-                        audio_length=len(audio_data) if audio_data else None,
-                        speech_detected=True
-                    )
-                    buddy_event_logger.log_stt_finish(
-                        text, 
-                        latency=0.5,  # Approximate - we don't have exact timing here
-                        success=bool(text and text.strip())
-                    )
                 
                 # ✅ STEP 1: Process user identification from text FIRST
                 try:
@@ -2129,10 +2046,6 @@ def handle_full_duplex_conversation():
                 
                 # Check for conversation end
                 if should_end_conversation(text):
-                    # ✅ QA SYSTEM: Log conversation end
-                    if QA_LOGGING_ENABLED:
-                        buddy_event_logger.log_conversation_end(current_user, duration=time.time() - conversation_start_time if 'conversation_start_time' in locals() else None)
-                    
                     try:
                         from ai.speech import get_display_name
                         display_name = get_display_name(current_user)
@@ -2790,11 +2703,6 @@ def main():
                 pcm = np.frombuffer(pcm, dtype=np.int16)
                 
                 if porcupine.process(pcm) >= 0:
-                    # ✅ QA SYSTEM: Log wake word detection
-                    if QA_LOGGING_ENABLED:
-                        buddy_event_logger.log_wake_word_detected(wake_word, confidence=1.0)
-                        buddy_event_logger.log_conversation_start(current_user)
-                    
                     if CONSCIOUSNESS_ARCHITECTURE_AVAILABLE:
                         print(f"[AdvancedBuddy] 🎤 {wake_word} detected! Starting CONSCIOUSNESS + ADVANCED AI ASSISTANT mode...")
                     elif ENTROPY_SYSTEM_AVAILABLE:

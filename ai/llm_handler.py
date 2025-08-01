@@ -8,6 +8,7 @@ Purpose: Orchestrate all LLM operations with consciousness tokenizer, budget mon
 import json
 import time
 import os
+import threading
 from typing import Dict, List, Any, Optional, Tuple, Generator
 from datetime import datetime
 
@@ -143,6 +144,10 @@ class LLMHandler:
         self.default_model = "gpt-3.5-turbo"
         self.max_context_tokens = 3000
         self.response_temperature = 0.7
+        
+        # ✅ FIX: Add circular call prevention
+        self._llm_generation_in_progress = False
+        self._generation_lock = threading.Lock()
         
         print("[LLMHandler] 🧠 Initialized with consciousness integration")
         
@@ -382,33 +387,42 @@ class LLMHandler:
         Yields response chunks if streaming, otherwise returns complete response
         """
         try:
-            # 🚀 NEW LATENCY OPTIMIZATION SYSTEM
-            if use_optimization:
-                try:
-                    from ai.latency_optimizer import generate_optimized_buddy_response
-                    print(f"[LLMHandler] ⚡ Using optimized response generation")
-                    yield from generate_optimized_buddy_response(
-                        user_input=text,
-                        user_id=user,
-                        context=context,
-                        stream=stream
-                    )
+            # ✅ FIX: Prevent circular consciousness calls
+            with self._generation_lock:
+                if self._llm_generation_in_progress:
+                    print("[LLMHandler] ⚠️ Circular LLM call detected - using fallback response")
+                    yield "I'm processing your request..."
                     return
-                except ImportError:
-                    print(f"[LLMHandler] ⚠️ Latency optimizer not available, using standard processing")
-                except Exception as e:
-                    print(f"[LLMHandler] ⚠️ Optimization error, falling back to standard: {e}")
+                self._llm_generation_in_progress = True
             
-            # FALLBACK: Original consciousness system (for compatibility)
-            print(f"[LLMHandler] 🔄 Using standard consciousness processing")
-            
-            # ✅ 8K CONTEXT WINDOW MANAGEMENT: Check if rollover needed before processing
-            current_context = context.get("current_context", "") if context else ""
-            
-            # Import context window manager
             try:
-                from ai.context_window_manager import check_context_window_rollover, create_context_snapshot_for_user
-                needs_rollover, fresh_context = check_context_window_rollover(user, current_context, text)
+                # 🚀 NEW LATENCY OPTIMIZATION SYSTEM
+                if use_optimization:
+                    try:
+                        from ai.latency_optimizer import generate_optimized_buddy_response
+                        print(f"[LLMHandler] ⚡ Using optimized response generation")
+                        yield from generate_optimized_buddy_response(
+                            user_input=text,
+                            user_id=user,
+                            context=context,
+                            stream=stream
+                        )
+                        return
+                    except ImportError:
+                        print(f"[LLMHandler] ⚠️ Latency optimizer not available, using standard processing")
+                    except Exception as e:
+                        print(f"[LLMHandler] ⚠️ Optimization error, falling back to standard: {e}")
+                
+                # FALLBACK: Original consciousness system (for compatibility)
+                print(f"[LLMHandler] 🔄 Using standard consciousness processing")
+                
+                # ✅ 8K CONTEXT WINDOW MANAGEMENT: Check if rollover needed before processing
+                current_context = context.get("current_context", "") if context else ""
+                
+                # Import context window manager
+                try:
+                    from ai.context_window_manager import check_context_window_rollover, create_context_snapshot_for_user
+                    needs_rollover, fresh_context = check_context_window_rollover(user, current_context, text)
                 
                 if needs_rollover:
                     print(f"[LLMHandler] 🔄 Context window rollover triggered for {user}")
@@ -506,12 +520,17 @@ class LLMHandler:
             self.request_count += 1
             self.total_tokens_used += usage.total_tokens
             
-            print(f"[LLMHandler] ✅ Response generated in {generation_time:.3f}s")
-            print(f"[LLMHandler] 📊 Tokens: {input_tokens} in, {output_tokens} out, ${usage.cost_estimate:.4f}")
+                print(f"[LLMHandler] ✅ Response generated in {generation_time:.3f}s")
+                print(f"[LLMHandler] 📊 Tokens: {input_tokens} in, {output_tokens} out, ${usage.cost_estimate:.4f}")
+                
+            except Exception as e:
+                print(f"[LLMHandler] ❌ Error generating response: {e}")
+                yield f"I apologize, but I encountered an error while processing your request: {str(e)}"
             
-        except Exception as e:
-            print(f"[LLMHandler] ❌ Error generating response: {e}")
-            yield f"I apologize, but I encountered an error while processing your request: {str(e)}"
+            finally:
+                # ✅ FIX: Always reset the generation flag
+                with self._generation_lock:
+                    self._llm_generation_in_progress = False
             
     def sanitize_prompt_input(self, text: str, user_id: str = "unknown") -> str:
         """

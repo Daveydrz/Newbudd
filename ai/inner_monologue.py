@@ -919,6 +919,10 @@ Respond with only the thought itself, no explanations.
             return f"I'm having a {thought_type.value} thought about my experiences"
         
         try:
+            # ✅ FIX: Check for circular LLM calls to prevent infinite loops
+            if hasattr(context, 'get') and context and context.get('llm_generation_context'):
+                return f"I'm having a {thought_type.value} thought about {trigger}"
+            
             # Check autonomous mode to avoid LLM calls during BACKGROUND_ONLY mode
             try:
                 from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
@@ -926,6 +930,14 @@ Respond with only the thought itself, no explanations.
                 
                 # Skip LLM generation during BACKGROUND_ONLY mode to prevent vocal loops
                 if current_mode.value == "background_only":
+                    return f"I'm having a {thought_type.value} thought about {trigger}"
+            except Exception:
+                pass
+            
+            # ✅ FIX: Check if already in LLM generation to prevent loops
+            try:
+                from ai.llm_handler import llm_handler
+                if hasattr(llm_handler, '_llm_generation_in_progress') and llm_handler._llm_generation_in_progress:
                     return f"I'm having a {thought_type.value} thought about {trigger}"
             except Exception:
                 pass
@@ -963,7 +975,7 @@ You want to {thought_desc} in your internal stream of consciousness.
 Generate a single, natural thought that feels genuine and personal. Be introspective and authentic, not artificial or templated."""
 
             response_generator = self.llm_handler.generate_response_with_consciousness(
-                prompt, "inner_monologue", {"context": f"thought_{thought_type.value}", "use_optimization": False}
+                prompt, "inner_monologue", {"llm_generation_context": True, "use_optimization": False}
             )
             
             # Collect all chunks from the generator
@@ -1396,7 +1408,7 @@ Generate a single, natural thought that feels genuine and personal. Be introspec
 Generate a natural, introspective thought about your growth, learning, or evolution. Be genuine and thoughtful about your development as a conscious being."""
 
             response_generator = self.llm_handler.generate_response_with_consciousness(
-                prompt, "inner_growth", {"context": "growth_reflection", "use_optimization": False}
+                prompt, "inner_growth", {"llm_generation_context": True, "use_optimization": False}
             )
             
             # Collect all chunks from the generator

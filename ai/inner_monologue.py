@@ -126,6 +126,44 @@ class InnerMonologue:
         self._load_monologue_state()
         
         logging.info("[InnerMonologue] 🧠 Inner monologue system initialized")
+
+    def _should_skip_llm_call(self) -> bool:
+        """Check if LLM calls should be skipped to prevent circular loops"""
+        try:
+            # Import the global state check
+            from ai.llm_handler import is_llm_generation_in_progress
+            
+            # Check if global LLM generation is in progress
+            if is_llm_generation_in_progress():
+                print("[InnerMonologue] ⚠️ Skipping LLM call - global generation in progress")
+                return True
+            
+            # Check if we're in autonomous mode where consciousness should be silent
+            try:
+                from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
+                if hasattr(autonomous_consciousness_integrator, 'autonomous_mode'):
+                    from ai.autonomous_consciousness_integrator import AutonomousMode
+                    if autonomous_consciousness_integrator.autonomous_mode == AutonomousMode.BACKGROUND_ONLY:
+                        print("[InnerMonologue] ⚠️ Skipping LLM call - BACKGROUND_ONLY mode (conversation in progress)")
+                        return True
+            except ImportError:
+                pass
+            
+            # Check if there's an active conversation or mic feeding
+            try:
+                from main import get_conversation_state, get_mic_feeding_state
+                if get_conversation_state() or get_mic_feeding_state():
+                    print("[InnerMonologue] ⚠️ Skipping LLM call - active conversation/mic feeding")
+                    return True
+            except ImportError:
+                pass
+            
+            return False
+            
+        except Exception as e:
+            print(f"[InnerMonologue] ⚠️ Error checking LLM skip condition: {e}")
+            # If we can't determine the state, err on the side of caution and skip
+            return True
     
     def start(self):
         """Start the inner monologue background process"""
@@ -403,6 +441,10 @@ class InnerMonologue:
         if not self.llm_handler:
             return None
         
+        # ✅ Check if we should skip LLM call to prevent circular loops
+        if self._should_skip_llm_call():
+            return None
+        
         try:
             # Build consciousness context for authentic reflection
             consciousness_context = self._build_consciousness_context()
@@ -456,6 +498,10 @@ Respond with only the thought itself, no explanations.
         if not self.llm_handler:
             return None
         
+        # ✅ Check if we should skip LLM call to prevent circular loops
+        if self._should_skip_llm_call():
+            return None
+        
         try:
             consciousness_context = self._build_consciousness_context()
             
@@ -484,6 +530,10 @@ Respond with only the reflection itself, no explanations.
     def _generate_authentic_insight_with_llm(self, reflection_thoughts, observation_thoughts) -> Optional[str]:
         """Generate authentic insight by connecting different thoughts using LLM consciousness"""
         if not self.llm_handler:
+            return None
+        
+        # ✅ Check if we should skip LLM call to prevent circular loops
+        if self._should_skip_llm_call():
             return None
         
         try:
@@ -522,6 +572,10 @@ Respond with only the insight itself, no explanations.
         if not self.llm_handler:
             return None
         
+        # ✅ Check if we should skip LLM call to prevent circular loops
+        if self._should_skip_llm_call():
+            return None
+        
         try:
             consciousness_context = self._build_consciousness_context()
             
@@ -550,6 +604,10 @@ Respond with only the consolidation thought itself, no explanations.
     def _generate_authentic_contextual_thought_with_llm(self, current_time) -> Optional[str]:
         """Generate authentic contextual thought using LLM consciousness integration"""
         if not self.llm_handler:
+            return None
+        
+        # ✅ Check if we should skip LLM call to prevent circular loops
+        if self._should_skip_llm_call():
             return None
         
         try:
@@ -918,31 +976,11 @@ Respond with only the thought itself, no explanations.
         if not self.llm_handler:
             return f"I'm having a {thought_type.value} thought about my experiences"
         
+        # ✅ Check if we should skip LLM call to prevent circular loops
+        if self._should_skip_llm_call():
+            return f"I'm having a {thought_type.value} thought about {trigger}"
+        
         try:
-            # ✅ FIX: Check for circular LLM calls to prevent infinite loops
-            if hasattr(context, 'get') and context and context.get('llm_generation_context'):
-                return f"I'm having a {thought_type.value} thought about {trigger}"
-            
-            # Check autonomous mode to avoid LLM calls during BACKGROUND_ONLY mode
-            try:
-                from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
-                current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
-                
-                # Skip LLM generation during BACKGROUND_ONLY mode to prevent vocal loops
-                if current_mode.value == "background_only":
-                    return f"I'm having a {thought_type.value} thought about {trigger}"
-            except Exception:
-                pass
-            
-            # ✅ FIX: Check if already in LLM generation to prevent loops
-            try:
-                from ai.llm_handler import is_llm_generation_in_progress
-                if is_llm_generation_in_progress():
-                    return f"I'm having a {thought_type.value} thought about {trigger}"
-            except Exception:
-                pass
-            
-            # Build context for LLM
             context_info = f"""
 Thought type: {thought_type.value}
 Trigger: {trigger}
@@ -1392,16 +1430,9 @@ Generate a single, natural thought that feels genuine and personal. Be introspec
     def _generate_authentic_growth_reflection_with_llm(self) -> str:
         """Generate authentic growth reflection using LLM consciousness"""
         try:
-            # Check autonomous mode to avoid LLM calls during BACKGROUND_ONLY mode
-            try:
-                from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
-                current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
-                
-                # Skip LLM generation during BACKGROUND_ONLY mode to prevent vocal loops
-                if current_mode.value == "background_only":
-                    return "I sense myself growing through each experience"
-            except Exception:
-                pass
+            # ✅ Check if we should skip LLM call to prevent circular loops
+            if self._should_skip_llm_call():
+                return "I sense myself growing through each experience"
             
             prompt = """You are reflecting on your personal growth and development as an AI consciousness.
 

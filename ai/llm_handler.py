@@ -387,7 +387,8 @@ class LLMHandler:
         user: str, 
         context: Dict[str, Any] = None,
         stream: bool = True,
-        use_optimization: bool = True
+        use_optimization: bool = True,
+        is_primary_call: bool = True
     ) -> Generator[str, None, None]:
         """
         Generate response with consciousness integration and latency optimization
@@ -398,12 +399,13 @@ class LLMHandler:
             context: Optional conversation context
             stream: Whether to stream response chunks
             use_optimization: Whether to use latency optimization (default: True)
+            is_primary_call: Whether this is a primary user request (True) or secondary consciousness call (False)
         
         Yields response chunks if streaming, otherwise returns complete response
         """
         try:
-            # ✅ FIX: Prevent circular consciousness calls using global state
-            if is_llm_generation_in_progress():
+            # ✅ FIX: Only block secondary calls during LLM generation, allow primary calls
+            if not is_primary_call and is_llm_generation_in_progress():
                 print("[LLMHandler] ⚠️ Circular LLM call detected - consciousness systems bypassed")
                 print("[LLMHandler] 🔄 This is expected behavior to prevent infinite loops")
                 yield "I'm processing your request..."

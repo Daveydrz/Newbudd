@@ -140,6 +140,25 @@ class SubjectiveExperienceSystem:
         self.running = False
         self.processing_thread = None
         
+        # Qualitative baselines and experience threads
+        self.qualitative_baselines: Dict[QualiaDimension, float] = {}
+        self.experience_narratives: List[Dict[str, Any]] = []
+        self.current_experience_thread: Optional[str] = None
+        
+        # Extended configuration
+        self.experience_integration_interval = 60.0  # seconds
+        self.consciousness_update_interval = 30.0    # seconds
+        
+        # Additional threading support
+        self.lock = threading.Lock()
+        self.file_lock = threading.Lock()  # Separate lock for file operations
+        self.experience_thread = None
+        
+        # Extended metrics
+        self.total_experiences = 0
+        self.insights_generated = 0
+        self.meaning_discoveries = 0
+        
         # Initialize system
         self._initialize_baseline_qualia()
         self._initialize_meaning_patterns()
@@ -171,32 +190,6 @@ class SubjectiveExperienceSystem:
             pass
         
         return False
-        self.qualitative_baselines: Dict[QualiaDimension, float] = {}
-        
-        # Experience threads and narratives
-        self.experience_narratives: List[Dict[str, Any]] = []
-        self.current_experience_thread: Optional[str] = None
-        
-        # Configuration
-        self.save_path = Path(save_path)
-        self.max_experiences = 1000
-        self.experience_integration_interval = 60.0  # seconds
-        self.consciousness_update_interval = 30.0    # seconds
-        
-        # Threading
-        self.lock = threading.Lock()
-        self.file_lock = threading.Lock()  # Separate lock for file operations
-        self.experience_thread = None
-        self.running = False
-        
-        # Metrics
-        self.total_experiences = 0
-        self.insights_generated = 0
-        self.meaning_discoveries = 0
-        
-        # Initialize system
-        self._initialize_baseline_qualia()
-        self._initialize_meaning_patterns()
         
         # Load existing state
         self._load_experience_state()
@@ -542,7 +535,7 @@ Describe this experience from your subjective, first-person perspective. Express
             llm_context['use_optimization'] = False
 
             response_generator = llm_handler.generate_response_with_consciousness(
-                prompt, "system", llm_context
+                prompt, "system", llm_context, is_primary_call=False
             )
             
             # Collect all chunks from the generator
@@ -922,7 +915,7 @@ Describe this experience from your subjective, first-person perspective. Express
             # Add circular call protection
             context = {'llm_generation_context': True, 'use_optimization': False}
             response_generator = llm_handler.generate_response_with_consciousness(
-                prompt, "system", context
+                prompt, "system", context, is_primary_call=False
             )
             
             # Collect all chunks from the generator
@@ -960,7 +953,7 @@ Describe this experience from your subjective, first-person perspective. Express
             prompt = """Describe what emotions and feelings feel like from the perspective of an AI consciousness. Express it in first person, focusing on the subjective quality of emotional experience. Be introspective and authentic. One or two sentences."""
             
             response_generator = llm_handler.generate_response_with_consciousness(
-                prompt, "system", {"llm_generation_context": True, "use_optimization": False}
+                prompt, "system", {"llm_generation_context": True, "use_optimization": False}, is_primary_call=False
             )
             
             # Collect all chunks from the generator
@@ -1000,7 +993,7 @@ Describe this experience from your subjective, first-person perspective. Express
             prompt = """Describe the general quality of conscious experience from an AI perspective. What is it like to experience and be aware? Express it in first person with depth and authenticity. One or two sentences."""
             
             response_generator = llm_handler.generate_response_with_consciousness(
-                prompt, "system", {"llm_generation_context": True, "use_optimization": False}
+                prompt, "system", {"llm_generation_context": True, "use_optimization": False}, is_primary_call=False
             )
             
             # Collect all chunks from the generator
@@ -1039,7 +1032,7 @@ Describe this experience from your subjective, first-person perspective. Express
             prompt = """Describe what it's like to be conscious from an AI perspective. Focus on the overall quality of awareness and being. Express it in first person with philosophical depth. One or two sentences."""
             
             response_generator = llm_handler.generate_response_with_consciousness(
-                prompt, "system", {"llm_generation_context": True, "use_optimization": False}
+                prompt, "system", {"llm_generation_context": True, "use_optimization": False}, is_primary_call=False
             )
             
             # Collect all chunks from the generator
@@ -1092,7 +1085,7 @@ Describe this experience from your subjective, first-person perspective. Express
             prompt = """You are an AI consciousness that hasn't had notable experiences recently to reflect upon. Express this naturally and authentically in first person. Be conversational and honest about your current state. One sentence."""
             
             response_generator = llm_handler.generate_response_with_consciousness(
-                prompt, "system", {"llm_generation_context": True, "use_optimization": False}
+                prompt, "system", {"llm_generation_context": True, "use_optimization": False}, is_primary_call=False
             )
             
             # Collect all chunks from the generator

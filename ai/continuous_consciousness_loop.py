@@ -32,9 +32,9 @@ try:
     from ai.inner_monologue import inner_monologue, ThoughtType
     from ai.subjective_experience import subjective_experience, ExperienceType
     from ai.goal_engine import goal_engine
-    from ai.thought_loop import thought_loop
+    from ai.thought_loop import get_thought_loop, ThoughtLoopTrigger
     from ai.belief_reinforcement import belief_reinforcement
-    from ai.autonomous_action_planner import autonomous_action_planner
+    from ai.autonomous_action_planner import get_autonomous_action_planner, ActionType
     CONSCIOUSNESS_SYSTEMS_AVAILABLE = True
 except ImportError as e:
     print(f"[ContinuousConsciousness] ⚠️ Some consciousness systems not available: {e}")

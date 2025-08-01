@@ -736,8 +736,8 @@ class AutonomousConsciousnessIntegrator:
             self.autonomous_check_in_interval = 3600.0
             
         elif mode == AutonomousMode.BACKGROUND_ONLY:
-            # Only background processing
-            self.autonomous_expression_chance = 0.05
+            # Only background processing - NO autonomous expressions
+            self.autonomous_expression_chance = 0.0  # ✅ FIX: Completely silent during listening/responding
             self.cross_system_communication_interval = 600.0
             self.autonomous_check_in_interval = 7200.0
             

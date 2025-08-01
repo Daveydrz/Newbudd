@@ -404,7 +404,8 @@ class LLMHandler:
         try:
             # ✅ FIX: Prevent circular consciousness calls using global state
             if is_llm_generation_in_progress():
-                print("[LLMHandler] ⚠️ Circular LLM call detected - using fallback response")
+                print("[LLMHandler] ⚠️ Circular LLM call detected - consciousness systems bypassed")
+                print("[LLMHandler] 🔄 This is expected behavior to prevent infinite loops")
                 yield "I'm processing your request..."
                 return
             

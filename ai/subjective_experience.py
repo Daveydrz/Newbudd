@@ -172,6 +172,14 @@ class SubjectiveExperienceSystem:
         if hasattr(context, 'get') and context and context.get('llm_generation_context'):
             return True
         
+        # Check if already in LLM generation using global state (most important check)
+        try:
+            from ai.llm_handler import is_llm_generation_in_progress
+            if is_llm_generation_in_progress():
+                return True
+        except Exception:
+            pass
+        
         # Check autonomous mode
         try:
             from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
@@ -181,10 +189,11 @@ class SubjectiveExperienceSystem:
         except Exception:
             pass
         
-        # Check if already in LLM generation using global state
+        # ✅ FIX: Check if there's an active conversation to prevent consciousness loops during user interactions
         try:
-            from ai.llm_handler import is_llm_generation_in_progress
-            if is_llm_generation_in_progress():
+            # Check if mic is feeding (indicating listening/speaking phase)
+            from main import get_mic_feeding_state, get_conversation_state
+            if get_mic_feeding_state() or get_conversation_state():
                 return True
         except Exception:
             pass

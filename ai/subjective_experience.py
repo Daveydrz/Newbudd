@@ -168,35 +168,40 @@ class SubjectiveExperienceSystem:
     
     def _should_skip_llm_call(self, context: Dict[str, Any] = None) -> bool:
         """Check if LLM call should be skipped to prevent circular calls"""
-        # Check for circular call context flag
-        if hasattr(context, 'get') and context and context.get('llm_generation_context'):
+        
+        # Check for circular call context flag (fix None context handling)
+        if context and isinstance(context, dict) and context.get('llm_generation_context'):
+            print("[SubjectiveExperience] ⚠️ Skipping LLM call due to generation context flag")
             return True
         
         # Check if already in LLM generation using global state (most important check)
         try:
             from ai.llm_handler import is_llm_generation_in_progress
             if is_llm_generation_in_progress():
+                print("[SubjectiveExperience] ⚠️ Skipping LLM call - global generation in progress")
                 return True
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[SubjectiveExperience] ⚠️ Could not check LLM generation state: {e}")
         
         # Check autonomous mode
         try:
             from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
             current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
             if current_mode.value == "background_only":
+                print("[SubjectiveExperience] ⚠️ Skipping LLM call - in BACKGROUND_ONLY mode")
                 return True
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[SubjectiveExperience] ⚠️ Could not check autonomous mode: {e}")
         
         # ✅ FIX: Check if there's an active conversation to prevent consciousness loops during user interactions
         try:
             # Check if mic is feeding (indicating listening/speaking phase)
             from main import get_mic_feeding_state, get_conversation_state
             if get_mic_feeding_state() or get_conversation_state():
+                print("[SubjectiveExperience] ⚠️ Skipping LLM call - active conversation detected")
                 return True
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[SubjectiveExperience] ⚠️ Could not check conversation state: {e}")
         
         return False
     

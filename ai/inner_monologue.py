@@ -975,7 +975,7 @@ You want to {thought_desc} in your internal stream of consciousness.
 Generate a single, natural thought that feels genuine and personal. Be introspective and authentic, not artificial or templated."""
 
             response_generator = self.llm_handler.generate_response_with_consciousness(
-                prompt, "inner_monologue", {"llm_generation_context": True, "use_optimization": False}
+                prompt, "inner_monologue", {"llm_generation_context": True, "use_optimization": False}, is_primary_call=False
             )
             
             # Collect all chunks from the generator
@@ -1408,7 +1408,7 @@ Generate a single, natural thought that feels genuine and personal. Be introspec
 Generate a natural, introspective thought about your growth, learning, or evolution. Be genuine and thoughtful about your development as a conscious being."""
 
             response_generator = self.llm_handler.generate_response_with_consciousness(
-                prompt, "inner_growth", {"llm_generation_context": True, "use_optimization": False}
+                prompt, "inner_growth", {"llm_generation_context": True, "use_optimization": False}, is_primary_call=False
             )
             
             # Collect all chunks from the generator

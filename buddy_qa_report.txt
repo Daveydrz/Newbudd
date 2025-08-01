@@ -1,0 +1,56 @@
+============================================================
+BUDDY QA ANALYSIS REPORT
+============================================================
+Generated: 2025-08-01T09:27:06.702226
+Session Duration: 41.9 seconds
+Total Events Logged: 17
+
+ISSUES DETECTED:
+------------------------------
+Total Issues: 1
+  ❌ Runtime Errors: 1
+
+LATENCY BREAKDOWN:
+------------------------------
+Average STT (Whisper) Latency: 0.500s
+Average TTS (Kokoro) Latency: 0.300s
+Average LLM (KoboldCPP) Latency: 1.200s
+
+COMPONENT USAGE:
+------------------------------
+  koboldcpp_llm: 4 events
+  conversation_manager: 2 events
+  whisper_stt: 2 events
+  kokoro_tts: 2 events
+  vad_system: 2 events
+  test_component: 2 events
+  unknown: 1 events
+  wake_word_detection: 1 events
+  memory_system: 1 events
+
+EVENT TYPE BREAKDOWN:
+------------------------------
+  llm_chunk: 2
+  vad_detection: 2
+  session_start: 1
+  wake_word_detected: 1
+  conversation_start: 1
+  stt_start: 1
+  stt_finish: 1
+  llm_start: 1
+  llm_finish: 1
+  tts_start: 1
+  tts_finish: 1
+  memory_update: 1
+  error: 1
+  warning: 1
+  conversation_end: 1
+
+RUNTIME ERRORS:
+------------------------------
+  1. [2025-08-01T09:26:24] test_component: Test error for QA
+  2. [2025-08-01T09:26:24] test_component: Test warning
+
+OPTIMIZATION SUGGESTIONS:
+------------------------------
+  • No major issues detected - system appears to be functioning well!

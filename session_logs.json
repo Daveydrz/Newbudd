@@ -1,0 +1,235 @@
+{
+  "session_info": {
+    "timestamp": "2025-08-01T09:27:06.702266",
+    "duration_seconds": -2.384185791015625e-07,
+    "total_events": 17,
+    "buddy_script": "main.py"
+  },
+  "issues_detected": {
+    "double_speaking": 0,
+    "whisper_failures": 0,
+    "kokoro_overlaps": 0,
+    "koboldcpp_stalls": 0,
+    "memory_update_failures": 0,
+    "runtime_errors": 1,
+    "infinite_loops": 0,
+    "response_timeouts": 0,
+    "tts_queue_issues": 0,
+    "vad_failures": 0
+  },
+  "events": [
+    {
+      "timestamp": "2025-08-01T09:26:24.765257",
+      "event_type": "session_start",
+      "session_id": "session_1754040384",
+      "pid": 3454,
+      "data": {
+        "start_time": 1754040384.7652683,
+        "buddy_version": "advanced_ai_consciousness"
+      }
+    },
+    {
+      "timestamp": "2025-08-01T09:26:24.765411",
+      "unix_time": 1754040384.7654147,
+      "event_type": "wake_word_detected",
+      "session_id": "session_1754040384",
+      "component": "wake_word_detection",
+      "data": {
+        "wake_word": "Hey Buddy",
+        "confidence": 0.95
+      }
+    },
+    {
+      "timestamp": "2025-08-01T09:26:24.765613",
+      "unix_time": 1754040384.7656174,
+      "event_type": "conversation_start",
+      "session_id": "session_1754040384",
+      "component": "conversation_manager",
+      "data": {
+        "user_id": "test_user"
+      }
+    },
+    {
+      "timestamp": "2025-08-01T09:26:24.766046",
+      "unix_time": 1754040384.7660503,
+      "event_type": "stt_start",
+      "session_id": "session_1754040384",
+      "component": "whisper_stt",
+      "data": {
+        "audio_length": 1600,
+        "start_time": 1754040384.766046
+      }
+    },
+    {
+      "timestamp": "2025-08-01T09:26:24.866489",
+      "unix_time": 1754040384.8664951,
+      "event_type": "stt_finish",
+      "session_id": "session_1754040384",
+      "component": "whisper_stt",
+      "data": {
+        "transcription": "Hello, how are you?",
+        "latency": 0.5,
+        "success": true,
+        "error": null,
+        "transcription_length": 19
+      }
+    },
+    {
+      "timestamp": "2025-08-01T09:26:24.866807",
+      "unix_time": 1754040384.866812,
+      "event_type": "llm_start",
+      "session_id": "session_1754040384",
+      "component": "koboldcpp_llm",
+      "data": {
+        "prompt": "Hello, how are you?",
+        "prompt_length": 19,
+        "user_id": "test_user",
+        "model": "consciousness_integrated",
+        "start_time": 1754040384.8668056
+      }
+    },
+    {
+      "timestamp": "2025-08-01T09:26:24.867315",
+      "unix_time": 1754040384.8673208,
+      "event_type": "llm_chunk",
+      "session_id": "session_1754040384",
+      "component": "koboldcpp_llm",
+      "data": {
+        "chunk": "I'm doing well",
+        "chunk_index": 1,
+        "chunk_length": 14
+      }
+    },
+    {
+      "timestamp": "2025-08-01T09:26:24.867814",
+      "unix_time": 1754040384.8678184,
+      "event_type": "llm_chunk",
+      "session_id": "session_1754040384",
+      "component": "koboldcpp_llm",
+      "data": {
+        "chunk": "thank you for asking!",
+        "chunk_index": 2,
+        "chunk_length": 21
+      }
+    },
+    {
+      "timestamp": "2025-08-01T09:26:24.868250",
+      "unix_time": 1754040384.8682542,
+      "event_type": "llm_finish",
+      "session_id": "session_1754040384",
+      "component": "koboldcpp_llm",
+      "data": {
+        "response": "I'm doing well, thank you for asking!",
+        "response_length": 37,
+        "token_count": 15,
+        "tokens_per_sec": 2.5,
+        "latency": 1.2,
+        "success": true,
+        "error": null
+      }
+    },
+    {
+      "timestamp": "2025-08-01T09:26:24.868585",
+      "unix_time": 1754040384.8685887,
+      "event_type": "tts_start",
+      "session_id": "session_1754040384",
+      "component": "kokoro_tts",
+      "data": {
+        "text": "I'm doing well",
+        "voice": null,
+        "chunk_id": "chunk_1",
+        "text_length": 14,
+        "start_time": 1754040384.8685844
+      }
+    },
+    {
+      "timestamp": "2025-08-01T09:26:24.869003",
+      "unix_time": 1754040384.8690073,
+      "event_type": "tts_finish",
+      "session_id": "session_1754040384",
+      "component": "kokoro_tts",
+      "data": {
+        "text": "I'm doing well",
+        "latency": 0.3,
+        "chunk_id": "chunk_1",
+        "success": true,
+        "error": null
+      }
+    },
+    {
+      "timestamp": "2025-08-01T09:26:24.869416",
+      "unix_time": 1754040384.8694196,
+      "event_type": "memory_update",
+      "session_id": "session_1754040384",
+      "component": "memory_system",
+      "data": {
+        "update_type": "conversation",
+        "user_id": "test_user",
+        "topic": "greeting",
+        "emotion": "positive",
+        "details": null
+      }
+    },
+    {
+      "timestamp": "2025-08-01T09:26:24.869762",
+      "unix_time": 1754040384.8697655,
+      "event_type": "vad_detection",
+      "session_id": "session_1754040384",
+      "component": "vad_system",
+      "data": {
+        "action": "start_speaking",
+        "audio_length": 800,
+        "volume": 0.2,
+        "speech_detected": true
+      }
+    },
+    {
+      "timestamp": "2025-08-01T09:26:24.870146",
+      "unix_time": 1754040384.8701499,
+      "event_type": "vad_detection",
+      "session_id": "session_1754040384",
+      "component": "vad_system",
+      "data": {
+        "action": "stop_speaking",
+        "audio_length": 1600,
+        "volume": 0.1,
+        "speech_detected": false
+      }
+    },
+    {
+      "timestamp": "2025-08-01T09:26:24.870538",
+      "unix_time": 1754040384.870542,
+      "event_type": "error",
+      "session_id": "session_1754040384",
+      "component": "test_component",
+      "data": {
+        "error_type": "runtime_error",
+        "error_message": "Test error for QA",
+        "stack_trace": "Traceback: test",
+        "context": null
+      }
+    },
+    {
+      "timestamp": "2025-08-01T09:26:24.871076",
+      "unix_time": 1754040384.87108,
+      "event_type": "warning",
+      "session_id": "session_1754040384",
+      "component": "test_component",
+      "data": {
+        "warning_message": "Test warning",
+        "context": null
+      }
+    },
+    {
+      "timestamp": "2025-08-01T09:26:24.871479",
+      "unix_time": 1754040384.8714828,
+      "event_type": "conversation_end",
+      "session_id": "session_1754040384",
+      "component": "conversation_manager",
+      "data": {
+        "user_id": "test_user",
+        "duration": 30.5
+      }
+    }
+  ]
+}

@@ -1207,6 +1207,19 @@ Describe this experience from your subjective, first-person perspective. Express
         """Background experience processing loop"""
         logging.info("[SubjectiveExperience] 🔄 Experience processing loop started")
         
+        # ✅ FIX: Safety check for initialization
+        if not hasattr(self, 'consciousness_update_interval'):
+            logging.error("[SubjectiveExperience] ❌ consciousness_update_interval not initialized, using default")
+            self.consciousness_update_interval = 30.0
+        
+        if not hasattr(self, 'experience_integration_interval'):
+            logging.error("[SubjectiveExperience] ❌ experience_integration_interval not initialized, using default")
+            self.experience_integration_interval = 60.0
+        
+        if not hasattr(self, 'lock'):
+            logging.error("[SubjectiveExperience] ❌ lock not initialized, creating new lock")
+            self.lock = threading.Lock()
+        
         last_consciousness_update = time.time()
         last_integration = time.time()
         

@@ -828,9 +828,51 @@ class GoalManager:
         
         return recent_activity[:10]  # Return last 10 activities
     
+    def _should_skip_llm_call(self) -> bool:
+        """Check if LLM calls should be skipped to prevent circular loops"""
+        try:
+            # Import the global state check
+            from ai.llm_handler import is_llm_generation_in_progress
+            
+            # Check if global LLM generation is in progress
+            if is_llm_generation_in_progress():
+                print("[GoalManager] ⚠️ Skipping LLM call - global generation in progress")
+                return True
+            
+            # Check if we're in autonomous mode where consciousness should be silent
+            try:
+                from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
+                if hasattr(autonomous_consciousness_integrator, 'autonomous_mode'):
+                    from ai.autonomous_consciousness_integrator import AutonomousMode
+                    if autonomous_consciousness_integrator.autonomous_mode == AutonomousMode.BACKGROUND_ONLY:
+                        print("[GoalManager] ⚠️ Skipping LLM call - BACKGROUND_ONLY mode (conversation in progress)")
+                        return True
+            except ImportError:
+                pass
+            
+            # Check if there's an active conversation or mic feeding
+            try:
+                from main import get_conversation_state, get_mic_feeding_state
+                if get_conversation_state() or get_mic_feeding_state():
+                    print("[GoalManager] ⚠️ Skipping LLM call - active conversation/mic feeding")
+                    return True
+            except ImportError:
+                pass
+            
+            return False
+            
+        except Exception as e:
+            print(f"[GoalManager] ⚠️ Error checking LLM skip condition: {e}")
+            # If we can't determine the state, err on the side of caution and skip
+            return True
+    
     def _generate_llm_suggestions(self, goal: Goal) -> List[str]:
         """Generate goal suggestions using LLM"""
         if not self.llm_handler:
+            return []
+        
+        # ✅ Check if we should skip LLM call to prevent circular loops
+        if self._should_skip_llm_call():
             return []
         
         prompt = f"""
@@ -847,7 +889,16 @@ class GoalManager:
         """
         
         try:
-            response = self.llm_handler.generate_response(prompt, max_tokens=200)
+            # ✅ Use proper consciousness-aware LLM call with circular call protection
+            response_generator = self.llm_handler.generate_response_with_consciousness(
+                text=prompt,
+                user="goal_manager_system",
+                context={"max_tokens": 200},
+                stream=False,
+                is_primary_call=False,
+                llm_generation_context=True
+            )
+            response = next(response_generator, None)
             if response:
                 # Parse response into list
                 suggestions = [line.strip() for line in response.split('\n') if line.strip()]

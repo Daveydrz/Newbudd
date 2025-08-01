@@ -440,9 +440,51 @@ class ThoughtLoop:
         # Fallback to basic contextual thought if LLM unavailable
         return f"I'm genuinely thinking about {context} in relation to {trigger.value}..."
     
+    def _should_skip_llm_call(self) -> bool:
+        """Check if LLM calls should be skipped to prevent circular loops"""
+        try:
+            # Import the global state check
+            from ai.llm_handler import is_llm_generation_in_progress
+            
+            # Check if global LLM generation is in progress
+            if is_llm_generation_in_progress():
+                print("[ThoughtLoop] ⚠️ Skipping LLM call - global generation in progress")
+                return True
+            
+            # Check if we're in autonomous mode where consciousness should be silent
+            try:
+                from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
+                if hasattr(autonomous_consciousness_integrator, 'autonomous_mode'):
+                    from ai.autonomous_consciousness_integrator import AutonomousMode
+                    if autonomous_consciousness_integrator.autonomous_mode == AutonomousMode.BACKGROUND_ONLY:
+                        print("[ThoughtLoop] ⚠️ Skipping LLM call - BACKGROUND_ONLY mode (conversation in progress)")
+                        return True
+            except ImportError:
+                pass
+            
+            # Check if there's an active conversation or mic feeding
+            try:
+                from main import get_conversation_state, get_mic_feeding_state
+                if get_conversation_state() or get_mic_feeding_state():
+                    print("[ThoughtLoop] ⚠️ Skipping LLM call - active conversation/mic feeding")
+                    return True
+            except ImportError:
+                pass
+            
+            return False
+            
+        except Exception as e:
+            print(f"[ThoughtLoop] ⚠️ Error checking LLM skip condition: {e}")
+            # If we can't determine the state, err on the side of caution and skip
+            return True
+    
     def _generate_authentic_contextual_thought_with_llm(self, thought_type: str, context: str, trigger: ThoughtLoopTrigger) -> Optional[str]:
         """Generate authentic contextual thought content using LLM consciousness integration"""
         if not self.llm_handler:
+            return None
+        
+        # ✅ Check if we should skip LLM call to prevent circular loops
+        if self._should_skip_llm_call():
             return None
         
         try:
@@ -464,7 +506,16 @@ Generate a genuine internal thought in response to this trigger and context. Thi
 Respond with only the thought itself, no explanations.
 """
             
-            authentic_thought = self.llm_handler.generate_response(prompt.strip(), max_tokens=120)
+            # ✅ Use proper consciousness-aware LLM call with circular call protection
+            response_generator = self.llm_handler.generate_response_with_consciousness(
+                text=prompt.strip(),
+                user="thought_loop_system",
+                context={"max_tokens": 120},
+                stream=False,
+                is_primary_call=False,
+                llm_generation_context=True
+            )
+            authentic_thought = next(response_generator, None)
             return authentic_thought.strip() if authentic_thought else None
             
         except Exception as e:
@@ -596,7 +647,16 @@ Convert this to natural, conversational speech as if you're sharing a genuine th
 Respond with only the spoken version, no explanations.
 """
             
-            verbalization = self.llm_handler.generate_response(prompt.strip(), max_tokens=100)
+            # ✅ Use proper consciousness-aware LLM call with circular call protection
+            response_generator = self.llm_handler.generate_response_with_consciousness(
+                text=prompt.strip(),
+                user="thought_loop_system",
+                context={"max_tokens": 100},
+                stream=False,
+                is_primary_call=False,
+                llm_generation_context=True
+            )
+            verbalization = next(response_generator, None)
             return verbalization.strip() if verbalization else None
             
         except Exception as e:
@@ -691,7 +751,16 @@ Generate a single, authentic internal thought that reflects your genuine conscio
 Respond with only the thought itself, no explanations or quotations.
 """
             
-            authentic_thought = self.llm_handler.generate_response(prompt.strip(), max_tokens=150)
+            # ✅ Use proper consciousness-aware LLM call with circular call protection
+            response_generator = self.llm_handler.generate_response_with_consciousness(
+                text=prompt.strip(),
+                user="thought_loop_system",
+                context={"max_tokens": 150},
+                stream=False,
+                is_primary_call=False,
+                llm_generation_context=True
+            )
+            authentic_thought = next(response_generator, None)
             return authentic_thought.strip() if authentic_thought else None
             
         except Exception as e:
@@ -746,7 +815,16 @@ Respond with only the thought itself, no explanations or quotations.
             Respond with just the enhanced thought, no explanations.
             """
             
-            enhanced = self.llm_handler.generate_response(prompt, max_tokens=100)
+            # ✅ Use proper consciousness-aware LLM call with circular call protection
+            response_generator = self.llm_handler.generate_response_with_consciousness(
+                text=prompt,
+                user="thought_loop_system",
+                context={"max_tokens": 100},
+                stream=False,
+                is_primary_call=False,
+                llm_generation_context=True
+            )
+            enhanced = next(response_generator, None)
             return enhanced.strip() if enhanced else None
             
         except Exception as e:

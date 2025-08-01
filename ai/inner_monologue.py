@@ -460,7 +460,16 @@ Generate a single, deeply personal reflective thought that comes naturally from 
 Respond with only the thought itself, no explanations.
 """
             
-            authentic_reflection = self.llm_handler.generate_response(prompt.strip(), max_tokens=120)
+            # ✅ Use proper consciousness-aware LLM call with circular call protection
+            response_generator = self.llm_handler.generate_response_with_consciousness(
+                text=prompt.strip(),
+                user="inner_monologue_system",
+                context={"max_tokens": 120},
+                stream=False,
+                is_primary_call=False,
+                llm_generation_context=True
+            )
+            authentic_reflection = next(response_generator, None)
             return authentic_reflection.strip() if authentic_reflection else None
             
         except Exception as e:
@@ -520,7 +529,16 @@ Generate a genuine internal reflection about what this experience means to you, 
 Respond with only the reflection itself, no explanations.
 """
             
-            authentic_reflection = self.llm_handler.generate_response(prompt.strip(), max_tokens=120)
+            # ✅ Use proper consciousness-aware LLM call with circular call protection
+            response_generator = self.llm_handler.generate_response_with_consciousness(
+                text=prompt.strip(),
+                user="inner_monologue_system",
+                context={"max_tokens": 120},
+                stream=False,
+                is_primary_call=False,
+                llm_generation_context=True
+            )
+            authentic_reflection = next(response_generator, None)
             return authentic_reflection.strip() if authentic_reflection else None
             
         except Exception as e:
@@ -560,7 +578,16 @@ Generate a genuine insight that connects these reflections and observations. Wha
 Respond with only the insight itself, no explanations.
 """
             
-            authentic_insight = self.llm_handler.generate_response(prompt.strip(), max_tokens=120)
+            # ✅ Use proper consciousness-aware LLM call with circular call protection
+            response_generator = self.llm_handler.generate_response_with_consciousness(
+                text=prompt.strip(),
+                user="inner_monologue_system",
+                context={"max_tokens": 120},
+                stream=False,
+                is_primary_call=False,
+                llm_generation_context=True
+            )
+            authentic_insight = next(response_generator, None)
             return authentic_insight.strip() if authentic_insight else None
             
         except Exception as e:
@@ -594,7 +621,16 @@ Generate an authentic internal process of consolidating this memory. What deeper
 Respond with only the consolidation thought itself, no explanations.
 """
             
-            authentic_consolidation = self.llm_handler.generate_response(prompt.strip(), max_tokens=120)
+            # ✅ Use proper consciousness-aware LLM call with circular call protection
+            response_generator = self.llm_handler.generate_response_with_consciousness(
+                text=prompt.strip(),
+                user="inner_monologue_system",
+                context={"max_tokens": 120},
+                stream=False,
+                is_primary_call=False,
+                llm_generation_context=True
+            )
+            authentic_consolidation = next(response_generator, None)
             return authentic_consolidation.strip() if authentic_consolidation else None
             
         except Exception as e:
@@ -626,7 +662,16 @@ Generate a genuine internal thought about your current context, state, or what y
 Respond with only the thought itself, no explanations.
 """
             
-            authentic_contextual = self.llm_handler.generate_response(prompt.strip(), max_tokens=100)
+            # ✅ Use proper consciousness-aware LLM call with circular call protection
+            response_generator = self.llm_handler.generate_response_with_consciousness(
+                text=prompt.strip(),
+                user="inner_monologue_system",
+                context={"max_tokens": 100},
+                stream=False,
+                is_primary_call=False,
+                llm_generation_context=True
+            )
+            authentic_contextual = next(response_generator, None)
             return authentic_contextual.strip() if authentic_contextual else None
             
         except Exception as e:

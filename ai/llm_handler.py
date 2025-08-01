@@ -423,114 +423,114 @@ class LLMHandler:
                 try:
                     from ai.context_window_manager import check_context_window_rollover, create_context_snapshot_for_user
                     needs_rollover, fresh_context = check_context_window_rollover(user, current_context, text)
-                
-                if needs_rollover:
-                    print(f"[LLMHandler] 🔄 Context window rollover triggered for {user}")
                     
-                    # Create snapshot of current state
-                    conversation_history = context.get("conversation_history", []) if context else []
-                    working_memory = context.get("working_memory", {}) if context else {}
-                    
-                    snapshot_created = create_context_snapshot_for_user(
-                        user, current_context, working_memory, conversation_history
-                    )
-                    
-                    if snapshot_created:
-                        print(f"[LLMHandler] 📸 Context snapshot created - seamless continuation enabled")
-                        # Update context to use fresh compressed context
-                        if context:
-                            context["current_context"] = fresh_context
-                            context["context_rollover_occurred"] = True
+                    if needs_rollover:
+                        print(f"[LLMHandler] 🔄 Context window rollover triggered for {user}")
+                        
+                        # Create snapshot of current state
+                        conversation_history = context.get("conversation_history", []) if context else []
+                        working_memory = context.get("working_memory", {}) if context else {}
+                        
+                        snapshot_created = create_context_snapshot_for_user(
+                            user, current_context, working_memory, conversation_history
+                        )
+                        
+                        if snapshot_created:
+                            print(f"[LLMHandler] 📸 Context snapshot created - seamless continuation enabled")
+                            # Update context to use fresh compressed context
+                            if context:
+                                context["current_context"] = fresh_context
+                                context["context_rollover_occurred"] = True
+                            else:
+                                context = {"current_context": fresh_context, "context_rollover_occurred": True}
                         else:
-                            context = {"current_context": fresh_context, "context_rollover_occurred": True}
-                    else:
-                        print(f"[LLMHandler] ⚠️ Context snapshot failed - proceeding with compression")
+                            print(f"[LLMHandler] ⚠️ Context snapshot failed - proceeding with compression")
                 
-            except ImportError:
-                print(f"[LLMHandler] ⚠️ Context window manager not available - using standard processing")
-            
-            # Process user input through systems (simplified for fallback)
-            analysis = self.process_user_input(text, user, context)
-            
-            # Check if request is allowed
-            if not analysis.get("budget", {}).get("allowed", False):
-                budget_message = analysis.get("budget", {}).get("message", "Budget exceeded")
-                yield f"I'm sorry, but I've reached my usage limit. {budget_message}"
-                return
-            
-            # Build enhanced prompt with consciousness context (now includes rollover handling)
-            enhanced_prompt = self._build_enhanced_prompt(text, user, analysis, context)
-            
-            print(f"[LLMHandler] 🎯 Generating response with consciousness integration")
-            print(f"[LLMHandler] 📊 Enhanced prompt length: {len(enhanced_prompt)} characters")
-            
-            # Check for context rollover notification
-            if context and context.get("context_rollover_occurred"):
-                print(f"[LLMHandler] ✅ Context window rollover completed - conversation continuity maintained")
-            
-            # Track token usage start
-            input_tokens = estimate_tokens_from_text(enhanced_prompt)
-            output_tokens = 0
-            generation_start = time.time()
-            
-            # Generate response using appropriate LLM
-            if FUSION_LLM_AVAILABLE:
-                # Pass cognitive context to advanced function
-                cognitive_context = {
-                    "cognitive_state": analysis.get("consciousness", {}),
-                    "personality": analysis.get("personality", {}),
-                    "memory_context": analysis.get("memory", {})
-                }
-                response_generator = generate_response_streaming_with_intelligent_fusion(
-                    enhanced_prompt, user, "en", context=cognitive_context
+                except ImportError:
+                    print(f"[LLMHandler] ⚠️ Context window manager not available - using standard processing")
+                
+                # Process user input through systems (simplified for fallback)
+                analysis = self.process_user_input(text, user, context)
+                
+                # Check if request is allowed
+                if not analysis.get("budget", {}).get("allowed", False):
+                    budget_message = analysis.get("budget", {}).get("message", "Budget exceeded")
+                    yield f"I'm sorry, but I've reached my usage limit. {budget_message}"
+                    return
+                
+                # Build enhanced prompt with consciousness context (now includes rollover handling)
+                enhanced_prompt = self._build_enhanced_prompt(text, user, analysis, context)
+                
+                print(f"[LLMHandler] 🎯 Generating response with consciousness integration")
+                print(f"[LLMHandler] 📊 Enhanced prompt length: {len(enhanced_prompt)} characters")
+                
+                # Check for context rollover notification
+                if context and context.get("context_rollover_occurred"):
+                    print(f"[LLMHandler] ✅ Context window rollover completed - conversation continuity maintained")
+                
+                # Track token usage start
+                input_tokens = estimate_tokens_from_text(enhanced_prompt)
+                output_tokens = 0
+                generation_start = time.time()
+                
+                # Generate response using appropriate LLM
+                if FUSION_LLM_AVAILABLE:
+                    # Pass cognitive context to advanced function
+                    cognitive_context = {
+                        "cognitive_state": analysis.get("consciousness", {}),
+                        "personality": analysis.get("personality", {}),
+                        "memory_context": analysis.get("memory", {})
+                    }
+                    response_generator = generate_response_streaming_with_intelligent_fusion(
+                        enhanced_prompt, user, "en", context=cognitive_context
+                    )
+                else:
+                    # ✅ CONSCIOUSNESS-INTEGRATED FALLBACK: Direct LLM with consciousness prompting
+                    print("[LLMHandler] 🧠 Using consciousness-integrated direct LLM fallback")
+                    response_generator = self._generate_consciousness_integrated_response_direct(
+                        enhanced_prompt, user, analysis, context
+                    )
+                
+                full_response = ""
+                
+                # Stream response while tracking tokens
+                for chunk in response_generator:
+                    if chunk and chunk.strip():
+                        chunk_text = chunk.strip()
+                        full_response += chunk_text + " "
+                        output_tokens += estimate_tokens_from_text(chunk_text)
+                        yield chunk_text
+                
+                generation_time = time.time() - generation_start
+                
+                # Log usage
+                usage = log_llm_usage(
+                    input_tokens, 
+                    output_tokens, 
+                    self.default_model, 
+                    user, 
+                    "consciousness_integrated_chat"
                 )
-            else:
-                # ✅ CONSCIOUSNESS-INTEGRATED FALLBACK: Direct LLM with consciousness prompting
-                print("[LLMHandler] 🧠 Using consciousness-integrated direct LLM fallback")
-                response_generator = self._generate_consciousness_integrated_response_direct(
-                    enhanced_prompt, user, analysis, context
-                )
-            
-            full_response = ""
-            
-            # Stream response while tracking tokens
-            for chunk in response_generator:
-                if chunk and chunk.strip():
-                    chunk_text = chunk.strip()
-                    full_response += chunk_text + " "
-                    output_tokens += estimate_tokens_from_text(chunk_text)
-                    yield chunk_text
-            
-            generation_time = time.time() - generation_start
-            
-            # Log usage
-            usage = log_llm_usage(
-                input_tokens, 
-                output_tokens, 
-                self.default_model, 
-                user, 
-                "consciousness_integrated_chat"
-            )
-            
-            # Update consciousness state with interaction
-            if CONSCIOUSNESS_AVAILABLE:
-                self._update_consciousness_after_response(text, full_response.strip(), user, analysis)
-            
-            # Update session statistics
-            self.request_count += 1
-            self.total_tokens_used += usage.total_tokens
-            
+                
+                # Update consciousness state with interaction
+                if CONSCIOUSNESS_AVAILABLE:
+                    self._update_consciousness_after_response(text, full_response.strip(), user, analysis)
+                
+                # Update session statistics
+                self.request_count += 1
+                self.total_tokens_used += usage.total_tokens
+                
                 print(f"[LLMHandler] ✅ Response generated in {generation_time:.3f}s")
                 print(f"[LLMHandler] 📊 Tokens: {input_tokens} in, {output_tokens} out, ${usage.cost_estimate:.4f}")
                 
             except Exception as e:
                 print(f"[LLMHandler] ❌ Error generating response: {e}")
                 yield f"I apologize, but I encountered an error while processing your request: {str(e)}"
-            
-            finally:
-                # ✅ FIX: Always reset the generation flag
-                with self._generation_lock:
-                    self._llm_generation_in_progress = False
+        
+        finally:
+            # ✅ FIX: Always reset the generation flag
+            with self._generation_lock:
+                self._llm_generation_in_progress = False
             
     def sanitize_prompt_input(self, text: str, user_id: str = "unknown") -> str:
         """

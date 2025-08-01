@@ -142,10 +142,15 @@ def is_llm_generation_in_progress():
     return _global_llm_generation_in_progress
 
 def set_llm_generation_in_progress(in_progress: bool):
-    """Set global LLM generation state"""
+    """Set global LLM generation state with thread safety and logging"""
     global _global_llm_generation_in_progress, _global_llm_generation_lock
     with _global_llm_generation_lock:
+        old_state = _global_llm_generation_in_progress
         _global_llm_generation_in_progress = in_progress
+        if old_state != in_progress:
+            print(f"[LLMHandler] 🔄 Global LLM state changed: {old_state} → {in_progress}")
+        else:
+            print(f"[LLMHandler] 🔄 Global LLM state unchanged: {in_progress}")
 
 class LLMHandler:
     """Centralized LLM handler with full consciousness integration"""
@@ -404,6 +409,9 @@ class LLMHandler:
         Yields response chunks if streaming, otherwise returns complete response
         """
         try:
+            # ✅ FIX: Enhanced debugging for circular call detection
+            print(f"[LLMHandler] 🔍 CALL DEBUG: is_primary_call={is_primary_call}, global_state={is_llm_generation_in_progress()}")
+            
             # ✅ FIX: Only block secondary calls during LLM generation, allow primary calls
             if not is_primary_call and is_llm_generation_in_progress():
                 print("[LLMHandler] ⚠️ Circular LLM call detected - consciousness systems bypassed")
@@ -411,6 +419,14 @@ class LLMHandler:
                 yield "I'm processing your request..."
                 return
             
+            # ✅ FIX: Additional safety check for primary calls
+            if is_primary_call and is_llm_generation_in_progress():
+                print("[LLMHandler] 🚨 WARNING: Primary call blocked by global state - this should not happen!")
+                print("[LLMHandler] 🔧 Forcing global state reset and proceeding...")
+                set_llm_generation_in_progress(False)
+                time.sleep(0.1)  # Brief pause to let state stabilize
+            
+            print(f"[LLMHandler] ✅ Proceeding with LLM generation - setting global state to True")
             set_llm_generation_in_progress(True)
             
             try:

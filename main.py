@@ -1084,12 +1084,27 @@ def handle_streaming_response(text, current_user):
                 add_to_conversation_history(current_user, text, full_response.strip())
                 print(f"[AdvancedResponse] ✅ ADVANCED AI streaming complete for VOICE USER {current_user} - {chunk_count} natural segments")
                 
-                # ✅ CONSCIOUSNESS: Finalize consciousness processing
+                # ✅ CONSCIOUSNESS: Finalize consciousness processing (DELAYED to prevent loops)
                 if CONSCIOUSNESS_ARCHITECTURE_AVAILABLE:
                     try:
-                        _finalize_consciousness_response(text, full_response.strip(), current_user, consciousness_state)
+                        # ✅ FIX: Delay consciousness finalization to prevent infinite loops
+                        # The global LLM state needs time to stabilize before consciousness systems activate
+                        import threading
+                        def delayed_consciousness_finalization():
+                            try:
+                                time.sleep(2.0)  # Wait 2 seconds for LLM state to stabilize
+                                print("[AdvancedResponse] 🧠 Starting delayed consciousness finalization...")
+                                _finalize_consciousness_response(text, full_response.strip(), current_user, consciousness_state)
+                            except Exception as delayed_error:
+                                print(f"[AdvancedResponse] ⚠️ Delayed consciousness finalization error: {delayed_error}")
+                        
+                        # Run finalization in separate thread to prevent blocking
+                        finalization_thread = threading.Thread(target=delayed_consciousness_finalization, daemon=True)
+                        finalization_thread.start()
+                        print("[AdvancedResponse] 🧠 Consciousness finalization scheduled (delayed)")
+                        
                     except Exception as consciousness_finalize_error:
-                        print(f"[AdvancedResponse] ⚠️ Consciousness finalization error: {consciousness_finalize_error}")
+                        print(f"[AdvancedResponse] ⚠️ Consciousness finalization setup error: {consciousness_finalize_error}")
                 
                 # ✅ NEW: Finalize debug logging
                 if interaction_id and SELF_AWARENESS_COMPONENTS_AVAILABLE:
@@ -3300,9 +3315,25 @@ def _finalize_consciousness_response(text: str, response: str, current_user: str
             {"user": current_user, "response_completed": True, "response_quality": "good"}
         )
         
-        # Generate insight if experience was significant
-        if consciousness_state.get("experience_significance", 0) > 0.7:
-            inner_monologue.generate_insight(f"interaction about {text[:20]}...")
+        # ✅ FIX: Generate insight only if it's truly significant and safe to do so
+        # Check that we're not in a conversation state that could trigger loops
+        if consciousness_state.get("experience_significance", 0) > 0.8:  # Raised threshold from 0.7 to 0.8
+            try:
+                # Additional safety check - ensure global LLM generation is not in progress
+                from ai.llm_handler import is_llm_generation_in_progress
+                if not is_llm_generation_in_progress():
+                    # Check conversation state to ensure we're not mid-conversation
+                    if not get_conversation_state():
+                        print("[Consciousness] 💡 Triggering insight generation for significant experience...")
+                        inner_monologue.generate_insight(f"interaction about {text[:20]}...")
+                    else:
+                        print("[Consciousness] ⚠️ Skipping insight generation - conversation still active")
+                else:
+                    print("[Consciousness] ⚠️ Skipping insight generation - LLM generation in progress")
+            except Exception as insight_error:
+                print(f"[Consciousness] ⚠️ Insight generation error: {insight_error}")
+        else:
+            print(f"[Consciousness] ⚠️ Experience significance too low for insight generation: {consciousness_state.get('experience_significance', 0)}")
         
         # Add to working memory
         global_workspace.add_to_working_memory(

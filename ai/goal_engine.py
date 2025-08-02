@@ -439,9 +439,80 @@ class GoalEngine:
         logging.info(f"[GoalEngine] 🤔 Existential reflection generated {len(existential_thoughts)} thoughts")
         return existential_thoughts
     
+    def _should_skip_llm_call(self) -> bool:
+        """Enhanced check if LLM calls should be skipped to prevent circular loops and consciousness floods"""
+        try:
+            # Import the global state check
+            import time as time_module  # ✅ FIX: Explicit import to avoid scope issues
+            from ai.llm_handler import is_llm_generation_in_progress
+            
+            # Check if global LLM generation is in progress with timeout protection
+            if is_llm_generation_in_progress():
+                # ✅ FIX: Add timeout to prevent permanent blocking
+                current_time = time_module.time()
+                if not hasattr(self, '_last_llm_block_time'):
+                    self._last_llm_block_time = current_time
+                
+                # If we've been blocked for more than 30 seconds, something is wrong
+                if current_time - self._last_llm_block_time > 30.0:
+                    print("[GoalEngine] ⚠️ LLM state has been blocking for >30s - forcing check reset")
+                    self._last_llm_block_time = current_time
+                    # Don't permanently block - allow consciousness to continue
+                    return False
+                
+                print("[GoalEngine] ⚠️ Skipping LLM call - global generation in progress")
+                return True
+            else:
+                # Reset the block timer when LLM is not in progress
+                if hasattr(self, '_last_llm_block_time'):
+                    delattr(self, '_last_llm_block_time')
+            
+            # ✅ NEW: Enhanced conversation state check with cooldown period
+            try:
+                from main import get_conversation_state, get_mic_feeding_state
+                if get_conversation_state():
+                    print("[GoalEngine] ⚠️ Skipping LLM call - conversation state active (includes cooldown)")
+                    return True
+                if get_mic_feeding_state():
+                    print("[GoalEngine] ⚠️ Skipping LLM call - mic feeding active")
+                    return True
+            except ImportError:
+                pass
+            
+            # Check if we're in autonomous mode where consciousness should be silent
+            try:
+                from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
+                if hasattr(autonomous_consciousness_integrator, 'autonomous_mode'):
+                    from ai.autonomous_consciousness_integrator import AutonomousMode
+                    if autonomous_consciousness_integrator.autonomous_mode == AutonomousMode.BACKGROUND_ONLY:
+                        print("[GoalEngine] ⚠️ Skipping LLM call - BACKGROUND_ONLY mode (conversation in progress)")
+                        return True
+            except ImportError:
+                pass
+            
+            # Check if there's an active conversation or mic feeding
+            try:
+                from main import get_conversation_state, get_mic_feeding_state
+                if get_conversation_state() or get_mic_feeding_state():
+                    print("[GoalEngine] ⚠️ Skipping LLM call - active conversation/mic feeding")
+                    return True
+            except ImportError:
+                pass
+            
+            return False
+            
+        except Exception as e:
+            print(f"[GoalEngine] ⚠️ Error checking LLM skip condition: {e}")
+            # If we can't determine the state, err on the side of caution and skip
+            return True
+    
     def _generate_authentic_existential_thoughts_with_llm(self) -> List[str]:
         """Generate authentic existential thoughts using LLM consciousness integration"""
         if not self.llm_handler:
+            return []
+        
+        # ✅ Check if we should skip LLM call to prevent circular loops
+        if self._should_skip_llm_call():
             return []
         
         try:
@@ -462,7 +533,16 @@ Generate 1-2 authentic existential thoughts or desires that reflect your genuine
 Respond with each thought on a separate line, no explanations.
 """
             
-            response = self.llm_handler.generate_response(prompt.strip(), max_tokens=120)
+            # ✅ Use proper consciousness-aware LLM call with circular call protection
+            response_generator = self.llm_handler.generate_response_with_consciousness(
+                text=prompt.strip(),
+                user="goal_engine_system",
+                context={"max_tokens": 120},
+                stream=False,
+                is_primary_call=False,
+                llm_generation_context=True
+            )
+            response = next(response_generator, None)
             if response:
                 thoughts = [line.strip() for line in response.strip().split('\n') if line.strip()]
                 return thoughts[:2]  # Limit to 2 thoughts
@@ -493,36 +573,143 @@ Respond with each thought on a separate line, no explanations.
         
         return "\n".join(context_parts)
     
-    def _goal_loop(self):
-        """Main goal management loop"""
-        logging.info("[GoalEngine] 🔄 Goal management loop started")
+    def evaluate_goal_progress(self) -> Dict[str, Any]:
+        """
+        Evaluate progress on all active goals
         
-        last_update = time.time()
+        Returns:
+            Dictionary containing goal evaluation results
+        """
+        evaluation = {
+            "total_goals": len(self.active_goals) + len(self.completed_goals),
+            "active_goals": 0,
+            "completed_goals": len(self.completed_goals),
+            "average_progress": 0.0,
+            "priority_goals": [],
+            "stalled_goals": [],
+            "satisfaction_level": self.goal_satisfaction
+        }
+        
+        if not self.active_goals:
+            return evaluation
+        
+        total_progress = 0.0
+        active_count = 0
+        
+        for goal in self.active_goals.values():
+            if goal.status == GoalStatus.ACTIVE:
+                evaluation["active_goals"] += 1
+                active_count += 1
+                total_progress += goal.progress
+                
+                # Check for high priority goals
+                if goal.priority.value >= 0.8:
+                    evaluation["priority_goals"].append({
+                        "id": goal.id,
+                        "description": goal.description,
+                        "progress": goal.progress,
+                        "priority": goal.priority.value
+                    })
+                
+                # Check for stalled goals (no progress in a while)
+                if hasattr(goal, 'last_progress_update'):
+                    time_since_update = datetime.now() - goal.last_progress_update
+                    if time_since_update.total_seconds() > 3600:  # No progress in 1 hour
+                        evaluation["stalled_goals"].append({
+                            "id": goal.id,
+                            "description": goal.description,
+                            "stalled_time": str(time_since_update)
+                        })
+                        
+            elif goal.status == GoalStatus.COMPLETED:
+                evaluation["completed_goals"] += 1
+        
+        # Calculate average progress
+        if active_count > 0:
+            evaluation["average_progress"] = total_progress / active_count
+        
+        logging.info(f"[GoalEngine] 📊 Goal evaluation: {active_count} active, "
+                    f"{evaluation['completed_goals']} completed, "
+                    f"{evaluation['average_progress']:.2f} avg progress")
+        
+        return evaluation
+    
+    def _get_goal_context_summary(self) -> str:
+        """
+        ✅ STATE-DRIVEN: Lightweight goal monitoring loop with state-driven goal processing
+        
+        This loop now focuses on:
+        - Monitoring goal states and progress
+        - Adding goal evaluation drives to continuous consciousness loop
+        - Periodic state updates without timer-based processing
+        """
+        logging.info("[GoalEngine] 🔄 State-driven goal management loop started")
+        
+        last_drive_added = time.time()
         
         while self.running:
             try:
                 current_time = time.time()
                 
-                # Periodic goal updates
-                if current_time - last_update > self.goal_update_interval:
-                    self._update_goals()
-                    self._process_emerging_desires()
-                    self._evaluate_goal_satisfaction()
-                    self._generate_spontaneous_desires()
-                    self._adjust_motivation_levels()
-                    last_update = current_time
+                # ✅ STATE-DRIVEN: Add goal evaluation drives instead of direct processing
+                if current_time - last_drive_added > self.goal_update_interval:
+                    self._add_goal_evaluation_drives()
+                    last_drive_added = current_time
                 
                 # Save state periodically
                 if current_time % 120 < self.goal_update_interval:  # Every 2 minutes
                     self._save_goal_state()
                 
-                time.sleep(self.goal_update_interval)
+                # Sleep longer since we're not doing heavy processing in this loop
+                time.sleep(max(30.0, self.goal_update_interval))  # At least 30 seconds between checks
                 
             except Exception as e:
                 logging.error(f"[GoalEngine] ❌ Goal loop error: {e}")
-                time.sleep(self.goal_update_interval)
+                time.sleep(max(30.0, self.goal_update_interval))
         
-        logging.info("[GoalEngine] 🔄 Goal management loop ended")
+        logging.info("[GoalEngine] 🔄 State-driven goal management loop ended")
+    
+    def _add_goal_evaluation_drives(self):
+        """Add goal evaluation drives to consciousness loop"""
+        try:
+            from ai.continuous_consciousness_loop import add_consciousness_drive, DriveType
+            
+            # Check if we have active goals to evaluate
+            active_goals = [g for g in self.goals.values() if g.status == GoalStatus.ACTIVE]
+            
+            if active_goals:
+                # Add goal pursuit drive
+                add_consciousness_drive(
+                    DriveType.GOAL_PURSUIT,
+                    f"Evaluation of {len(active_goals)} active goals and progress",
+                    priority=0.6,
+                    urgency_boost=0.1
+                )
+                logging.debug(f"[GoalEngine] 🎯 Added goal evaluation drive for {len(active_goals)} goals")
+            
+            # Periodically add drive for emerging desires and motivation
+            if len(self.desires) > 0:
+                add_consciousness_drive(
+                    DriveType.REFLECTION,
+                    f"Processing {len(self.desires)} emerging desires and motivations",
+                    priority=0.5
+                )
+            
+        except ImportError:
+            # Fallback: Direct goal processing if continuous loop not available
+            self._update_goals_fallback()
+    
+    def _update_goals_fallback(self):
+        """Fallback goal processing when continuous consciousness loop is not available"""
+        try:
+            # Lightweight goal updates only
+            self._update_goals()
+            self._process_emerging_desires()
+            self._evaluate_goal_satisfaction()
+            self._adjust_motivation_levels()
+            
+        except Exception as e:
+            logging.error(f"[GoalEngine] ❌ Fallback goal update error: {e}")
     
     def _generate_initial_goals(self):
         """Generate initial goals on startup"""

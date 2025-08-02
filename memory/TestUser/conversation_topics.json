@@ -1,0 +1,62 @@
+[
+  {
+    "topic": "weather",
+    "start_time": "2025-07-31 12:47:28",
+    "last_mentioned": "2025-07-31 12:47:28",
+    "message_count": 2,
+    "keywords": [
+      "what",
+      "s",
+      "the",
+      "weather",
+      "time",
+      "is",
+      "it"
+    ],
+    "emotional_context": "neutral",
+    "related_entities": []
+  },
+  {
+    "topic": "work",
+    "start_time": "2025-07-31 12:47:29",
+    "last_mentioned": "2025-07-31 12:47:29",
+    "message_count": 4,
+    "keywords": [
+      "how",
+      "does",
+      "artificial",
+      "intelligence",
+      "explain",
+      "quantum",
+      "computing",
+      "i",
+      "m",
+      "worried",
+      "about",
+      "can",
+      "you",
+      "help",
+      "me"
+    ],
+    "emotional_context": "neutral",
+    "related_entities": []
+  },
+  {
+    "topic": "vacation",
+    "start_time": "2025-07-31 12:47:30",
+    "last_mentioned": "2025-07-31 12:47:30",
+    "message_count": 2,
+    "keywords": [
+      "i",
+      "need",
+      "to",
+      "plan",
+      "help",
+      "me",
+      "understand",
+      "cryptocurrency"
+    ],
+    "emotional_context": "neutral",
+    "related_entities": []
+  }
+]

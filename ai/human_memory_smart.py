@@ -6,7 +6,8 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 import re
 from ai.memory import get_user_memory, add_to_conversation_history
-from ai.chat import ask_kobold  # Use your existing LLM connection
+# ✅ CONSCIOUSNESS INTEGRATION: Use LLMHandler instead of legacy ask_kobold
+from ai.llm_handler import LLMHandler
 
 class SmartHumanLikeMemory:
     """🧠 Smart human-like memory using LLM for event detection"""
@@ -348,13 +349,24 @@ Examples:
 Return only valid JSON array:"""
 
         try:
-            # Get LLM response
-            messages = [
-                {"role": "system", "content": "You are a precise JSON extraction assistant. Return only valid JSON arrays. Extract ONLY real events, appointments, or emotional states worth remembering."},
-                {"role": "user", "content": detection_prompt}
-            ]
+            # ✅ CONSCIOUSNESS INTEGRATION: Use LLMHandler for event detection
+            llm_handler = LLMHandler()
             
-            llm_response = ask_kobold(messages, max_tokens=300)
+            # Convert prompt to text format for consciousness integration
+            system_content = "You are a precise JSON extraction assistant. Return only valid JSON arrays. Extract ONLY real events, appointments, or emotional states worth remembering."
+            combined_prompt = f"{system_content}\n\n{detection_prompt}"
+            
+            # Use consciousness-integrated response generation (disable optimization to prevent circular calls)
+            llm_response = ""
+            for chunk in llm_handler.generate_response_with_consciousness(
+                text=combined_prompt,
+                user=self.username,
+                context={"purpose": "event_detection", "max_tokens": 300},
+                stream=False,
+                use_optimization=False  # Prevent circular dependency with latency optimizer
+            ):
+                if chunk and chunk.strip():
+                    llm_response += chunk.strip() + " "
             
             # Clean and parse JSON response
             json_text = self._extract_json_from_response(llm_response)

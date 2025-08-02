@@ -413,7 +413,7 @@ class LazyConsciousnessLoader:
             return {
                 'recent_memories': [m.content[:100] for m in recent_memories],
                 'memory_count': len(recent_memories),
-                'context_topics': [m.tags[0] if m.tags else 'general' for m in recent_memories]
+                'context_topics': [m.topics[0] if m.topics else 'general' for m in recent_memories]
             }
         except ImportError:
             return None
@@ -496,7 +496,7 @@ class LazyConsciousnessLoader:
         """Load temporal awareness module"""
         try:
             from ai.temporal_awareness import temporal_awareness
-            temporal_state = temporal_awareness.get_current_time_context(user_id)
+            temporal_state = temporal_awareness.get_current_time_context()
             return {
                 'time_of_day': temporal_state.get('time_period', 'unknown'),
                 'session_duration': temporal_state.get('session_length', 'short'),
@@ -523,13 +523,17 @@ class LazyConsciousnessLoader:
     def _load_belief_tracker(self, user_id: str) -> Optional[Dict[str, Any]]:
         """Load belief tracker module"""
         try:
-            from ai.belief_evolution_tracker import get_belief_tracker
-            belief_tracker = get_belief_tracker(user_id)
+            from ai.belief_evolution_tracker import get_belief_evolution_tracker
+            belief_tracker = get_belief_evolution_tracker(user_id)
             active_beliefs = belief_tracker.get_active_beliefs()
+            # ✅ FIX: Use existing method instead of non-existent detect_contradictions()
+            conflicts = belief_tracker.get_belief_conflicts(unresolved_only=True)
+            contradictions = [f"{conflict.description[:50]}..." for conflict in conflicts[:3]]
+            
             return {
                 'active_beliefs': [b.content[:60] for b in active_beliefs[:3]],
                 'belief_strength': [b.confidence for b in active_beliefs[:3]],
-                'contradictions': belief_tracker.detect_contradictions()
+                'contradictions': contradictions
             }
         except (ImportError, AttributeError) as e:
             print(f"[LazyConsciousnessLoader] ❌ Error loading belief_tracker: {e}")

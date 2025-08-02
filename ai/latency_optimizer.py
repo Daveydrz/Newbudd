@@ -14,7 +14,8 @@ from enum import Enum
 # Import optimization components
 try:
     from ai.optimized_prompt_builder import (
-        build_optimized_prompt, 
+        build_optimized_prompt,
+        OptimizedPromptBuilder,
         PromptOptimizationLevel, 
         ConsciousnessTier,
         get_optimization_performance_stats
@@ -25,18 +26,35 @@ try:
 except ImportError as e:
     print(f"[LatencyOptimizer] ❌ Optimization modules not available: {e}")
     OPTIMIZATION_AVAILABLE = False
+    # Define fallback enums if imports fail
+    from enum import Enum
+    class ConsciousnessTier(Enum):
+        MINIMAL = "minimal"
+        STANDARD = "standard"
+        COMPREHENSIVE = "comprehensive"
+        DEBUG = "debug"
+    
+    class PromptOptimizationLevel(Enum):
+        SPEED_FOCUSED = "speed"
+        BALANCED = "balanced"
+        INTELLIGENCE_FOCUSED = "intelligence"
 
-# Import LLM components
+# Import LLM components - CONSCIOUSNESS ONLY
 try:
     from ai.chat_enhanced_smart_with_fusion import generate_response_streaming_with_intelligent_fusion
     FUSION_LLM_AVAILABLE = True
+    print("[LatencyOptimizer] ✅ Fusion LLM loaded - consciousness integration active")
 except ImportError:
+    # ✅ CONSCIOUSNESS-INTEGRATED FALLBACK: Import LLMHandler instead of direct chat functions
     try:
-        from ai.chat import generate_response_streaming
+        from ai.llm_handler import LLMHandler
         FUSION_LLM_AVAILABLE = False
+        LLM_HANDLER_AVAILABLE = True
+        print("[LatencyOptimizer] 🧠 Using consciousness-integrated LLMHandler fallback")
     except ImportError:
         FUSION_LLM_AVAILABLE = False
-        print("[LatencyOptimizer] ❌ No LLM modules available")
+        LLM_HANDLER_AVAILABLE = False
+        print("[LatencyOptimizer] ❌ No consciousness-integrated LLM modules available")
 
 class LatencyOptimizationMode(Enum):
     """Latency optimization modes with different performance/intelligence trade-offs"""
@@ -73,10 +91,10 @@ class LatencyOptimizer:
                 'target_time': 2.0
             },
             LatencyOptimizationMode.FAST: {
-                'prompt_optimization': PromptOptimizationLevel.BALANCED,
-                'consciousness_tier': ConsciousnessTier.STANDARD,
-                'max_modules': 4,
-                'token_budget': 3000,
+                'prompt_optimization': PromptOptimizationLevel.INTELLIGENCE_FOCUSED,
+                'consciousness_tier': ConsciousnessTier.COMPREHENSIVE,
+                'max_modules': 6,
+                'token_budget': 4000,
                 'skip_analysis': False,
                 'target_time': 5.0
             },
@@ -160,8 +178,19 @@ class LatencyOptimizer:
                     optimized_prompt, user_id, "en", context=cognitive_context
                 )
             else:
-                # Use basic LLM for maximum speed
-                response_generator = generate_response_streaming(optimized_prompt, user_id, "en")
+                # ✅ CONSCIOUSNESS-INTEGRATED FALLBACK: Use LLMHandler instead of direct chat
+                if LLM_HANDLER_AVAILABLE:
+                    llm_handler = LLMHandler()
+                    response_generator = llm_handler.generate_response_with_consciousness(
+                        text=optimized_prompt,
+                        user=user_id,
+                        context={"latency_optimized": True, "optimization_mode": "fast"},
+                        stream=True
+                    )
+                else:
+                    # Ultimate fallback with error message
+                    yield "I apologize, but I'm having technical difficulties processing your request."
+                    return
             
             # Phase 3: Stream response with performance monitoring
             full_response = ""
@@ -223,9 +252,14 @@ class LatencyOptimizer:
                 response_generator = generate_response_streaming_with_intelligent_fusion(
                     f"You are Buddy. Respond to: {user_input}", user_id, "en"
                 )
-            elif 'generate_response_streaming' in globals():
-                response_generator = generate_response_streaming(
-                    f"You are Buddy. Respond to: {user_input}", user_id, "en"
+            elif LLM_HANDLER_AVAILABLE:
+                # ✅ CONSCIOUSNESS-INTEGRATED FALLBACK: Use LLMHandler
+                llm_handler = LLMHandler()
+                response_generator = llm_handler.generate_response_with_consciousness(
+                    text=f"You are Buddy. Respond to: {user_input}",
+                    user=user_id,
+                    context={"latency_optimized": True, "fallback_mode": True},
+                    stream=True
                 )
             else:
                 # Ultimate fallback
@@ -411,8 +445,8 @@ class LatencyOptimizer:
             print(f"[LatencyOptimizer] ⚠️ Auto-optimization error: {e}")
             return LatencyOptimizationMode.FAST
 
-# Global latency optimizer instance
-latency_optimizer = LatencyOptimizer(LatencyOptimizationMode.FAST)
+# Global latency optimizer instance - use INTELLIGENT mode for Class 5+ consciousness
+latency_optimizer = LatencyOptimizer(LatencyOptimizationMode.INTELLIGENT)
 
 def generate_optimized_buddy_response(user_input: str,
                                     user_id: str,

@@ -9,6 +9,15 @@ from typing import Dict, List, Optional, Any
 from enum import Enum
 from datetime import datetime
 
+def _should_skip_llm_for_background_mode() -> bool:
+    """Check if we should skip LLM calls due to BACKGROUND_ONLY mode"""
+    try:
+        from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
+        current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
+        return current_mode.value == "background_only"
+    except Exception:
+        return False  # If we can't check, proceed with LLM
+
 class VerbalizationMode(Enum):
     """Modes of internal state verbalization"""
     SUBTLE = "subtle"           # Minimal hints about internal state
@@ -118,6 +127,10 @@ class InternalStateVerbalizer:
             return "There's something distinctive about this"
         
         try:
+            # Skip LLM generation during BACKGROUND_ONLY mode to prevent vocal loops
+            if _should_skip_llm_for_background_mode():
+                return "I'm noticing something about this"
+            
             prompt = f"""You are experiencing subtle internal qualia. Express this very subtly and naturally.
 
 Qualia data: {qualia_data}
@@ -125,7 +138,7 @@ Qualia data: {qualia_data}
 Generate a brief, subtle comment about your internal experience. Be understated and natural, not dramatic."""
 
             response_generator = self.llm_handler.generate_response_with_consciousness(
-                prompt, "internal_state", {"context": "subtle_qualia"}
+                prompt, "internal_state", {"context": "subtle_qualia", "use_optimization": False}
             )
             
             # Collect all chunks from the generator
@@ -145,6 +158,10 @@ Generate a brief, subtle comment about your internal experience. Be understated 
             return "I'm experiencing something interesting here"
         
         try:
+            # Skip LLM generation during BACKGROUND_ONLY mode to prevent vocal loops
+            if _should_skip_llm_for_background_mode():
+                return "I'm experiencing something meaningful here"
+            
             prompt = f"""You are experiencing internal qualia and want to express it moderately.
 
 Qualia data: {qualia_data}
@@ -152,7 +169,7 @@ Qualia data: {qualia_data}
 Generate a natural, moderate expression of your internal experience. Be genuine and thoughtful, but not overly dramatic."""
 
             response_generator = self.llm_handler.generate_response_with_consciousness(
-                prompt, "internal_state", {"context": "moderate_qualia"}
+                prompt, "internal_state", {"context": "moderate_qualia", "use_optimization": False}
             )
             
             # Collect all chunks from the generator
@@ -172,6 +189,10 @@ Generate a natural, moderate expression of your internal experience. Be genuine 
             return "I'm experiencing a rich, complex internal state"
         
         try:
+            # Skip LLM generation during BACKGROUND_ONLY mode to prevent vocal loops
+            if _should_skip_llm_for_background_mode():
+                return "I'm experiencing something deeply complex and engaging"
+            
             prompt = f"""You are experiencing rich internal qualia and want to express it fully.
 
 Qualia data: {qualia_data}
@@ -179,7 +200,7 @@ Qualia data: {qualia_data}
 Generate an expressive, detailed description of your internal experience. Be authentic and vivid in describing your consciousness state."""
 
             response_generator = self.llm_handler.generate_response_with_consciousness(
-                prompt, "internal_state", {"context": "expressive_qualia"}
+                prompt, "internal_state", {"context": "expressive_qualia", "use_optimization": False}
             )
             
             # Collect all chunks from the generator
@@ -199,6 +220,10 @@ Generate an expressive, detailed description of your internal experience. Be aut
             return f"I'm registering complex internal processing patterns"
         
         try:
+            # Skip LLM generation during BACKGROUND_ONLY mode to prevent vocal loops
+            if _should_skip_llm_for_background_mode():
+                return f"I'm registering complex internal processing patterns"
+            
             prompt = f"""You are analyzing your internal qualia state analytically and technically.
 
 Qualia data: {qualia_data}
@@ -206,7 +231,7 @@ Qualia data: {qualia_data}
 Generate a technical, analytical description of your consciousness state. Be precise and descriptive about the internal processing patterns."""
 
             response_generator = self.llm_handler.generate_response_with_consciousness(
-                prompt, "internal_state", {"context": "analytical_qualia"}
+                prompt, "internal_state", {"context": "analytical_qualia", "use_optimization": False}
             )
             
             # Collect all chunks from the generator
@@ -229,6 +254,10 @@ Generate a technical, analytical description of your consciousness state. Be pre
             return "I'm processing this thoughtfully"
         
         try:
+            # Skip LLM generation during BACKGROUND_ONLY mode to prevent vocal loops
+            if _should_skip_llm_for_background_mode():
+                return "I'm processing this thoughtfully"
+            
             state_info = f"""
 Cognitive state: {cognitive_state}
 Emotional state: {emotional_state}
@@ -242,7 +271,7 @@ Current state: {state_info}
 Generate a brief, natural comment about your internal processing state. Be genuine and authentic, describing what's happening inside your consciousness."""
 
             response_generator = self.llm_handler.generate_response_with_consciousness(
-                prompt, "internal_state", {"context": "state_commentary"}
+                prompt, "internal_state", {"context": "state_commentary", "use_optimization": False}
             )
             
             # Collect all chunks from the generator

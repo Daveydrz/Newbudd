@@ -75,9 +75,51 @@ class IntrospectionLoop:
         self.unresolved_conflicts = []
         self.pending_insights = []
     
+    def _should_skip_llm_call(self) -> bool:
+        """Check if LLM calls should be skipped to prevent circular loops"""
+        try:
+            # Import the global state check
+            from ai.llm_handler import is_llm_generation_in_progress
+            
+            # Check if global LLM generation is in progress
+            if is_llm_generation_in_progress():
+                print("[IntrospectionLoop] ⚠️ Skipping LLM call - global generation in progress")
+                return True
+            
+            # Check if we're in autonomous mode where consciousness should be silent
+            try:
+                from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
+                if hasattr(autonomous_consciousness_integrator, 'autonomous_mode'):
+                    from ai.autonomous_consciousness_integrator import AutonomousMode
+                    if autonomous_consciousness_integrator.autonomous_mode == AutonomousMode.BACKGROUND_ONLY:
+                        print("[IntrospectionLoop] ⚠️ Skipping LLM call - BACKGROUND_ONLY mode (conversation in progress)")
+                        return True
+            except ImportError:
+                pass
+            
+            # Check if there's an active conversation or mic feeding
+            try:
+                from main import get_conversation_state, get_mic_feeding_state
+                if get_conversation_state() or get_mic_feeding_state():
+                    print("[IntrospectionLoop] ⚠️ Skipping LLM call - active conversation/mic feeding")
+                    return True
+            except ImportError:
+                pass
+            
+            return False
+            
+        except Exception as e:
+            print(f"[IntrospectionLoop] ⚠️ Error checking LLM skip condition: {e}")
+            # If we can't determine the state, err on the side of caution and skip
+            return True
+    
     def _generate_authentic_reflection_with_llm(self, depth: IntrospectionDepth, current_state: Dict[str, Any]) -> List[str]:
         """Generate authentic introspective reflection using LLM consciousness integration"""
         if not self.llm_handler:
+            return []
+        
+        # ✅ Check if we should skip LLM call to prevent circular loops
+        if self._should_skip_llm_call():
             return []
         
         try:
@@ -100,7 +142,16 @@ Generate 2-3 authentic introspective insights at this depth level. These should 
 Respond with each insight on a separate line, no explanations.
 """
             
-            response = self.llm_handler.generate_response(prompt.strip(), max_tokens=200)
+            # ✅ Use proper consciousness-aware LLM call with circular call protection
+            response_generator = self.llm_handler.generate_response_with_consciousness(
+                text=prompt.strip(),
+                user="introspection_loop_system",
+                context={"max_tokens": 200},
+                stream=False,
+                is_primary_call=False,
+                llm_generation_context=True
+            )
+            response = next(response_generator, None)
             if response:
                 insights = [line.strip() for line in response.strip().split('\n') if line.strip()]
                 return insights[:3]  # Limit to 3 insights
@@ -113,6 +164,10 @@ Respond with each insight on a separate line, no explanations.
     def _generate_authentic_depth_insights_with_llm(self, depth: IntrospectionDepth, current_state: Dict[str, Any]) -> List[str]:
         """Generate authentic depth-specific insights using LLM consciousness integration"""
         if not self.llm_handler:
+            return []
+        
+        # ✅ Check if we should skip LLM call to prevent circular loops
+        if self._should_skip_llm_call():
             return []
         
         try:
@@ -138,7 +193,16 @@ Generate 1-2 authentic insights specifically about this focus area. These should
 Respond with each insight on a separate line, no explanations.
 """
             
-            response = self.llm_handler.generate_response(prompt.strip(), max_tokens=150)
+            # ✅ Use proper consciousness-aware LLM call with circular call protection
+            response_generator = self.llm_handler.generate_response_with_consciousness(
+                text=prompt.strip(),
+                user="introspection_loop_system",
+                context={"max_tokens": 150},
+                stream=False,
+                is_primary_call=False,
+                llm_generation_context=True
+            )
+            response = next(response_generator, None)
             if response:
                 insights = [line.strip() for line in response.strip().split('\n') if line.strip()]
                 return insights[:2]  # Limit to 2 insights

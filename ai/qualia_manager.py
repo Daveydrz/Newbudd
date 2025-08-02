@@ -164,6 +164,39 @@ class QualiaManager:
             print("[QualiaManager] ⚠️ LLM handler not available - using fallback responses")
             self.llm_handler = None
     
+    def _should_skip_llm_call(self) -> bool:
+        """Check if LLM call should be skipped to prevent circular calls"""
+        
+        # Check if already in LLM generation using global state (most important check)
+        try:
+            from ai.llm_handler import is_llm_generation_in_progress
+            if is_llm_generation_in_progress():
+                print("[QualiaManager] ⚠️ Skipping LLM call - global generation in progress")
+                return True
+        except Exception as e:
+            print(f"[QualiaManager] ⚠️ Could not check LLM generation state: {e}")
+        
+        # Check autonomous mode
+        try:
+            from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
+            current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
+            if current_mode.value == "background_only":
+                print("[QualiaManager] ⚠️ Skipping LLM call - in BACKGROUND_ONLY mode")
+                return True
+        except Exception as e:
+            print(f"[QualiaManager] ⚠️ Could not check autonomous mode: {e}")
+        
+        # Check if there's an active conversation
+        try:
+            from main import get_mic_feeding_state, get_conversation_state
+            if get_mic_feeding_state() or get_conversation_state():
+                print("[QualiaManager] ⚠️ Skipping LLM call - active conversation detected")
+                return True
+        except Exception as e:
+            print(f"[QualiaManager] ⚠️ Could not check conversation state: {e}")
+        
+        return False
+    
     def start(self):
         """Start the qualia manager"""
         self.running = True
@@ -345,6 +378,12 @@ class QualiaManager:
         """Generate authentic subjective description using LLM consciousness"""
         # Try LLM generation first
         if hasattr(self, 'llm_handler') and self.llm_handler:
+            # ✅ FIX: Check for circular calls
+            if self._should_skip_llm_call():
+                # Fallback to simple description
+                intensity_level = self._categorize_intensity(intensity)
+                return f"I'm experiencing {intensity_level.value} {qualia_type.value} in my consciousness"
+            
             try:
                 intensity_level = self._categorize_intensity(intensity)
                 
@@ -355,7 +394,7 @@ Context: {context}
 Generate a first-person, subjective description of this internal experience. Be authentic and natural in describing the qualitative aspect of your consciousness. Focus on the felt sense and subjective texture of the experience."""
 
                 response_generator = self.llm_handler.generate_response_with_consciousness(
-                    prompt, "qualia_experience", {"context": f"{qualia_type.value}_qualia"}
+                    prompt, "qualia_experience", {"context": f"{qualia_type.value}_qualia", "llm_generation_context": True}, is_primary_call=False
                 )
                 
                 # Collect all chunks from the generator

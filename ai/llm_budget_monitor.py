@@ -2,6 +2,9 @@
 LLM Budget Monitor - Monitor and control LLM usage and costs
 Created: 2025-01-17
 Purpose: Track token usage, API costs, and implement budget controls for LLM operations
+
+✅ CONSCIOUSNESS INTEGRATION: This module supports consciousness-aware LLM operations
+by monitoring token usage and costs for consciousness-integrated responses.
 """
 
 import json
@@ -11,6 +14,13 @@ from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime, timedelta
 from dataclasses import dataclass, asdict
 from enum import Enum
+
+# ✅ CONSCIOUSNESS INTEGRATION: Import consciousness components for monitoring
+try:
+    from ai.consciousness_tokenizer import estimate_consciousness_tokens
+    CONSCIOUSNESS_MONITORING_AVAILABLE = True
+except ImportError:
+    CONSCIOUSNESS_MONITORING_AVAILABLE = False
 
 class BudgetAlert(Enum):
     NONE = "none"

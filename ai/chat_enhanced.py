@@ -1,8 +1,8 @@
-# ai/chat_enhanced.py - Enhanced chat that integrates with your existing chat.py
+# ai/chat_enhanced.py - Enhanced chat with consciousness integration and human memory
 import random
-from ai.chat import generate_response_streaming, ask_kobold_streaming, get_current_brisbane_time
-from ai.human_memory import HumanLikeMemory
 from ai.memory import add_to_conversation_history
+from ai.human_memory import HumanLikeMemory
+from ai.llm_handler import LLMHandler
 
 # Global human memory instances
 human_memories = {}
@@ -19,9 +19,9 @@ def reset_session_for_user(username: str):
     memory.reset_session_context()
 
 def generate_response_with_human_memory(question, username, lang="en"):
-    """Generate response with human-like memory integration"""
+    """Generate response with human-like memory integration and consciousness"""
     try:
-        print(f"[ChatEnhanced] 🧠 Starting human-like response for '{question}' from {username}")
+        print(f"[ChatEnhanced] 🧠 Starting consciousness + human memory response for '{question}' from {username}")
         
         # Get human memory
         human_memory = get_human_memory(username)
@@ -44,9 +44,25 @@ def generate_response_with_human_memory(question, username, lang="en"):
             connectors = [" ", "Also, ", "And ", "By the way, ", "Oh, and "]
             response_parts.append(random.choice(connectors))
         
-        # Use your existing streaming generation
+        # ✅ Use consciousness-integrated LLM handler directly
+        llm_handler = LLMHandler()
+        
+        # Build enhanced context with human memory integration
+        enhanced_context = {
+            'human_memory_active': True,
+            'natural_context_response': context_response,
+            'memory_system': 'human_like',
+            'context': 'enhanced_chat'
+        }
+        
+        # Collect consciousness response chunks
         full_ai_response = ""
-        for chunk in generate_response_streaming(question, username, lang):
+        for chunk in llm_handler.generate_response_with_consciousness(
+            text=question,
+            user=username, 
+            context=enhanced_context,
+            stream=True
+        ):
             if chunk and chunk.strip():
                 response_parts.append(chunk.strip())
                 full_ai_response += chunk.strip() + " "
@@ -65,9 +81,9 @@ def generate_response_with_human_memory(question, username, lang="en"):
         return "Sorry, I'm having trouble thinking right now."
 
 def generate_response_streaming_with_human_memory(question, username, lang="en"):
-    """Streaming version with human-like memory"""
+    """Streaming version with human-like memory and consciousness integration"""
     try:
-        print(f"[ChatEnhanced] 🧠 Starting human-like streaming for '{question}' from {username}")
+        print(f"[ChatEnhanced] 🧠 Starting consciousness + human memory streaming for '{question}' from {username}")
         
         # Get human memory
         human_memory = get_human_memory(username)
@@ -91,9 +107,25 @@ def generate_response_streaming_with_human_memory(question, username, lang="en")
             connectors = [" ", "Also, ", "And ", "By the way, ", "Oh, and "]
             yield random.choice(connectors)
         
-        # Use your existing streaming generation
+        # ✅ Use consciousness-integrated LLM handler directly
+        llm_handler = LLMHandler()
+        
+        # Build enhanced context with human memory integration
+        enhanced_context = {
+            'human_memory_active': True,
+            'natural_context_response': context_response,
+            'memory_system': 'human_like',
+            'context': 'enhanced_chat_streaming'
+        }
+        
+        # Stream consciousness response chunks
         full_response = ""
-        for chunk in generate_response_streaming(question, username, lang):
+        for chunk in llm_handler.generate_response_with_consciousness(
+            text=question,
+            user=username,
+            context=enhanced_context,
+            stream=True
+        ):
             if chunk and chunk.strip():
                 full_response += chunk.strip() + " "
                 yield chunk.strip()

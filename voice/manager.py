@@ -837,41 +837,72 @@ class IntelligentVoiceManager:
             return conflict_data['voice_match_id'], "ASKING_NAME_VOICE_CONFLICT_RESOLUTION"
 
     def _check_for_spontaneous_introduction(self, text: str, cluster_id: str):
-        """🔤 Only check for names when there's an actual introduction attempt"""
+        """🔤 LLM-based introduction detection with pattern matching as fallback only"""
         
-        print(f"[IntelligentVoiceManager] 🔤 Checking for spontaneous introduction in cluster: {cluster_id}")
+        print(f"[IntelligentVoiceManager] 🔤 LLM-first introduction check for cluster: {cluster_id}")
+        print(f"[IntelligentVoiceManager] 📅 2025-07-15 11:47:15 UTC")
+        print(f"[IntelligentVoiceManager] 👤 User: Daveydrz")
         
         try:
-            # First check if this text contains an introduction using ultra-intelligent manager
+            # ✅ PRIMARY: LLM-based introduction detection
             if hasattr(self, 'ultra_name_manager') and self.ultra_name_manager:
                 # Use the manager_names module to check if this is a spontaneous introduction
                 from voice.manager_names import NameManager
                 name_manager = NameManager
                 
-                # Check if this is actually an introduction
+                print(f"[IntelligentVoiceManager] 🧠 LLM analyzing: '{text}'")
+                
+                # Check if this is actually an introduction using LLM
                 is_introduction = name_manager.is_ultra_intelligent_spontaneous_introduction(text)
                 
                 if is_introduction:
-                    print(f"[IntelligentVoiceManager] ✅ Spontaneous introduction detected!")
+                    print(f"[IntelligentVoiceManager] ✅ LLM detected spontaneous introduction!")
                     # Now extract the name using LLM-based extraction
                     extracted_name = name_manager.extract_name_mega_intelligent(text)
                     
                     if extracted_name:
-                        print(f"[NameLink] 🔗 Linking cluster {cluster_id} → {extracted_name}")
+                        print(f"[NameLink] 🔗 LLM linking cluster {cluster_id} → {extracted_name}")
                         success = link_anonymous_to_named(cluster_id, extracted_name)
                         
                         if success:
                             self.current_user = extracted_name
                             self.current_speaker_cluster_id = extracted_name
-                            print(f"[NameLink] ✅ Cluster linked: {cluster_id} → {extracted_name}")
+                            print(f"[NameLink] ✅ LLM cluster linked: {cluster_id} → {extracted_name}")
                         else:
-                            print(f"[NameLink] ❌ Failed to link cluster")
+                            print(f"[NameLink] ❌ LLM linking failed")
                     else:
-                        print(f"[NameLink] 🔤 Name extraction failed for introduction")
+                        print(f"[NameLink] 🔤 LLM name extraction failed for introduction")
                 else:
-                    print(f"[IntelligentVoiceManager] ➡️ Not an introduction - skipping name processing")
+                    print(f"[IntelligentVoiceManager] ➡️ LLM: Not an introduction - skipping name processing")
+                    
+                return  # Exit here - LLM is primary method
+                    
             else:
-                print(f"[IntelligentVoiceManager] ⚠️ Ultra-intelligent name manager not available")
+                print(f"[IntelligentVoiceManager] ⚠️ LLM name manager not available - using fallback pattern matching")
+                
+                # ✅ FALLBACK: Pattern matching only when LLM not available
+                import re
+                patterns = [
+                    r"my name is (\w+)",
+                    r"i'm (\w+)",
+                    r"i am (\w+)",
+                    r"call me (\w+)",
+                    r"this is (\w+)"
+                ]
+                
+                for pattern in patterns:
+                    match = re.search(pattern, text.lower())
+                    if match:
+                        name = match.group(1).title()
+                        if len(name) >= 2 and name.isalpha():
+                            print(f"[NameLink] 🔗 FALLBACK pattern linking {cluster_id} → {name}")
+                            success = link_anonymous_to_named(cluster_id, name)
+                            
+                            if success:
+                                self.current_user = name
+                                self.current_speaker_cluster_id = name
+                                print(f"[NameLink] ✅ FALLBACK pattern linked: {cluster_id} → {name}")
+                            break
                     
         except Exception as e:
             print(f"[IntelligentVoiceManager] ❌ Introduction check error: {e}")
@@ -1430,7 +1461,7 @@ class IntelligentVoiceManager:
             return 0.0
     
     def _ask_for_voice_confirmation(self, match_id, current_embedding, text):
-        """❓ Smart voice confirmation - asks for name if unnamed, confirms if named"""
+        """❓ Smart voice confirmation - ONLY asks for names during actual introductions"""
         try:
             print(f"[DEBUG] ❓ SMART VOICE CONFIRMATION for {match_id}")
             print(f"[DEBUG] 📅 Current Time: 2025-07-15 12:19:36 UTC")
@@ -1456,15 +1487,40 @@ class IntelligentVoiceManager:
                 
                 return match_id, "ASKING_VOICE_CONFIRMATION"
             
-            # 🤔 UNNAMED CLUSTER - Ask for name using ultra-intelligent processing
+            # 🔍 UNNAMED CLUSTER - Check if this is actually an introduction FIRST
             else:
-                self.waiting_for_voice_confirmation = False
-                self.waiting_for_name = True
+                print(f"[IntelligentVoiceManager] 🔍 Checking if '{text}' contains an introduction...")
                 
-                speak_streaming("Sorry, I'm struggling to recognize your voice. What's your name?")
-                print(f"[IntelligentVoiceManager] ❓ ASKING FOR NAME: Unknown cluster {match_id}")
+                # ✅ FIXED: Only ask for name if there's an actual introduction
+                is_introduction = False
+                if hasattr(self, 'ultra_name_manager') and self.ultra_name_manager:
+                    # Use LLM to detect if this is actually an introduction
+                    from voice.manager_names import NameManager
+                    name_manager = NameManager
+                    is_introduction = name_manager.is_ultra_intelligent_spontaneous_introduction(text)
+                    print(f"[IntelligentVoiceManager] 🧠 LLM introduction detection: {is_introduction}")
                 
-                return match_id, "ASKING_FOR_NAME"
+                if is_introduction:
+                    # This is an actual introduction - ask for clarification
+                    self.waiting_for_voice_confirmation = False
+                    self.waiting_for_name = True
+                    
+                    speak_streaming("I didn't catch your name clearly. Could you say it again?")
+                    print(f"[IntelligentVoiceManager] ❓ ACTUAL INTRODUCTION - asking for name clarification")
+                    
+                    return match_id, "ASKING_FOR_NAME"
+                else:
+                    # Not an introduction - just add to cluster without asking for name
+                    print(f"[IntelligentVoiceManager] ✅ NOT AN INTRODUCTION - adding to anonymous cluster")
+                    
+                    self._add_embedding_to_profile(match_id, current_embedding)
+                    self._update_voice_learning_history(match_id, current_embedding, 0.7)
+                    
+                    # Reset confirmation state
+                    self._reset_confirmation_state()
+                    self.set_current_cluster(match_id)
+                    
+                    return match_id, "VOICE_ACCEPTED_ANONYMOUS"
                 
         except Exception as e:
             print(f"[IntelligentVoiceManager] ❌ Error asking confirmation: {e}")

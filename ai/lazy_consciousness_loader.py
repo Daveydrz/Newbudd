@@ -484,12 +484,15 @@ class LazyConsciousnessLoader:
         """Load motivation system module"""
         try:
             from ai.motivation import motivation_system
-            motivation_state = motivation_system.get_current_motivations(user_id)
+            motivations_list = motivation_system.get_current_motivations(limit=3)
             return {
-                'current_motivations': motivation_state.get('active_motivations', []),
-                'motivation_level': motivation_state.get('overall_level', 0.7)
+                'current_motivations': [(str(mt), intensity) for mt, intensity in motivations_list],
+                'motivation_level': motivations_list[0][1] if motivations_list else 0.7
             }
         except ImportError:
+            return None
+        except Exception as e:
+            print(f"[LazyConsciousnessLoader] ❌ Error loading motivation_system: {e}")
             return None
     
     def _load_temporal_awareness(self, user_id: str) -> Optional[Dict[str, Any]]:

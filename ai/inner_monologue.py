@@ -773,7 +773,8 @@ Respond with only the thought itself, no explanations.
         self.trigger_thought(
             trigger="goal_reflection", 
             context={"focus": "personal_growth", "motivation_source": "internal"},
-            preferred_type=ThoughtType.PLANNING
+            preferred_type=ThoughtType.PLANNING,
+            custom_content=reflection or "I'm reflecting on my goals and what I want to accomplish"
         )
     
     def _generate_spontaneous_insights(self):

@@ -2137,15 +2137,12 @@ class IntelligentVoiceManager:
         """🧠 LLM-based name extraction - NO PATTERN MATCHING"""
         # Use LLM-based name extraction as primary method
         if hasattr(self, 'ultra_name_manager') and self.ultra_name_manager:
-            from voice.manager_names import NameManager
-            name_manager = NameManager
-            
             # First check if this is actually an introduction
-            is_introduction = name_manager.is_ultra_intelligent_spontaneous_introduction(text)
+            is_introduction = self.ultra_name_manager.is_ultra_intelligent_spontaneous_introduction(text)
             
             if is_introduction:
                 # Only extract name if this is confirmed as an introduction
-                extracted_name = name_manager.extract_name_mega_intelligent(text)
+                extracted_name = self.ultra_name_manager.extract_name_mega_intelligent(text)
                 print(f"[IntelligentVoiceManager] 🧠 LLM extracted name: {extracted_name}")
                 return extracted_name
             else:

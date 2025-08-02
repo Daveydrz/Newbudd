@@ -1432,7 +1432,7 @@ Describe this experience from your subjective, first-person perspective. Express
     def _load_experience_state(self):
         """Load experience state from persistent storage"""
         try:
-            if self.save_path.exists():
+            if Path(self.save_path).exists():
                 with open(self.save_path, 'r') as f:
                     data = json.load(f)
                 

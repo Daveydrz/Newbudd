@@ -2330,6 +2330,18 @@ def main():
     """✅ ADVANCED AI Main function with ALEXA/SIRI-LEVEL INTELLIGENCE + FULL CONSCIOUSNESS ARCHITECTURE"""
     global current_user
 
+    # ✅ CRITICAL FIX: Reset LLM state at startup to prevent stuck state
+    try:
+        from ai.llm_handler import set_llm_generation_in_progress, is_llm_generation_in_progress
+        initial_state = is_llm_generation_in_progress()
+        if initial_state:
+            print(f"[Main] 🔧 CRITICAL: LLM state stuck at startup ({initial_state}) - forcing reset")
+            set_llm_generation_in_progress(False)
+        else:
+            print(f"[Main] ✅ LLM state clean at startup: {initial_state}")
+    except Exception as e:
+        print(f"[Main] ⚠️ Could not check/reset LLM state: {e}")
+
     # --- START: NEW DIAGNOSTIC CODE ---
     print("\n[Startup Check] 🚀 Running critical startup checks...")
     try:

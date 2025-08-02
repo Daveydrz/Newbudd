@@ -412,21 +412,20 @@ class LLMHandler:
             # ✅ FIX: Enhanced debugging for circular call detection
             print(f"[LLMHandler] 🔍 CALL DEBUG: is_primary_call={is_primary_call}, global_state={is_llm_generation_in_progress()}")
             
-            # ✅ FIX: Only block secondary calls during LLM generation, allow primary calls
-            if not is_primary_call and is_llm_generation_in_progress():
-                print("[LLMHandler] ⚠️ Circular LLM call detected - consciousness systems bypassed")
-                print("[LLMHandler] 🔄 This is expected behavior to prevent infinite loops")
-                yield "I'm processing your request..."
-                return
+            # ✅ FIX: Prevent infinite loops - block ALL calls if generation already in progress
+            if is_llm_generation_in_progress():
+                if is_primary_call:
+                    print("[LLMHandler] 🚨 ERROR: Primary call blocked by global state - forcing reset to prevent infinite loop")
+                    # Force reset and return error to break loop
+                    set_llm_generation_in_progress(False)
+                    yield "I apologize, but I'm currently processing another request. Please try again."
+                    return
+                else:
+                    print("[LLMHandler] ⚠️ Secondary call blocked - consciousness systems bypassed to prevent infinite loops")
+                    yield "I'm processing your request..."
+                    return
             
-            # ✅ FIX: Additional safety check for primary calls
-            if is_primary_call and is_llm_generation_in_progress():
-                print("[LLMHandler] 🚨 WARNING: Primary call blocked by global state - this should not happen!")
-                print("[LLMHandler] 🔧 Forcing global state reset and proceeding...")
-                set_llm_generation_in_progress(False)
-                time.sleep(0.1)  # Brief pause to let state stabilize
-            
-            print(f"[LLMHandler] ✅ Proceeding with LLM generation - setting global state to True")
+            print(f"[LLMHandler] ✅ Setting global state to True and proceeding with LLM generation")
             set_llm_generation_in_progress(True)
             
             try:
@@ -527,13 +526,30 @@ class LLMHandler:
                 
                 full_response = ""
                 
+                # ✅ FIX: Add timeout tracking for TTS fallback
+                generation_start_time = time.time()
+                has_yielded_content = False
+                
                 # Stream response while tracking tokens
                 for chunk in response_generator:
                     if chunk and chunk.strip():
                         chunk_text = chunk.strip()
                         full_response += chunk_text + " "
                         output_tokens += estimate_tokens_from_text(chunk_text)
+                        has_yielded_content = True
                         yield chunk_text
+                
+                # ✅ FIX: Ensure TTS fallback if LLM stalls or produces no content
+                if not has_yielded_content or len(full_response.strip()) < 5:
+                    generation_elapsed = time.time() - generation_start_time
+                    print(f"[LLMHandler] ⚠️ LLM stalled or produced minimal content after {generation_elapsed:.1f}s")
+                    
+                    # Provide fallback response for TTS
+                    fallback_response = "I apologize, I'm having trouble formulating a response right now. Could you please rephrase your question?"
+                    full_response = fallback_response
+                    has_yielded_content = True
+                    yield fallback_response
+                    print(f"[LLMHandler] 🔧 TTS fallback response provided")
                 
                 generation_time = time.time() - generation_start
                 
@@ -562,8 +578,10 @@ class LLMHandler:
                 yield f"I apologize, but I encountered an error while processing your request: {str(e)}"
         
         finally:
-            # ✅ FIX: Always reset the global generation flag
+            # ✅ FIX: Always reset the global generation flag with enhanced logging
+            print(f"[LLMHandler] 🔄 Resetting global LLM state from True to False")
             set_llm_generation_in_progress(False)
+            print(f"[LLMHandler] ✅ Global LLM state reset complete")
             
     def sanitize_prompt_input(self, text: str, user_id: str = "unknown") -> str:
         """

@@ -526,10 +526,14 @@ class LazyConsciousnessLoader:
             from ai.belief_evolution_tracker import get_belief_evolution_tracker
             belief_tracker = get_belief_evolution_tracker(user_id)
             active_beliefs = belief_tracker.get_active_beliefs()
+            # ✅ FIX: Use existing method instead of non-existent detect_contradictions()
+            conflicts = belief_tracker.get_belief_conflicts(unresolved_only=True)
+            contradictions = [f"{conflict.description[:50]}..." for conflict in conflicts[:3]]
+            
             return {
                 'active_beliefs': [b.content[:60] for b in active_beliefs[:3]],
                 'belief_strength': [b.confidence for b in active_beliefs[:3]],
-                'contradictions': belief_tracker.detect_contradictions()
+                'contradictions': contradictions
             }
         except (ImportError, AttributeError) as e:
             print(f"[LazyConsciousnessLoader] ❌ Error loading belief_tracker: {e}")

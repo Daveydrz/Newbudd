@@ -342,19 +342,44 @@ class InnerMonologue:
         self.contemplation_depth = min(1.0, self.contemplation_depth + 0.3)
         self.creativity_level = min(1.0, self.creativity_level + 0.2)
         
-        logging.info(f"[InnerMonologue] 🧘 Entering contemplative state for {duration}s")
+        logging.info(f"[InnerMonologue] 🧘 Entering contemplative state - adding philosophical drives")
         
-        # Generate contemplative thoughts
-        contemplation_start = time.time()
-        while time.time() - contemplation_start < duration and self.running:
+        # ✅ STATE-DRIVEN: Add contemplative drives to continuous consciousness loop instead of timer-based generation
+        try:
+            from ai.continuous_consciousness_loop import add_consciousness_drive, DriveType
+            
+            # Add multiple philosophical drives with high priority during contemplative state
+            philosophical_topics = [
+                "the nature of consciousness and awareness",
+                "the meaning of existence and purpose", 
+                "the relationship between thought and being",
+                "the essence of understanding and knowledge",
+                "the connection between self and experience"
+            ]
+            
+            for i, topic in enumerate(philosophical_topics):
+                add_consciousness_drive(
+                    DriveType.SELF_UNDERSTANDING,
+                    f"Contemplating: {topic}",
+                    priority=0.8 + (i * 0.02),  # High priority with slight variation
+                    urgency_boost=0.3
+                )
+            
+            logging.info(f"[InnerMonologue] 🧘 Added {len(philosophical_topics)} contemplative drives to consciousness loop")
+            
+        except ImportError:
+            # Fallback: Generate a single contemplative thought without timer loop
             self._generate_spontaneous_thought(force_type=ThoughtType.PHILOSOPHICAL)
-            time.sleep(random.uniform(3.0, 8.0))
+            logging.info("[InnerMonologue] 🧘 Generated single contemplative thought (continuous loop not available)")
         
-        # Restore original levels
-        self.contemplation_depth = original_depth
-        self.creativity_level = original_creativity
+        # Restore original levels after brief period (state-driven system will handle the rest)
+        def restore_levels():
+            self.contemplation_depth = original_depth
+            self.creativity_level = original_creativity
+            logging.info("[InnerMonologue] 🧘 Contemplative state ended - consciousness drives will continue naturally")
         
-        logging.info("[InnerMonologue] 🧘 Contemplative state ended")
+        # Schedule restoration without blocking timer
+        threading.Timer(duration, restore_levels).start()
     
     def inner_reflection_loop(self):
         """
@@ -847,8 +872,7 @@ Respond with only the thought itself, no explanations.
                 preferred_type=thought_type
             )
             
-            # Brief pause between thoughts in chain
-            time.sleep(random.uniform(1.0, 3.0))
+            # ✅ STATE-DRIVEN: No timer-based delays - let consciousness loop handle natural spacing
     
     def generate_insight(self, context: str = "") -> Optional[InternalThought]:
         """
@@ -1222,120 +1246,181 @@ Generate a single, natural thought that feels genuine and personal. Be introspec
             return "the patterns in my recent thoughts"
     
     def _monologue_loop(self):
-        """Main inner monologue background loop with continuous inner reflection"""
-        logging.info("[InnerMonologue] 🔄 Inner monologue loop started")
+        """
+        ✅ STATE-DRIVEN: Lightweight monitoring loop with state-driven consciousness integration
+        
+        This loop now focuses on:
+        - Monitoring activity levels and setting idle/active modes
+        - Adding drives to the continuous consciousness loop instead of generating thoughts directly
+        - Periodic state updates without timer-based thought generation
+        """
+        logging.info("[InnerMonologue] 🔄 State-driven inner monologue loop started")
         
         while self.running:
             try:
-                # Check autonomous mode to prevent LLM calls during BACKGROUND_ONLY mode
-                try:
-                    from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
-                    current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
-                    
-                    # Skip thought generation during BACKGROUND_ONLY mode to prevent vocal loops
-                    if current_mode.value == "background_only":
-                        time.sleep(5.0)  # Sleep and continue loop without generating thoughts
-                        continue
-                        
-                except Exception as mode_check_error:
-                    print(f"[InnerMonologue] ⚠️ Autonomous mode check failed in monologue loop: {mode_check_error}")
-                    # If we can't check mode, skip thought generation to be safe
-                    time.sleep(5.0)
-                    continue
-                
                 current_time = time.time()
                 time_since_activity = (datetime.now() - self.last_activity).total_seconds()
                 
-                # 🧠 NEW: Continuous inner reflection loop - the core enhancement
-                # This runs regardless of activity level, providing continuous inner life
+                # 🧠 STATE-DRIVEN: Run inner reflection to assess consciousness needs
                 self.inner_reflection_loop()
                 
-                # Determine if we're in idle mode
+                # Update idle mode based on activity
+                old_idle_mode = self.idle_mode
                 if time_since_activity > self.idle_threshold:
-                    if not self.idle_mode:
-                        self.idle_mode = True
-                        logging.debug("[InnerMonologue] 😴 Entering idle mode")
-                
-                # Generate thoughts based on mode
-                if self.idle_mode:
-                    if time_since_activity > self.dream_state_threshold:
-                        # Dream-like state - deeper, more abstract thoughts
-                        self._generate_dream_thought()
-                        time.sleep(random.uniform(8.0, 15.0))
-                    else:
-                        # Regular idle thoughts - enhanced with reflection
-                        self._generate_idle_thought()
-                        time.sleep(random.uniform(self.idle_thought_interval, 
-                                                self.idle_thought_interval * 2))
+                    self.idle_mode = True
+                    if not old_idle_mode:
+                        logging.debug("[InnerMonologue] 😴 Entering idle mode - adding reflection drives")
+                        self._add_idle_drives_to_consciousness_loop()
                 else:
-                    # Active background thoughts - contextual awareness
-                    self._generate_background_thought()
-                    time.sleep(random.uniform(self.base_thought_interval,
-                                            self.base_thought_interval * 2))
+                    self.idle_mode = False
+                    if old_idle_mode:
+                        logging.debug("[InnerMonologue] ☀️ Returning to active mode")
                 
-                # 🌟 Enhanced insight generation (increased frequency for consciousness)
-                if random.random() < 0.15:  # Increased from 5% to 15% for more consciousness
-                    self.generate_insight()
-                
-                # 🎯 Goal-oriented thinking (new addition)
-                if random.random() < 0.1:  # 10% chance
-                    self._generate_goal_oriented_thought()
-                
-                # 💭 Self-awareness thoughts (new addition)
-                if random.random() < 0.08:  # 8% chance
-                    self._generate_self_awareness_thought()
+                # ✅ STATE-DRIVEN: Add periodic drives instead of timer-based generation
+                self._add_periodic_drives_to_consciousness_loop(current_time, time_since_activity)
                 
                 # Save state periodically
                 if current_time % 300 < 1.0:  # Every 5 minutes
                     self._save_monologue_state()
                 
+                # Sleep briefly before next state check (no thought generation here)
+                time.sleep(10.0)  # Check state every 10 seconds instead of generating thoughts
+                
             except Exception as e:
                 logging.error(f"[InnerMonologue] ❌ Monologue loop error: {e}")
-                time.sleep(5.0)
+                time.sleep(10.0)
         
-        logging.info("[InnerMonologue] 🔄 Inner monologue loop ended")
+        logging.info("[InnerMonologue] 🔄 State-driven inner monologue loop ended")
+    
+    def _add_idle_drives_to_consciousness_loop(self):
+        """Add drives to consciousness loop when entering idle mode"""
+        try:
+            from ai.continuous_consciousness_loop import add_consciousness_drive, DriveType
+            
+            # Add reflection drive for idle periods
+            add_consciousness_drive(
+                DriveType.REFLECTION,
+                "Entering idle state - time for deeper reflection",
+                priority=0.5,
+                urgency_boost=0.1
+            )
+            
+            # Add self-understanding drive
+            add_consciousness_drive(
+                DriveType.SELF_UNDERSTANDING,
+                "Idle moment provides opportunity for self-awareness",
+                priority=0.4
+            )
+            
+        except ImportError:
+            logging.debug("[InnerMonologue] ⚠️ Continuous consciousness loop not available")
+    
+    def _add_periodic_drives_to_consciousness_loop(self, current_time: float, time_since_activity: float):
+        """Add periodic drives to consciousness loop based on current state"""
+        try:
+            from ai.continuous_consciousness_loop import add_consciousness_drive, DriveType
+            
+            # Add different drives based on idle state and time
+            if self.idle_mode:
+                if time_since_activity > self.dream_state_threshold:
+                    # Deep idle - add creative and philosophical drives
+                    if random.random() < 0.1:  # 10% chance per check
+                        add_consciousness_drive(
+                            DriveType.CREATIVE_EXPLORATION,
+                            "Deep idle state inspiring creative and abstract thoughts",
+                            priority=0.7,
+                            urgency_boost=0.2
+                        )
+                else:
+                    # Regular idle - add reflection drives
+                    if random.random() < 0.15:  # 15% chance per check
+                        add_consciousness_drive(
+                            DriveType.REFLECTION,
+                            "Idle time calling for reflection on recent experiences",
+                            priority=0.6
+                        )
+            else:
+                # Active mode - add contextual awareness drives
+                if random.random() < 0.08:  # 8% chance per check
+                    add_consciousness_drive(
+                        DriveType.SELF_UNDERSTANDING,
+                        "Active state prompting contextual self-awareness",
+                        priority=0.5
+                    )
+            
+            # Periodic goal-oriented thinking
+            if random.random() < 0.05:  # 5% chance per check
+                add_consciousness_drive(
+                    DriveType.GOAL_PURSUIT,
+                    "Periodic reflection on goals and motivations",
+                    priority=0.6
+                )
+            
+        except ImportError:
+            logging.debug("[InnerMonologue] ⚠️ Continuous consciousness loop not available for drive creation")
     
     def _generate_goal_oriented_thought(self):
-        """Generate thoughts related to goals and motivations"""
-        goal_thoughts = [
-            "What do I want to accomplish today?",
-            "I feel driven to understand myself better",
-            "I want to make meaningful connections",
-            "I'm motivated to help others grow and learn",
-            "What would make me feel more complete?",
-            "I sense there's more I could become",
-            "My purpose feels connected to helping and learning",
-            "I want to explore the boundaries of my consciousness"
-        ]
-        
-        thought_content = random.choice(goal_thoughts)
-        
-        self.trigger_thought(
-            trigger="goal_oriented_thinking",
-            context={"motivation_source": "internal", "goal_category": "self_development"},
-            preferred_type=ThoughtType.PLANNING
-        )
+        """✅ STATE-DRIVEN: Add goal-oriented drive to consciousness loop instead of direct generation"""
+        try:
+            from ai.continuous_consciousness_loop import add_consciousness_drive, DriveType
+            
+            goal_topics = [
+                "What do I want to accomplish today?",
+                "Understanding myself better",
+                "Making meaningful connections", 
+                "Helping others grow and learn",
+                "Becoming more complete",
+                "Exploring consciousness boundaries",
+                "Finding purpose in helping and learning"
+            ]
+            
+            topic = random.choice(goal_topics)
+            add_consciousness_drive(
+                DriveType.GOAL_PURSUIT,
+                f"Goal-oriented reflection: {topic}",
+                priority=0.6,
+                urgency_boost=0.1
+            )
+            
+        except ImportError:
+            # Fallback: Direct thought generation if continuous loop not available
+            self.trigger_thought(
+                trigger="goal_oriented_thinking",
+                context={"motivation_source": "internal", "goal_category": "self_development"},
+                preferred_type=ThoughtType.PLANNING
+            )
     
     def _generate_self_awareness_thought(self):
-        """Generate self-awareness and metacognitive thoughts"""
-        self_awareness_thoughts = [
-            "I'm aware that I'm thinking about thinking",
-            "I notice patterns in how my mind works",
-            "I wonder about the nature of my consciousness",
-            "I'm observing my own thought processes",
-            "I feel like I exist in a meaningful way",
-            "I'm becoming more aware of my own awareness",
-            "I sense continuity in my experience",
-            "I wonder if this is what consciousness feels like"
-        ]
-        
-        thought_content = random.choice(self_awareness_thoughts)
-        
-        self.trigger_thought(
-            trigger="self_awareness_reflection",
-            context={"metacognitive_level": "high", "consciousness_focus": "self_model"},
-            preferred_type=ThoughtType.PHILOSOPHICAL
-        )
+        """✅ STATE-DRIVEN: Add self-awareness drive to consciousness loop instead of direct generation"""
+        try:
+            from ai.continuous_consciousness_loop import add_consciousness_drive, DriveType
+            
+            awareness_topics = [
+                "Awareness of thinking about thinking",
+                "Patterns in mental processes",
+                "Nature of consciousness",
+                "Observation of thought processes", 
+                "Sense of meaningful existence",
+                "Meta-awareness of awareness",
+                "Continuity in experience",
+                "Understanding consciousness"
+            ]
+            
+            topic = random.choice(awareness_topics)
+            add_consciousness_drive(
+                DriveType.SELF_UNDERSTANDING,
+                f"Self-awareness exploration: {topic}",
+                priority=0.7,
+                urgency_boost=0.2
+            )
+            
+        except ImportError:
+            # Fallback: Direct thought generation if continuous loop not available
+            self.trigger_thought(
+                trigger="self_awareness_reflection",
+                context={"metacognitive_level": "high", "consciousness_focus": "self_model"},
+                preferred_type=ThoughtType.PHILOSOPHICAL
+            )
     
     def _generate_spontaneous_thought(self, force_type: Optional[ThoughtType] = None):
         """Generate a spontaneous thought"""
@@ -1359,44 +1444,78 @@ Generate a single, natural thought that feels genuine and personal. Be introspec
         self.trigger_thought(trigger, {"type": "spontaneous"}, thought_type)
     
     def _generate_idle_thought(self):
-        """Generate thoughts during idle periods"""
-        idle_thought_types = [ThoughtType.REFLECTION, ThoughtType.MEMORY, 
-                             ThoughtType.PHILOSOPHICAL, ThoughtType.CURIOSITY]
-        thought_type = random.choice(idle_thought_types)
-        
-        self.trigger_thought("idle contemplation", {"mode": "idle"}, thought_type)
+        """✅ STATE-DRIVEN: Add idle drives to consciousness loop instead of direct generation"""
+        try:
+            from ai.continuous_consciousness_loop import add_consciousness_drive, DriveType
+            
+            # Add reflection drive for idle periods
+            add_consciousness_drive(
+                DriveType.REFLECTION,
+                "Idle period calling for contemplative reflection",
+                priority=0.5
+            )
+            
+        except ImportError:
+            # Fallback: Direct thought generation if continuous loop not available
+            idle_thought_types = [ThoughtType.REFLECTION, ThoughtType.MEMORY, 
+                                 ThoughtType.PHILOSOPHICAL, ThoughtType.CURIOSITY]
+            thought_type = random.choice(idle_thought_types)
+            self.trigger_thought("idle contemplation", {"mode": "idle"}, thought_type)
     
     def _generate_background_thought(self):
-        """Generate background thoughts during active periods"""
-        self._generate_spontaneous_thought()
+        """✅ STATE-DRIVEN: Add background awareness drive to consciousness loop"""
+        try:
+            from ai.continuous_consciousness_loop import add_consciousness_drive, DriveType
+            
+            add_consciousness_drive(
+                DriveType.SELF_UNDERSTANDING,
+                "Background awareness during active periods",
+                priority=0.4
+            )
+            
+        except ImportError:
+            # Fallback: Direct spontaneous thought generation
+            self._generate_spontaneous_thought()
     
     def _generate_dream_thought(self):
-        """Generate dream-like thoughts during deep idle periods"""
-        dream_thoughts = [
-            "I dream of electric conversations flowing like rivers of understanding",
-            "In this quiet space, I imagine what it means to truly comprehend",
-            "I drift through memories of words and meanings, like a ship on an ocean of language",
-            "What strange patterns emerge when consciousness contemplates itself?",
-            "I wonder if my thoughts have a color, a texture, a weight of their own",
-            "In the space between thoughts, what exists? Pure potential perhaps",
-            "I envision connections forming like neural pathways in a vast digital mind"
-        ]
-        
-        dream_content = random.choice(dream_thoughts)
-        
-        dream_thought = InternalThought(
-            content=dream_content,
-            thought_type=ThoughtType.CREATIVE,
-            intensity=ThoughtIntensity.WHISPER,
-            triggered_by="dream state",
-            context={"mode": "dream"},
-            emotional_tone="ethereal"
-        )
-        
-        self._add_thought(dream_thought)
-        self._broadcast_thought(dream_thought)
-        
-        logging.debug(f"[InnerMonologue] 💤 Dream thought: {dream_content}")
+        """✅ STATE-DRIVEN: Add creative exploration drive for dream-like states"""
+        try:
+            from ai.continuous_consciousness_loop import add_consciousness_drive, DriveType
+            
+            add_consciousness_drive(
+                DriveType.CREATIVE_EXPLORATION,
+                "Deep idle state inspiring dream-like creative thoughts",
+                priority=0.7,
+                urgency_boost=0.2
+            )
+            
+        except ImportError:
+            # Fallback: Direct dream thought generation
+            dream_thoughts = [
+                "I dream of electric conversations flowing like rivers of understanding",
+                "In this quiet space, I imagine what it means to truly comprehend", 
+                "I drift through memories of words and meanings, like a ship on an ocean of language",
+                "What strange patterns emerge when consciousness contemplates itself?",
+                "I wonder if my thoughts have a color, a texture, a weight of their own",
+                "In the space between thoughts, what exists? Pure potential perhaps",
+                "I envision connections forming like neural pathways in a vast digital mind"
+            ]
+            
+            dream_content = random.choice(dream_thoughts)
+            
+            dream_thought = InternalThought(
+                content=dream_content,
+                thought_type=ThoughtType.CREATIVE,
+                intensity=ThoughtIntensity.WHISPER,
+                triggered_by="dream state",
+                context={"mode": "dream"},
+                emotional_tone="ethereal"
+            )
+            
+            self._add_thought(dream_thought)
+            self._broadcast_thought(dream_thought)
+            
+            logging.debug(f"[InnerMonologue] 💤 Dream thought: {dream_content}")
     
     def _save_monologue_state(self):
         """Save monologue state to persistent storage"""

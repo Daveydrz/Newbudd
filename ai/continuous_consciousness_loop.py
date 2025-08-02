@@ -362,8 +362,7 @@ class ContinuousConsciousnessLoop:
                 inner_monologue.trigger_thought(
                     drive.content,
                     {"drive_type": "curiosity", "priority": drive.get_current_priority()},
-                    ThoughtType.CURIOSITY,
-                    is_primary_call=False
+                    ThoughtType.CURIOSITY
                 )
             
             elif drive.drive_type == DriveType.REFLECTION:
@@ -371,8 +370,7 @@ class ContinuousConsciousnessLoop:
                 inner_monologue.trigger_thought(
                     drive.content,
                     {"drive_type": "reflection", "priority": drive.get_current_priority()},
-                    ThoughtType.REFLECTION,
-                    is_primary_call=False
+                    ThoughtType.REFLECTION
                 )
             
             elif drive.drive_type == DriveType.EMOTIONAL_PROCESSING:
@@ -380,24 +378,25 @@ class ContinuousConsciousnessLoop:
                 subjective_experience.process_experience(
                     drive.content,
                     ExperienceType.EMOTIONAL,
-                    {"drive_triggered": True, "priority": drive.get_current_priority()},
-                    is_primary_call=False
+                    {"drive_triggered": True, "priority": drive.get_current_priority()}
                 )
             
             elif drive.drive_type == DriveType.GOAL_PURSUIT:
-                # Check goal progress
-                goal_engine.evaluate_goal_progress(
-                    context={"drive_content": drive.content},
-                    is_primary_call=False
-                )
+                # Check goal progress via goal engine
+                try:
+                    goal_engine.evaluate_goal_progress(
+                        context={"drive_content": drive.content}
+                    )
+                except AttributeError:
+                    # Fallback if method doesn't exist
+                    print(f"[ContinuousConsciousness] ⚠️ Goal engine evaluate_goal_progress not available")
             
             elif drive.drive_type == DriveType.CREATIVE_EXPLORATION:
                 # Trigger creative thought
                 inner_monologue.trigger_thought(
                     drive.content,
                     {"drive_type": "creative", "priority": drive.get_current_priority()},
-                    ThoughtType.CREATIVE,
-                    is_primary_call=False
+                    ThoughtType.CREATIVE
                 )
             
             elif drive.drive_type == DriveType.SOCIAL_CONNECTION:
@@ -405,8 +404,7 @@ class ContinuousConsciousnessLoop:
                 subjective_experience.process_experience(
                     drive.content,
                     ExperienceType.SOCIAL,
-                    {"drive_triggered": True, "priority": drive.get_current_priority()},
-                    is_primary_call=False
+                    {"drive_triggered": True, "priority": drive.get_current_priority()}
                 )
             
             elif drive.drive_type == DriveType.SELF_UNDERSTANDING:
@@ -414,8 +412,7 @@ class ContinuousConsciousnessLoop:
                 inner_monologue.trigger_thought(
                     drive.content,
                     {"drive_type": "self_understanding", "priority": drive.get_current_priority()},
-                    ThoughtType.PHILOSOPHICAL,
-                    is_primary_call=False
+                    ThoughtType.PHILOSOPHICAL
                 )
             
             elif drive.drive_type == DriveType.LEARNING:
@@ -423,8 +420,7 @@ class ContinuousConsciousnessLoop:
                 subjective_experience.process_experience(
                     drive.content,
                     ExperienceType.COGNITIVE,
-                    {"drive_triggered": True, "priority": drive.get_current_priority()},
-                    is_primary_call=False
+                    {"drive_triggered": True, "priority": drive.get_current_priority()}
                 )
             
         except Exception as e:

@@ -557,35 +557,81 @@ Respond with each thought on a separate line, no explanations.
         return "\n".join(context_parts)
     
     def _goal_loop(self):
-        """Main goal management loop"""
-        logging.info("[GoalEngine] 🔄 Goal management loop started")
+        """
+        ✅ STATE-DRIVEN: Lightweight goal monitoring loop with state-driven goal processing
         
-        last_update = time.time()
+        This loop now focuses on:
+        - Monitoring goal states and progress
+        - Adding goal evaluation drives to continuous consciousness loop
+        - Periodic state updates without timer-based processing
+        """
+        logging.info("[GoalEngine] 🔄 State-driven goal management loop started")
+        
+        last_drive_added = time.time()
         
         while self.running:
             try:
                 current_time = time.time()
                 
-                # Periodic goal updates
-                if current_time - last_update > self.goal_update_interval:
-                    self._update_goals()
-                    self._process_emerging_desires()
-                    self._evaluate_goal_satisfaction()
-                    self._generate_spontaneous_desires()
-                    self._adjust_motivation_levels()
-                    last_update = current_time
+                # ✅ STATE-DRIVEN: Add goal evaluation drives instead of direct processing
+                if current_time - last_drive_added > self.goal_update_interval:
+                    self._add_goal_evaluation_drives()
+                    last_drive_added = current_time
                 
                 # Save state periodically
                 if current_time % 120 < self.goal_update_interval:  # Every 2 minutes
                     self._save_goal_state()
                 
-                time.sleep(self.goal_update_interval)
+                # Sleep longer since we're not doing heavy processing in this loop
+                time.sleep(max(30.0, self.goal_update_interval))  # At least 30 seconds between checks
                 
             except Exception as e:
                 logging.error(f"[GoalEngine] ❌ Goal loop error: {e}")
-                time.sleep(self.goal_update_interval)
+                time.sleep(max(30.0, self.goal_update_interval))
         
-        logging.info("[GoalEngine] 🔄 Goal management loop ended")
+        logging.info("[GoalEngine] 🔄 State-driven goal management loop ended")
+    
+    def _add_goal_evaluation_drives(self):
+        """Add goal evaluation drives to consciousness loop"""
+        try:
+            from ai.continuous_consciousness_loop import add_consciousness_drive, DriveType
+            
+            # Check if we have active goals to evaluate
+            active_goals = [g for g in self.goals.values() if g.status == GoalStatus.ACTIVE]
+            
+            if active_goals:
+                # Add goal pursuit drive
+                add_consciousness_drive(
+                    DriveType.GOAL_PURSUIT,
+                    f"Evaluation of {len(active_goals)} active goals and progress",
+                    priority=0.6,
+                    urgency_boost=0.1
+                )
+                logging.debug(f"[GoalEngine] 🎯 Added goal evaluation drive for {len(active_goals)} goals")
+            
+            # Periodically add drive for emerging desires and motivation
+            if len(self.desires) > 0:
+                add_consciousness_drive(
+                    DriveType.REFLECTION,
+                    f"Processing {len(self.desires)} emerging desires and motivations",
+                    priority=0.5
+                )
+            
+        except ImportError:
+            # Fallback: Direct goal processing if continuous loop not available
+            self._update_goals_fallback()
+    
+    def _update_goals_fallback(self):
+        """Fallback goal processing when continuous consciousness loop is not available"""
+        try:
+            # Lightweight goal updates only
+            self._update_goals()
+            self._process_emerging_desires()
+            self._evaluate_goal_satisfaction()
+            self._adjust_motivation_levels()
+            
+        except Exception as e:
+            logging.error(f"[GoalEngine] ❌ Fallback goal update error: {e}")
     
     def _generate_initial_goals(self):
         """Generate initial goals on startup"""

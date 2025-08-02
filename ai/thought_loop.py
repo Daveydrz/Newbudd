@@ -256,38 +256,99 @@ class ThoughtLoop:
             }
     
     def _autonomous_thought_loop(self):
-        """Main autonomous thought generation loop"""
-        print("[ThoughtLoop] 💭 Starting autonomous thought generation...")
+        """
+        ✅ STATE-DRIVEN: Lightweight thought monitoring loop with state-driven thought generation
+        
+        This loop now focuses on:
+        - Monitoring thought state and needs
+        - Adding thought generation drives to continuous consciousness loop
+        - Periodic state updates without timer-based thought generation
+        """
+        print("[ThoughtLoop] 💭 State-driven autonomous thought loop starting...")
+        
+        last_drive_added = time.time()
         
         while self.running:
             try:
-                # Calculate time since last thought
+                current_time = time.time()
                 time_since_last = (datetime.now() - self.current_state.last_thought_time).total_seconds()
                 
-                # Determine if we should generate a thought
-                should_think = self._should_generate_thought(time_since_last)
+                # ✅ STATE-DRIVEN: Add thought generation drives instead of direct processing
+                if current_time - last_drive_added > max(30.0, self.base_thought_interval / 2):
+                    self._add_thought_generation_drives(time_since_last)
+                    last_drive_added = current_time
                 
-                if should_think:
-                    # Generate appropriate thought based on current state
-                    thought = self._generate_autonomous_thought()
-                    
-                    if thought:
-                        self._process_thought(thought)
-                        
-                        # If thought should be verbalized, attempt to speak it
-                        if thought.should_verbalize and self.voice_system:
-                            self._attempt_verbalization(thought)
-                
-                # Update state based on passage of time
+                # Update state based on passage of time (lightweight)
                 self._update_state_over_time(time_since_last)
                 
-                # Sleep for appropriate interval
-                sleep_time = self._calculate_sleep_interval()
-                time.sleep(sleep_time)
+                # Sleep longer since we're not generating thoughts directly
+                time.sleep(30.0)  # Check every 30 seconds instead of frequent calculations
                 
             except Exception as e:
                 print(f"[ThoughtLoop] ❌ Error in thought loop: {e}")
-                time.sleep(5.0)  # Recovery pause
+                time.sleep(30.0)  # Recovery pause
+    
+    def _add_thought_generation_drives(self, time_since_last: float):
+        """Add thought generation drives to consciousness loop based on current state"""
+        try:
+            from ai.continuous_consciousness_loop import add_consciousness_drive, DriveType
+            
+            # Determine if thoughts are needed based on state
+            should_think = self._should_generate_thought(time_since_last)
+            
+            if should_think:
+                # Determine appropriate drive type based on current state
+                if self.current_state.introspection_level > 0.7:
+                    drive_type = DriveType.SELF_UNDERSTANDING
+                    content = "High introspection level calling for self-reflective thoughts"
+                    priority = 0.7
+                elif self.current_state.creativity_level > 0.6:
+                    drive_type = DriveType.CREATIVE_EXPLORATION 
+                    content = "Creative state inspiring imaginative thoughts"
+                    priority = 0.6
+                elif self.current_state.curiosity_level > 0.6:
+                    drive_type = DriveType.CURIOSITY
+                    content = "Curiosity-driven thought exploration"
+                    priority = 0.6
+                else:
+                    drive_type = DriveType.REFLECTION
+                    content = "General reflective thought generation"
+                    priority = 0.5
+                
+                # Add urgency based on time since last thought
+                urgency_boost = min(0.3, time_since_last / (self.base_thought_interval * 2))
+                
+                add_consciousness_drive(
+                    drive_type,
+                    content,
+                    priority=priority,
+                    urgency_boost=urgency_boost
+                )
+                
+                print(f"[ThoughtLoop] 💭 Added {drive_type.value} drive (priority: {priority:.2f}, urgency: {urgency_boost:.2f})")
+            
+        except ImportError:
+            # Fallback: Direct thought generation if continuous loop not available
+            self._generate_thought_fallback(time_since_last)
+    
+    def _generate_thought_fallback(self, time_since_last: float):
+        """Fallback thought generation when continuous consciousness loop is not available"""
+        try:
+            should_think = self._should_generate_thought(time_since_last)
+            
+            if should_think:
+                # Generate appropriate thought based on current state
+                thought = self._generate_autonomous_thought()
+                
+                if thought:
+                    self._process_thought(thought)
+                    
+                    # If thought should be verbalized, attempt to speak it
+                    if thought.should_verbalize and self.voice_system:
+                        self._attempt_verbalization(thought)
+            
+        except Exception as e:
+            print(f"[ThoughtLoop] ❌ Error in fallback thought generation: {e}")
     
     def _should_generate_thought(self, time_since_last: float) -> bool:
         """Determine if a thought should be generated"""

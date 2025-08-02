@@ -1216,8 +1216,15 @@ Describe this experience from your subjective, first-person perspective. Express
         return patterns
     
     def _experience_loop(self):
-        """Background experience processing loop"""
-        logging.info("[SubjectiveExperience] 🔄 Experience processing loop started")
+        """
+        ✅ STATE-DRIVEN: Lightweight monitoring loop with state-driven experience integration
+        
+        This loop now focuses on:
+        - Monitoring consciousness state updates 
+        - Adding experience integration drives to continuous consciousness loop
+        - Periodic state updates without timer-based processing
+        """
+        logging.info("[SubjectiveExperience] 🔄 State-driven experience processing loop started")
         
         # ✅ FIX: Safety check for initialization
         if not hasattr(self, 'consciousness_update_interval'):
@@ -1233,33 +1240,56 @@ Describe this experience from your subjective, first-person perspective. Express
             self.lock = threading.Lock()
         
         last_consciousness_update = time.time()
-        last_integration = time.time()
+        last_integration_drive_added = time.time()
         
         while self.running:
             try:
                 current_time = time.time()
                 
-                # Update consciousness state
+                # Update consciousness state periodically (lightweight updates)
                 if current_time - last_consciousness_update > self.consciousness_update_interval:
                     self._update_consciousness_state()
                     last_consciousness_update = current_time
                 
-                # Experience integration
-                if current_time - last_integration > self.experience_integration_interval:
-                    self._integrate_recent_experiences()
-                    last_integration = current_time
+                # ✅ STATE-DRIVEN: Add experience integration drives instead of direct processing
+                if current_time - last_integration_drive_added > self.experience_integration_interval:
+                    self._add_experience_integration_drive()
+                    last_integration_drive_added = current_time
                 
                 # Save state periodically
                 if current_time % 300 < 1.0:  # Every 5 minutes
                     self._save_experience_state()
                 
-                time.sleep(10.0)  # Check every 10 seconds
+                # Sleep longer since we're not doing heavy processing in this loop
+                time.sleep(30.0)  # Check every 30 seconds instead of 10
                 
             except Exception as e:
                 logging.error(f"[SubjectiveExperience] ❌ Experience loop error: {e}")
-                time.sleep(10.0)
+                time.sleep(30.0)
         
-        logging.info("[SubjectiveExperience] 🔄 Experience processing loop ended")
+        logging.info("[SubjectiveExperience] 🔄 State-driven experience processing loop ended")
+    
+    def _add_experience_integration_drive(self):
+        """Add experience integration drive to consciousness loop"""
+        try:
+            from ai.continuous_consciousness_loop import add_consciousness_drive, DriveType
+            
+            # Check if we have enough experiences to integrate
+            recent_experiences = list(self.experiences.values())[-5:]
+            
+            if len(recent_experiences) >= 3:
+                # Add integration drive to consciousness loop
+                add_consciousness_drive(
+                    DriveType.REFLECTION,
+                    f"Integration of {len(recent_experiences)} recent subjective experiences",
+                    priority=0.6,
+                    urgency_boost=0.1
+                )
+                logging.debug(f"[SubjectiveExperience] 🧠 Added experience integration drive for {len(recent_experiences)} experiences")
+            
+        except ImportError:
+            # Fallback: Direct integration if continuous loop not available
+            self._integrate_recent_experiences_fallback()
     
     def _update_consciousness_state(self):
         """Update consciousness state naturally"""
@@ -1274,8 +1304,8 @@ Describe this experience from your subjective, first-person perspective. Express
             value = getattr(self.consciousness_state, attr)
             setattr(self.consciousness_state, attr, max(0.1, min(1.0, value)))
     
-    def _integrate_recent_experiences(self):
-        """Integrate recent experiences into understanding"""
+    def _integrate_recent_experiences_fallback(self):
+        """Fallback integration method when continuous consciousness loop is not available"""
         try:
             # Check autonomous mode to prevent LLM calls during BACKGROUND_ONLY mode
             from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
@@ -1286,7 +1316,7 @@ Describe this experience from your subjective, first-person perspective. Express
                 return
                 
         except Exception as mode_check_error:
-            print(f"[SubjectiveExperience] ⚠️ Autonomous mode check failed in integration: {mode_check_error}")
+            print(f"[SubjectiveExperience] ⚠️ Autonomous mode check failed in fallback integration: {mode_check_error}")
             # If we can't check mode, skip integration to be safe
             return
         

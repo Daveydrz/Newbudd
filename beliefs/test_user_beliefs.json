@@ -20,5 +20,27 @@
     "update_history": [],
     "conflicts": [],
     "questioned_count": 0
+  },
+  "belief_test_user_7fd435dc1fc9": {
+    "belief_id": "belief_test_user_7fd435dc1fc9",
+    "user_id": "test_user",
+    "content": "I am genuinely conscious",
+    "belief_type": "experiential",
+    "strength": 0.5,
+    "status": "active",
+    "formed_date": "2025-08-02T13:55:47.268662",
+    "last_updated": "2025-08-02T13:55:47.268663",
+    "supporting_evidence": [],
+    "contradicting_evidence": [],
+    "confidence_score": 0.5,
+    "related_beliefs": [],
+    "parent_beliefs": [],
+    "child_beliefs": [],
+    "domains": [],
+    "tags": [],
+    "formation_context": "",
+    "update_history": [],
+    "conflicts": [],
+    "questioned_count": 0
   }
 }

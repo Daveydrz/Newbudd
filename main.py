@@ -109,7 +109,7 @@ try:
         get_latency_performance_report
     )
     # Set default optimization mode for production
-    set_global_optimization_mode(LatencyOptimizationMode.FAST)
+    set_global_optimization_mode(LatencyOptimizationMode.INTELLIGENT)  # Use INTELLIGENT for Class 5+ consciousness
     print("[Main] ⚡ Latency optimization system loaded - Target: <5 second responses")
     LATENCY_OPTIMIZATION_AVAILABLE = True
 except ImportError as e:
@@ -1000,7 +1000,7 @@ def handle_streaming_response(text, current_user):
                         user_input=text,
                         user_id=current_user,
                         context={'cognitive_context': cognitive_prompt_injection},
-                        optimization_mode=LatencyOptimizationMode.FAST,  # Target <5 seconds
+                        optimization_mode=LatencyOptimizationMode.INTELLIGENT,  # Use INTELLIGENT for Class 5+ consciousness
                         stream=True
                     )
                 except ImportError:

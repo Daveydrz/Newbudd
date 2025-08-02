@@ -92,9 +92,9 @@ class LatencyOptimizer:
             },
             LatencyOptimizationMode.FAST: {
                 'prompt_optimization': PromptOptimizationLevel.INTELLIGENCE_FOCUSED,
-                'consciousness_tier': ConsciousnessTier.STANDARD,
-                'max_modules': 4,
-                'token_budget': 3000,
+                'consciousness_tier': ConsciousnessTier.COMPREHENSIVE,
+                'max_modules': 6,
+                'token_budget': 4000,
                 'skip_analysis': False,
                 'target_time': 5.0
             },
@@ -445,8 +445,8 @@ class LatencyOptimizer:
             print(f"[LatencyOptimizer] ⚠️ Auto-optimization error: {e}")
             return LatencyOptimizationMode.FAST
 
-# Global latency optimizer instance
-latency_optimizer = LatencyOptimizer(LatencyOptimizationMode.FAST)
+# Global latency optimizer instance - use INTELLIGENT mode for Class 5+ consciousness
+latency_optimizer = LatencyOptimizer(LatencyOptimizationMode.INTELLIGENT)
 
 def generate_optimized_buddy_response(user_input: str,
                                     user_id: str,

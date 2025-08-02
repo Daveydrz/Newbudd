@@ -637,41 +637,53 @@ class IntelligentVoiceManager:
             user_data = known_users[cluster_id]
             existing_name = user_data.get('name', cluster_id)
         
-        # Check if text contains a name introduction
+        # 🚨 CRITICAL FIX: ONLY check for name during actual introductions, not every voice interaction
+        # First check if this is actually an introduction using LLM analysis
         if hasattr(self, 'ultra_name_manager') and self.ultra_name_manager:
-            extracted_name = self.ultra_name_manager.extract_name_enhanced_ai_aware(text)
+            from voice.manager_names import NameManager
+            name_manager = NameManager
+            is_introduction = name_manager.is_ultra_intelligent_spontaneous_introduction(text)
             
-            if extracted_name:
-                print(f"[IntelligentVoiceManager] 🔍 Extracted name: {extracted_name}")
-                print(f"[IntelligentVoiceManager] 🔍 Existing name: {existing_name}")
+            if is_introduction:
+                # Only extract name if this is confirmed as an introduction
+                extracted_name = name_manager.extract_name_mega_intelligent(text)
                 
-                # 🎯 NEW: If no existing name, assign the extracted name and convert cluster
-                if not existing_name or existing_name == 'Unknown':
-                    print(f"[IntelligentVoiceManager] 🔗 CONVERTING CLUSTER: {cluster_id} → {extracted_name}")
+                if extracted_name:
+                    print(f"[IntelligentVoiceManager] 🔍 LLM-extracted name from introduction: {extracted_name}")
+                    print(f"[IntelligentVoiceManager] 🔍 Existing name: {existing_name}")
                     
-                    # Convert anonymous cluster to named user
-                    success = self._convert_anonymous_to_named(cluster_id, extracted_name)
-                    if success:
-                        print(f"[IntelligentVoiceManager] ✅ CLUSTER CONVERTED: {cluster_id} → {extracted_name}")
+                    # 🎯 NEW: If no existing name, assign the extracted name and convert cluster
+                    if not existing_name or existing_name == 'Unknown':
+                        print(f"[IntelligentVoiceManager] 🔗 CONVERTING CLUSTER: {cluster_id} → {extracted_name}")
+                    
+                        # Convert anonymous cluster to named user
+                        success = self._convert_anonymous_to_named(cluster_id, extracted_name)
+                        if success:
+                            print(f"[IntelligentVoiceManager] ✅ CLUSTER CONVERTED: {cluster_id} → {extracted_name}")
+                            
+                            # Update current user and cluster ID
+                            self.current_user = extracted_name
+                            self.current_speaker_cluster_id = extracted_name
+                            
+                            return None  # No conflict, conversion successful
+                        else:
+                            print(f"[IntelligentVoiceManager] ❌ CLUSTER CONVERSION FAILED")
                         
-                        # Update current user and cluster ID
-                        self.current_user = extracted_name
-                        self.current_speaker_cluster_id = extracted_name
-                        
-                        return None  # No conflict, conversion successful
+                        return None  # No conflict detected
+                    
+                    # Check if names are different (case-insensitive)
+                    elif extracted_name.lower() != existing_name.lower():
+                        print(f"[IntelligentVoiceManager] 🚨 NAME CONFLICT: {extracted_name} ≠ {existing_name}")
+                        return (extracted_name, existing_name)
                     else:
-                        print(f"[IntelligentVoiceManager] ❌ CLUSTER CONVERSION FAILED")
-                    
-                    return None  # No conflict detected
-                
-                # Check if names are different (case-insensitive)
-                elif extracted_name.lower() != existing_name.lower():
-                    print(f"[IntelligentVoiceManager] 🚨 NAME CONFLICT: {extracted_name} ≠ {existing_name}")
-                    return (extracted_name, existing_name)
+                        print(f"[IntelligentVoiceManager] ✅ Names match: {extracted_name} = {existing_name}")
+                        return None  # No conflict detected
                 else:
-                    print(f"[IntelligentVoiceManager] ✅ Names match: {extracted_name} = {existing_name}")
+                    print(f"[IntelligentVoiceManager] 🔍 No name extracted from introduction")
             else:
-                print(f"[IntelligentVoiceManager] 🔍 No name extracted from text")
+                print(f"[IntelligentVoiceManager] 🔍 Not an introduction - no name extraction performed")
+        else:
+            print(f"[IntelligentVoiceManager] 🔍 No ultra name manager available")
         
         return None
 
@@ -916,16 +928,24 @@ class IntelligentVoiceManager:
         
         try:
             if hasattr(self, 'ultra_name_manager') and self.ultra_name_manager:
-                name_from_text = self.ultra_name_manager.extract_name_enhanced_ai_aware(text)
+                from voice.manager_names import NameManager
+                name_manager = NameManager
                 
-                if name_from_text:
-                    print(f"[NameLink] 🔗 Linking NEW cluster {cluster_id} → {name_from_text}")
+                # First check if this is actually an introduction
+                is_introduction = name_manager.is_ultra_intelligent_spontaneous_introduction(text)
+                
+                if is_introduction:
+                    # Only extract name if this is confirmed as an introduction
+                    name_from_text = name_manager.extract_name_mega_intelligent(text)
                     
-                    success = link_anonymous_to_named(cluster_id, name_from_text)
-                    
-                    if success:
-                        self.current_user = name_from_text
-                        self.current_speaker_cluster_id = name_from_text
+                    if name_from_text:
+                        print(f"[NameLink] 🔗 LLM-based linking NEW cluster {cluster_id} → {name_from_text}")
+                        
+                        success = link_anonymous_to_named(cluster_id, name_from_text)
+                        
+                        if success:
+                            self.current_user = name_from_text
+                            self.current_speaker_cluster_id = name_from_text
                         print(f"[NameLink] ✅ NEW cluster linked: {cluster_id} → {name_from_text}")
                     else:
                         print(f"[NameLink] ❌ Failed to link NEW cluster")
@@ -1556,14 +1576,24 @@ class IntelligentVoiceManager:
                 self._reset_confirmation_state()
                 
                 return self._create_new_cluster_with_tracking(current_embedding, None)
-            # 🔍 Try extracting name from transcript
+            # 🔍 FIXED: Only try extracting name during actual introductions
             if hasattr(self, 'ultra_name_manager') and self.ultra_name_manager:
-                extracted_name = self.ultra_name_manager.extract_name_enhanced_ai_aware(text)
-                if extracted_name:
-                    print(f"[VoiceManager] 🧠 Name extracted: {extracted_name}")
-                    self.force_link_current_cluster_to_name(extracted_name)
+                from voice.manager_names import NameManager
+                name_manager = NameManager
+                
+                # First check if this is actually an introduction
+                is_introduction = name_manager.is_ultra_intelligent_spontaneous_introduction(text)
+                
+                if is_introduction:
+                    # Only extract name if this is confirmed as an introduction
+                    extracted_name = name_manager.extract_name_mega_intelligent(text)
+                    if extracted_name:
+                        print(f"[VoiceManager] 🧠 LLM-extracted name from introduction: {extracted_name}")
+                        self.force_link_current_cluster_to_name(extracted_name)
+                    else:
+                        print(f"[VoiceManager] 🔍 LLM detected introduction but failed to extract name")
                 else:
-                    print(f"[VoiceManager] ❌ No valid name found in text: {text}")
+                    print(f"[VoiceManager] 🔍 LLM detected this is not an introduction - no name extraction attempted")
 
                 
             else:
@@ -2104,25 +2134,26 @@ class IntelligentVoiceManager:
             print(f"[IntelligentVoiceManager] ❌ Logging error: {e}")
     
     def _extract_name_from_text(self, text):
-        """Extract name from speech"""
-        import re
-        
-        patterns = [
-            r"my name is (\w+)",
-            r"i'm (\w+)",
-            r"i am (\w+)",
-            r"call me (\w+)",
-            r"this is (\w+)",
-            r"it's (\w+)"
-        ]
-        
-        for pattern in patterns:
-            match = re.search(pattern, text.lower())
-            if match:
-                name = match.group(1).title()
-                if len(name) >= 2 and name.isalpha():
-                    return name
-        return None
+        """🧠 LLM-based name extraction - NO PATTERN MATCHING"""
+        # Use LLM-based name extraction as primary method
+        if hasattr(self, 'ultra_name_manager') and self.ultra_name_manager:
+            from voice.manager_names import NameManager
+            name_manager = NameManager
+            
+            # First check if this is actually an introduction
+            is_introduction = name_manager.is_ultra_intelligent_spontaneous_introduction(text)
+            
+            if is_introduction:
+                # Only extract name if this is confirmed as an introduction
+                extracted_name = name_manager.extract_name_mega_intelligent(text)
+                print(f"[IntelligentVoiceManager] 🧠 LLM extracted name: {extracted_name}")
+                return extracted_name
+            else:
+                print(f"[IntelligentVoiceManager] 🧠 LLM detected this is not an introduction - no name extraction")
+                return None
+        else:
+            print(f"[IntelligentVoiceManager] ⚠️ LLM name manager not available")
+            return None
     
     def _handle_name_introduction(self, name, audio, text):
         """Handle when user introduces themselves"""

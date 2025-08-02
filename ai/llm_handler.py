@@ -592,6 +592,25 @@ class LLMHandler:
                     except Exception as memory_error:
                         print(f"[LLMHandler] ⚠️ Memory update error: {memory_error}")
                 
+                # ✅ FIX: Explicitly trigger Kokoro TTS after LLM generation is complete
+                if full_response.strip():
+                    try:
+                        from audio.output import generate_and_play_kokoro
+                        tts_success = generate_and_play_kokoro(full_response.strip())
+                        if tts_success:
+                            print(f"[LLMHandler] 🎵 Kokoro TTS triggered successfully for final response")
+                        else:
+                            print(f"[LLMHandler] ⚠️ Kokoro TTS failed - response may not be heard")
+                    except Exception as tts_error:
+                        print(f"[LLMHandler] ❌ Kokoro TTS error: {tts_error}")
+                        # Fallback TTS attempt
+                        try:
+                            from audio.output import speak_streaming
+                            speak_streaming(full_response.strip())
+                            print(f"[LLMHandler] 🔧 Fallback TTS attempted")
+                        except Exception as fallback_error:
+                            print(f"[LLMHandler] ❌ Fallback TTS also failed: {fallback_error}")
+                
                 # Update session statistics
                 self.request_count += 1
                 self.total_tokens_used += usage.total_tokens

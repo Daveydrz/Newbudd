@@ -498,6 +498,25 @@ def get_audio_stats():
         "api_url": KOKORO_API_BASE_URL
     }
 
+def generate_and_play_kokoro(text, voice=None, lang=DEFAULT_LANG):
+    """✅ FIX: Generate and play TTS using Kokoro - called after LLM generation is complete"""
+    if not text or len(text.strip()) < 2:
+        print("[Kokoro] ⚠️ No text provided for TTS")
+        return False
+    
+    try:
+        print(f"[Kokoro] 🎵 Generating TTS for: '{text[:50]}...'")
+        success = speak_streaming(text.strip(), voice, lang)
+        if success:
+            print(f"[Kokoro] ✅ TTS queued successfully")
+            return True
+        else:
+            print(f"[Kokoro] ❌ TTS queueing failed")
+            return False
+    except Exception as e:
+        print(f"[Kokoro] ❌ TTS generation error: {e}")
+        return False
+
 def start_streaming_response(user_input, current_user, language):
     """Start a streaming response with immediate TTS"""
     pass

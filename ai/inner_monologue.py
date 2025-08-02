@@ -414,14 +414,25 @@ class InnerMonologue:
             return
         
         try:
-            # Check autonomous mode to prevent LLM calls during BACKGROUND_ONLY mode
+            # ✅ FIXED: Check autonomous mode but allow LLM calls during user interactions
             try:
                 from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
                 current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
                 
-                # Skip inner reflection LLM generation during BACKGROUND_ONLY mode to prevent vocal loops
+                # Only skip in BACKGROUND_ONLY mode if this is autonomous processing (not user-driven)
                 if current_mode.value == "background_only":
-                    return
+                    # Check if there's an active user conversation 
+                    try:
+                        from main import get_conversation_state
+                        if get_conversation_state():
+                            # User is actively interacting - allow LLM calls for consciousness integration
+                            pass  # Continue with reflection
+                        else:
+                            # No user interaction - skip autonomous LLM calls 
+                            return
+                    except ImportError:
+                        # Can't check conversation state - assume background processing and skip
+                        return
                     
             except Exception as mode_check_error:
                 print(f"[InnerMonologue] ⚠️ Autonomous mode check failed in reflection loop: {mode_check_error}")

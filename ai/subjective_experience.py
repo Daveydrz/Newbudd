@@ -183,34 +183,37 @@ class SubjectiveExperienceSystem:
         except Exception as e:
             print(f"[SubjectiveExperience] ⚠️ Could not check LLM generation state: {e}")
         
-        # ✅ NEW: Enhanced conversation state check with cooldown period
-        try:
-            from main import get_conversation_state, get_mic_feeding_state
-            if get_conversation_state():
-                print("[SubjectiveExperience] ⚠️ Skipping LLM call - conversation state active (includes cooldown)")
-                return True
-            if get_mic_feeding_state():
-                print("[SubjectiveExperience] ⚠️ Skipping LLM call - mic feeding active")
-                return True
-        except ImportError:
-            pass
-        
-        # Check autonomous mode
+        # ✅ FIXED: Check if this is autonomous background processing vs user interaction
         try:
             from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
             current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
+            
+            # Only skip in BACKGROUND_ONLY mode if this is autonomous processing (not user-driven)
             if current_mode.value == "background_only":
-                print("[SubjectiveExperience] ⚠️ Skipping LLM call - in BACKGROUND_ONLY mode")
-                return True
+                # Check if there's an active user conversation 
+                try:
+                    from main import get_conversation_state
+                    if get_conversation_state():
+                        # User is actively interacting - allow LLM calls for consciousness integration
+                        print("[SubjectiveExperience] ✅ User interaction active - allowing LLM call despite BACKGROUND_ONLY mode")
+                        return False
+                    else:
+                        # No user interaction - skip autonomous LLM calls 
+                        print("[SubjectiveExperience] ⚠️ Skipping LLM call - in BACKGROUND_ONLY mode without user interaction")
+                        return True
+                except ImportError:
+                    # Can't check conversation state - assume background processing and skip
+                    print("[SubjectiveExperience] ⚠️ Skipping LLM call - BACKGROUND_ONLY mode and can't check conversation state")
+                    return True
         except Exception as e:
             print(f"[SubjectiveExperience] ⚠️ Could not check autonomous mode: {e}")
         
         # ✅ FIX: Check if there's an active conversation to prevent consciousness loops during user interactions
+        # This is a secondary check to prevent flooding during active voice input processing
         try:
-            # Check if mic is feeding (indicating listening/speaking phase)
-            from main import get_mic_feeding_state, get_conversation_state
-            if get_mic_feeding_state() or get_conversation_state():
-                print("[SubjectiveExperience] ⚠️ Skipping LLM call - active conversation detected")
+            from main import get_mic_feeding_state
+            if get_mic_feeding_state():
+                print("[SubjectiveExperience] ⚠️ Skipping LLM call - mic feeding active (listening for user input)")
                 return True
         except Exception as e:
             print(f"[SubjectiveExperience] ⚠️ Could not check conversation state: {e}")

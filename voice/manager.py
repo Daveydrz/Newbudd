@@ -640,13 +640,12 @@ class IntelligentVoiceManager:
         # 🚨 CRITICAL FIX: ONLY check for name during actual introductions, not every voice interaction
         # First check if this is actually an introduction using LLM analysis
         if hasattr(self, 'ultra_name_manager') and self.ultra_name_manager:
-            from voice.manager_names import NameManager
-            name_manager = NameManager
-            is_introduction = name_manager.is_ultra_intelligent_spontaneous_introduction(text)
+            # Use the existing instance, not the class
+            is_introduction = self.ultra_name_manager.is_ultra_intelligent_spontaneous_introduction(text)
             
             if is_introduction:
                 # Only extract name if this is confirmed as an introduction
-                extracted_name = name_manager.extract_name_mega_intelligent(text)
+                extracted_name = self.ultra_name_manager.extract_name_mega_intelligent(text)
                 
                 if extracted_name:
                     print(f"[IntelligentVoiceManager] 🔍 LLM-extracted name from introduction: {extracted_name}")
@@ -858,19 +857,17 @@ class IntelligentVoiceManager:
         try:
             # ✅ PRIMARY: LLM-based introduction detection
             if hasattr(self, 'ultra_name_manager') and self.ultra_name_manager:
-                # Use the manager_names module to check if this is a spontaneous introduction
-                from voice.manager_names import NameManager
-                name_manager = NameManager
-                
-                print(f"[IntelligentVoiceManager] 🧠 LLM analyzing: '{text}'")
-                
-                # Check if this is actually an introduction using LLM
-                is_introduction = name_manager.is_ultra_intelligent_spontaneous_introduction(text)
+                # Use the ultra_name_manager instance to check if this is a spontaneous introduction
+                if hasattr(self, 'ultra_name_manager') and self.ultra_name_manager:
+                    print(f"[IntelligentVoiceManager] 🧠 LLM analyzing: '{text}'")
+                    
+                    # Check if this is actually an introduction using LLM
+                    is_introduction = self.ultra_name_manager.is_ultra_intelligent_spontaneous_introduction(text)
                 
                 if is_introduction:
                     print(f"[IntelligentVoiceManager] ✅ LLM detected spontaneous introduction!")
                     # Now extract the name using LLM-based extraction
-                    extracted_name = name_manager.extract_name_mega_intelligent(text)
+                    extracted_name = self.ultra_name_manager.extract_name_mega_intelligent(text)
                     
                     if extracted_name:
                         print(f"[NameLink] 🔗 LLM linking cluster {cluster_id} → {extracted_name}")
@@ -928,15 +925,12 @@ class IntelligentVoiceManager:
         
         try:
             if hasattr(self, 'ultra_name_manager') and self.ultra_name_manager:
-                from voice.manager_names import NameManager
-                name_manager = NameManager
-                
                 # First check if this is actually an introduction
-                is_introduction = name_manager.is_ultra_intelligent_spontaneous_introduction(text)
+                is_introduction = self.ultra_name_manager.is_ultra_intelligent_spontaneous_introduction(text)
                 
                 if is_introduction:
                     # Only extract name if this is confirmed as an introduction
-                    name_from_text = name_manager.extract_name_mega_intelligent(text)
+                    name_from_text = self.ultra_name_manager.extract_name_mega_intelligent(text)
                     
                     if name_from_text:
                         print(f"[NameLink] 🔗 LLM-based linking NEW cluster {cluster_id} → {name_from_text}")
@@ -1515,9 +1509,7 @@ class IntelligentVoiceManager:
                 is_introduction = False
                 if hasattr(self, 'ultra_name_manager') and self.ultra_name_manager:
                     # Use LLM to detect if this is actually an introduction
-                    from voice.manager_names import NameManager
-                    name_manager = NameManager
-                    is_introduction = name_manager.is_ultra_intelligent_spontaneous_introduction(text)
+                    is_introduction = self.ultra_name_manager.is_ultra_intelligent_spontaneous_introduction(text)
                     print(f"[IntelligentVoiceManager] 🧠 LLM introduction detection: {is_introduction}")
                 
                 if is_introduction:
@@ -1578,15 +1570,12 @@ class IntelligentVoiceManager:
                 return self._create_new_cluster_with_tracking(current_embedding, None)
             # 🔍 FIXED: Only try extracting name during actual introductions
             if hasattr(self, 'ultra_name_manager') and self.ultra_name_manager:
-                from voice.manager_names import NameManager
-                name_manager = NameManager
-                
                 # First check if this is actually an introduction
-                is_introduction = name_manager.is_ultra_intelligent_spontaneous_introduction(text)
+                is_introduction = self.ultra_name_manager.is_ultra_intelligent_spontaneous_introduction(text)
                 
                 if is_introduction:
                     # Only extract name if this is confirmed as an introduction
-                    extracted_name = name_manager.extract_name_mega_intelligent(text)
+                    extracted_name = self.ultra_name_manager.extract_name_mega_intelligent(text)
                     if extracted_name:
                         print(f"[VoiceManager] 🧠 LLM-extracted name from introduction: {extracted_name}")
                         self.force_link_current_cluster_to_name(extracted_name)

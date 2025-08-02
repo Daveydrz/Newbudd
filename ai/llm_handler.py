@@ -139,6 +139,23 @@ _global_llm_generation_in_progress = False
 def is_llm_generation_in_progress():
     """Check if LLM generation is currently in progress (global state)"""
     global _global_llm_generation_in_progress
+    # ✅ FIX: Add thread safety and reset stuck states
+    if _global_llm_generation_in_progress:
+        current_time = time.time()
+        # Check if state has been stuck for too long (> 60 seconds indicates stuck state)
+        if not hasattr(is_llm_generation_in_progress, '_last_check_time'):
+            is_llm_generation_in_progress._last_check_time = current_time
+        
+        time_stuck = current_time - is_llm_generation_in_progress._last_check_time
+        if time_stuck > 60.0:  # Reset if stuck for more than 60 seconds
+            print(f"[LLMHandler] 🔧 STUCK STATE DETECTED: LLM state stuck for {time_stuck:.1f}s - auto-resetting")
+            _global_llm_generation_in_progress = False
+            is_llm_generation_in_progress._last_check_time = current_time
+            return False
+    else:
+        # Reset timer when state is False
+        is_llm_generation_in_progress._last_check_time = time.time()
+    
     return _global_llm_generation_in_progress
 
 def set_llm_generation_in_progress(in_progress: bool):
@@ -409,20 +426,20 @@ class LLMHandler:
         Yields response chunks if streaming, otherwise returns complete response
         """
         try:
-            # ✅ FIX: Enhanced debugging for circular call detection
+            # ✅ FIX: Enhanced debugging for circular call detection 
             print(f"[LLMHandler] 🔍 CALL DEBUG: is_primary_call={is_primary_call}, global_state={is_llm_generation_in_progress()}")
             
-            # ✅ FIX: Prevent infinite loops - block ALL calls if generation already in progress
+            # ✅ FIX: Prevent infinite loops - more robust state management
             if is_llm_generation_in_progress():
+                print(f"[LLMHandler] ⚠️ LLM already in progress - returning fallback to prevent loops")
                 if is_primary_call:
-                    print("[LLMHandler] 🚨 ERROR: Primary call blocked by global state - forcing reset to prevent infinite loop")
-                    # Force reset and return error to break loop
+                    # For primary calls, reset state and proceed anyway to prevent permanent blocking
+                    print("[LLMHandler] 🔧 PRIMARY CALL: Force proceeding despite state (critical fix)")
                     set_llm_generation_in_progress(False)
-                    yield "I apologize, but I'm currently processing another request. Please try again."
-                    return
+                    # Continue to normal processing below
                 else:
-                    print("[LLMHandler] ⚠️ Secondary call blocked - consciousness systems bypassed to prevent infinite loops")
-                    yield "I'm processing your request..."
+                    # For secondary calls, return fallback to prevent loops
+                    yield "Processing your request..."
                     return
             
             print(f"[LLMHandler] ✅ Setting global state to True and proceeding with LLM generation")

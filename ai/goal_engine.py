@@ -573,7 +573,68 @@ Respond with each thought on a separate line, no explanations.
         
         return "\n".join(context_parts)
     
-    def _goal_loop(self):
+    def evaluate_goal_progress(self) -> Dict[str, Any]:
+        """
+        Evaluate progress on all active goals
+        
+        Returns:
+            Dictionary containing goal evaluation results
+        """
+        evaluation = {
+            "total_goals": len(self.active_goals) + len(self.completed_goals),
+            "active_goals": 0,
+            "completed_goals": len(self.completed_goals),
+            "average_progress": 0.0,
+            "priority_goals": [],
+            "stalled_goals": [],
+            "satisfaction_level": self.goal_satisfaction
+        }
+        
+        if not self.active_goals:
+            return evaluation
+        
+        total_progress = 0.0
+        active_count = 0
+        
+        for goal in self.active_goals.values():
+            if goal.status == GoalStatus.ACTIVE:
+                evaluation["active_goals"] += 1
+                active_count += 1
+                total_progress += goal.progress
+                
+                # Check for high priority goals
+                if goal.priority.value >= 0.8:
+                    evaluation["priority_goals"].append({
+                        "id": goal.id,
+                        "description": goal.description,
+                        "progress": goal.progress,
+                        "priority": goal.priority.value
+                    })
+                
+                # Check for stalled goals (no progress in a while)
+                if hasattr(goal, 'last_progress_update'):
+                    time_since_update = datetime.now() - goal.last_progress_update
+                    if time_since_update.total_seconds() > 3600:  # No progress in 1 hour
+                        evaluation["stalled_goals"].append({
+                            "id": goal.id,
+                            "description": goal.description,
+                            "stalled_time": str(time_since_update)
+                        })
+                        
+            elif goal.status == GoalStatus.COMPLETED:
+                evaluation["completed_goals"] += 1
+        
+        # Calculate average progress
+        if active_count > 0:
+            evaluation["average_progress"] = total_progress / active_count
+        
+        logging.info(f"[GoalEngine] 📊 Goal evaluation: {active_count} active, "
+                    f"{evaluation['completed_goals']} completed, "
+                    f"{evaluation['average_progress']:.2f} avg progress")
+        
+        return evaluation
+    
+    def _get_goal_context_summary(self) -> str:
         """
         ✅ STATE-DRIVEN: Lightweight goal monitoring loop with state-driven goal processing
         

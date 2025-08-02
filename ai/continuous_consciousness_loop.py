@@ -48,10 +48,15 @@ except ImportError:
     LLM_STATE_AVAILABLE = False
     
 try:
-    from main import get_conversation_state, is_tts_playing
+    # Import audio state checking directly to avoid circular import
+    from audio.output import is_tts_playing
     CONVERSATION_STATE_AVAILABLE = True
 except ImportError:
     CONVERSATION_STATE_AVAILABLE = False
+    
+def is_tts_playing():
+    """Fallback function if TTS state not available"""
+    return False
 
 class ConsciousnessState(Enum):
     """Current consciousness system state"""

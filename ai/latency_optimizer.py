@@ -91,7 +91,7 @@ class LatencyOptimizer:
                 'target_time': 2.0
             },
             LatencyOptimizationMode.FAST: {
-                'prompt_optimization': PromptOptimizationLevel.BALANCED,
+                'prompt_optimization': PromptOptimizationLevel.INTELLIGENCE_FOCUSED,
                 'consciousness_tier': ConsciousnessTier.STANDARD,
                 'max_modules': 4,
                 'token_budget': 3000,

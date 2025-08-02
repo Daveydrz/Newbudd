@@ -1,0 +1,20 @@
+{
+  "beliefs": {
+    "theme": "beliefs",
+    "memory_ids": [
+      "mem_test_user_4bdf16d507b8"
+    ],
+    "strength": 0.1,
+    "creation_time": "2025-08-02T13:40:56.687171",
+    "last_reinforced": "2025-08-02T13:40:56.687171"
+  },
+  "worldview": {
+    "theme": "worldview",
+    "memory_ids": [
+      "mem_test_user_4bdf16d507b8"
+    ],
+    "strength": 0.1,
+    "creation_time": "2025-08-02T13:40:56.687175",
+    "last_reinforced": "2025-08-02T13:40:56.687175"
+  }
+}

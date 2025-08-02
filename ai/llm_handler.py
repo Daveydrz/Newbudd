@@ -592,8 +592,9 @@ class LLMHandler:
                     except Exception as memory_error:
                         print(f"[LLMHandler] ⚠️ Memory update error: {memory_error}")
                 
-                # ✅ FIX: Explicitly trigger Kokoro TTS after LLM generation is complete
-                if full_response.strip():
+                # ✅ FIX: Only trigger Kokoro TTS if not streaming (avoid duplicate TTS)
+                # When streaming=True, the caller handles TTS chunk by chunk
+                if full_response.strip() and not stream:
                     try:
                         from audio.output import generate_and_play_kokoro
                         tts_success = generate_and_play_kokoro(full_response.strip())
@@ -610,6 +611,8 @@ class LLMHandler:
                             print(f"[LLMHandler] 🔧 Fallback TTS attempted")
                         except Exception as fallback_error:
                             print(f"[LLMHandler] ❌ Fallback TTS also failed: {fallback_error}")
+                elif stream:
+                    print(f"[LLMHandler] 📡 Streaming mode - TTS handled by caller, no duplicate TTS call")
                 
                 # Update session statistics
                 self.request_count += 1

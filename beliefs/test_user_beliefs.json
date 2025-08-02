@@ -1,0 +1,24 @@
+{
+  "belief_test_user_d9721e18a4b0": {
+    "belief_id": "belief_test_user_d9721e18a4b0",
+    "user_id": "test_user",
+    "content": "Test belief",
+    "belief_type": "factual",
+    "strength": 0.5,
+    "status": "active",
+    "formed_date": "2025-08-02T13:40:56.687130",
+    "last_updated": "2025-08-02T13:40:56.687131",
+    "supporting_evidence": [],
+    "contradicting_evidence": [],
+    "confidence_score": 0.5,
+    "related_beliefs": [],
+    "parent_beliefs": [],
+    "child_beliefs": [],
+    "domains": [],
+    "tags": [],
+    "formation_context": "",
+    "update_history": [],
+    "conflicts": [],
+    "questioned_count": 0
+  }
+}

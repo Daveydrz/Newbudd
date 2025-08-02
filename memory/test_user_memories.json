@@ -1,0 +1,28 @@
+{
+  "mem_test_user_4bdf16d507b8": {
+    "memory_id": "mem_test_user_4bdf16d507b8",
+    "user_id": "test_user",
+    "content": "Formed belief: Test belief",
+    "memory_type": "autobiographical",
+    "importance": 0.6,
+    "timestamp": "2025-08-02T13:40:56.687153",
+    "emotional_valence": 0.0,
+    "topics": [
+      "beliefs",
+      "worldview"
+    ],
+    "entities": [],
+    "beliefs_affected": [
+      "belief_test_user_d9721e18a4b0"
+    ],
+    "goals_related": [],
+    "linked_memories": [],
+    "access_count": 0,
+    "last_accessed": null,
+    "consolidation_level": 0.0,
+    "context_data": {
+      "belief_type": "factual",
+      "formation_context": ""
+    }
+  }
+}

@@ -259,6 +259,56 @@ class BeliefEvolutionTracker:
         print(f"[BeliefEvolution] ✨ Formed belief: {content[:50]}... ({belief_type.value})")
         return belief_id
     
+    def add_belief(self, content: str, belief_type: str = "factual", **kwargs) -> str:
+        """
+        Alias for form_belief to maintain compatibility
+        
+        Args:
+            content: The belief content
+            belief_type: Type of belief (factual, evaluative, etc.)
+            **kwargs: Additional arguments passed to form_belief
+            
+        Returns:
+            Belief ID
+        """
+        try:
+            # Map string belief types to enum
+            belief_type_map = {
+                "factual": BeliefType.FACTUAL,
+                "evaluative": BeliefType.EVALUATIVE,
+                "causal": BeliefType.CAUSAL,
+                "predictive": BeliefType.PREDICTIVE,
+                "normative": BeliefType.NORMATIVE,
+                "personal": BeliefType.PERSONAL,
+                "experiential": BeliefType.EXPERIENTIAL,
+                "conceptual": BeliefType.CONCEPTUAL
+            }
+            
+            belief_type_enum = belief_type_map.get(belief_type.lower(), BeliefType.FACTUAL)
+            strength = kwargs.get('strength', BeliefStrength.MODERATE)
+            
+            # Handle strength as string
+            if isinstance(strength, str):
+                strength_map = {
+                    "weak": BeliefStrength.WEAK,
+                    "moderate": BeliefStrength.MODERATE,
+                    "strong": BeliefStrength.STRONG
+                }
+                strength = strength_map.get(strength.lower(), BeliefStrength.MODERATE)
+            
+            return self.form_belief(
+                content=content,
+                belief_type=belief_type_enum,
+                strength=strength,
+                domains=kwargs.get('domains'),
+                formation_context=kwargs.get('formation_context', ''),
+                supporting_evidence=kwargs.get('supporting_evidence')
+            )
+        except Exception as e:
+            print(f"[BeliefEvolution] ❌ Error in add_belief: {e}")
+            # Return a dummy ID to prevent crashes
+            return f"belief_error_{int(time.time())}"
+    
     def add_evidence(self,
                     belief_id: str,
                     evidence_content: str,

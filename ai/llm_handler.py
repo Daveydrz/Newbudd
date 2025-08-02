@@ -529,6 +529,7 @@ class LLMHandler:
                 # ✅ FIX: Add timeout tracking for TTS fallback
                 generation_start_time = time.time()
                 has_yielded_content = False
+                timeout_threshold = 5.0  # 5 second timeout
                 
                 # Stream response while tracking tokens
                 for chunk in response_generator:
@@ -538,7 +539,16 @@ class LLMHandler:
                         output_tokens += estimate_tokens_from_text(chunk_text)
                         has_yielded_content = True
                         yield chunk_text
-                
+                    
+                    # Check for timeout during streaming
+                    if time.time() - generation_start_time > timeout_threshold and not has_yielded_content:
+                        print(f"[LLMHandler] ⏰ LLM timeout after {timeout_threshold}s - providing fallback")
+                        fallback_response = "I apologize, I'm having trouble formulating a response. Could you please rephrase your question?"
+                        full_response = fallback_response
+                        has_yielded_content = True
+                        yield fallback_response
+                        break
+
                 # ✅ FIX: Ensure TTS fallback if LLM stalls or produces no content
                 if not has_yielded_content or len(full_response.strip()) < 5:
                     generation_elapsed = time.time() - generation_start_time
@@ -562,9 +572,25 @@ class LLMHandler:
                     "consciousness_integrated_chat"
                 )
                 
-                # Update consciousness state with interaction
-                if CONSCIOUSNESS_AVAILABLE:
-                    self._update_consciousness_after_response(text, full_response.strip(), user, analysis)
+                # ✅ FIX: Reset global state BEFORE triggering TTS and consciousness updates
+                print(f"[LLMHandler] 🔄 Resetting global LLM state early to allow TTS and consciousness")
+                set_llm_generation_in_progress(False)
+                
+                # ✅ FIX: Update consciousness state with interaction AFTER state reset
+                if CONSCIOUSNESS_AVAILABLE and full_response.strip():
+                    try:
+                        self._update_consciousness_after_response(text, full_response.strip(), user, analysis)
+                        print(f"[LLMHandler] 🧠 Consciousness state updated after response")
+                    except Exception as consciousness_error:
+                        print(f"[LLMHandler] ⚠️ Consciousness update error: {consciousness_error}")
+                
+                # ✅ FIX: Update memory, beliefs, and personality state after generation
+                if full_response.strip():
+                    try:
+                        self._update_memory_and_beliefs_after_response(text, full_response.strip(), user, analysis)
+                        print(f"[LLMHandler] 💭 Memory and beliefs updated after response")
+                    except Exception as memory_error:
+                        print(f"[LLMHandler] ⚠️ Memory update error: {memory_error}")
                 
                 # Update session statistics
                 self.request_count += 1
@@ -573,15 +599,20 @@ class LLMHandler:
                 print(f"[LLMHandler] ✅ Response generated in {generation_time:.3f}s")
                 print(f"[LLMHandler] 📊 Tokens: {input_tokens} in, {output_tokens} out, ${usage.cost_estimate:.4f}")
                 
+                # ✅ FIX: Explicitly signal that generation is complete and TTS can proceed
+                print(f"[LLMHandler] 🎵 LLM generation complete - TTS and consciousness systems can now proceed")
+                
             except Exception as e:
                 print(f"[LLMHandler] ❌ Error generating response: {e}")
                 yield f"I apologize, but I encountered an error while processing your request: {str(e)}"
         
         finally:
-            # ✅ FIX: Always reset the global generation flag with enhanced logging
-            print(f"[LLMHandler] 🔄 Resetting global LLM state from True to False")
-            set_llm_generation_in_progress(False)
-            print(f"[LLMHandler] ✅ Global LLM state reset complete")
+            # ✅ FIX: Only reset if state is still True (avoid double reset)
+            if is_llm_generation_in_progress():
+                print(f"[LLMHandler] 🔄 Final cleanup: Resetting global LLM state from True to False")
+                set_llm_generation_in_progress(False)
+            else:
+                print(f"[LLMHandler] ✅ Global LLM state already reset - no cleanup needed")
             
     def sanitize_prompt_input(self, text: str, user_id: str = "unknown") -> str:
         """
@@ -1085,6 +1116,91 @@ Be helpful, authentic, and maintain your personality while addressing the user's
         except Exception as e:
             print(f"[LLMHandler] ⚠️ Error generating system instruction: {e}")
             return ""
+            
+    def _update_memory_and_beliefs_after_response(
+        self, 
+        user_input: str, 
+        response: str, 
+        user: str, 
+        analysis: Dict[str, Any]
+    ):
+        """
+        ✅ FIX: Update memory, belief tracker, and personality state after response generation
+        This ensures all consciousness components are updated before next user input
+        """
+        try:
+            print(f"[LLMHandler] 💭 Starting memory and beliefs update for user: {user}")
+            
+            # 1. Update memory systems (mem_recent)
+            try:
+                # Try to import and update memory systems
+                from ai.memory import add_to_conversation_history
+                from ai.memory_recent import memory_recent
+                
+                # Add conversation to memory
+                conversation_entry = {
+                    "user_input": user_input,
+                    "ai_response": response,
+                    "timestamp": datetime.now().isoformat(),
+                    "user_id": user,
+                    "analysis": analysis.get("semantic", {}),
+                    "consciousness_state": analysis.get("consciousness", {})
+                }
+                
+                add_to_conversation_history(user, user_input, response)
+                memory_recent.add_memory_entry(user, conversation_entry)
+                print(f"[LLMHandler] 📝 Memory systems updated")
+                
+            except ImportError as e:
+                print(f"[LLMHandler] ⚠️ Memory systems not available: {e}")
+            
+            # 2. Update belief tracker
+            try:
+                from ai.belief_evolution_tracker import get_belief_evolution_tracker
+                belief_tracker = get_belief_evolution_tracker(user)
+                
+                # Extract beliefs from user input and response
+                user_beliefs = analysis.get("beliefs", {}).get("extracted_beliefs", [])
+                for belief in user_beliefs:
+                    belief_tracker.add_belief(belief, source="user_interaction")
+                
+                # Update beliefs based on AI response
+                belief_tracker.update_belief_strength_from_interaction(user_input, response)
+                print(f"[LLMHandler] 🧠 Belief tracker updated")
+                
+            except ImportError as e:
+                print(f"[LLMHandler] ⚠️ Belief tracker not available: {e}")
+            
+            # 3. Update personality state
+            try:
+                from ai.personality_state import personality_state
+                
+                # Update personality based on interaction
+                personality_triggers = analysis.get("personality", {}).get("triggers", [])
+                for trigger in personality_triggers:
+                    personality_state.process_personality_trigger(user, trigger, user_input, response)
+                
+                print(f"[LLMHandler] 🎭 Personality state updated")
+                
+            except ImportError as e:
+                print(f"[LLMHandler] ⚠️ Personality state not available: {e}")
+            
+            # 4. Update semantic analysis history
+            try:
+                from ai.semantic_tagging import semantic_tagger
+                
+                # Store semantic analysis for future reference
+                semantic_data = analysis.get("semantic", {})
+                semantic_tagger.update_user_semantic_history(user, user_input, semantic_data)
+                print(f"[LLMHandler] 🏷️ Semantic history updated")
+                
+            except ImportError as e:
+                print(f"[LLMHandler] ⚠️ Semantic tagger not available: {e}")
+            
+            print(f"[LLMHandler] ✅ Memory and beliefs update complete")
+            
+        except Exception as e:
+            print(f"[LLMHandler] ❌ Error updating memory and beliefs: {e}")
             
     def _update_consciousness_after_response(
         self, 

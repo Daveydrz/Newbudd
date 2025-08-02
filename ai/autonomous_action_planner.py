@@ -240,10 +240,28 @@ class AutonomousActionPlanner:
         
         # Check if already in LLM generation using global state (most important check)
         try:
+            import time as time_module  # ✅ FIX: Explicit import to avoid scope issues
+            
             from ai.llm_handler import is_llm_generation_in_progress
             if is_llm_generation_in_progress():
+                # ✅ FIX: Add timeout to prevent permanent blocking
+                current_time = time_module.time()
+                if not hasattr(self, '_last_llm_block_time'):
+                    self._last_llm_block_time = current_time
+                
+                # If we've been blocked for more than 30 seconds, something is wrong
+                if current_time - self._last_llm_block_time > 30.0:
+                    print("[AutonomousPlanner] ⚠️ LLM state has been blocking for >30s - forcing check reset")
+                    self._last_llm_block_time = current_time
+                    # Don't permanently block - allow consciousness to continue
+                    return False
+                
                 print("[AutonomousPlanner] ⚠️ Skipping LLM call - global generation in progress")
                 return True
+            else:
+                # Reset the block timer when LLM is not in progress
+                if hasattr(self, '_last_llm_block_time'):
+                    delattr(self, '_last_llm_block_time')
         except Exception as e:
             print(f"[AutonomousPlanner] ⚠️ Could not check LLM generation state: {e}")
         

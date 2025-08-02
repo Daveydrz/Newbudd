@@ -443,12 +443,29 @@ class GoalEngine:
         """Enhanced check if LLM calls should be skipped to prevent circular loops and consciousness floods"""
         try:
             # Import the global state check
+            import time as time_module  # ✅ FIX: Explicit import to avoid scope issues
             from ai.llm_handler import is_llm_generation_in_progress
             
-            # Check if global LLM generation is in progress
+            # Check if global LLM generation is in progress with timeout protection
             if is_llm_generation_in_progress():
+                # ✅ FIX: Add timeout to prevent permanent blocking
+                current_time = time_module.time()
+                if not hasattr(self, '_last_llm_block_time'):
+                    self._last_llm_block_time = current_time
+                
+                # If we've been blocked for more than 30 seconds, something is wrong
+                if current_time - self._last_llm_block_time > 30.0:
+                    print("[GoalEngine] ⚠️ LLM state has been blocking for >30s - forcing check reset")
+                    self._last_llm_block_time = current_time
+                    # Don't permanently block - allow consciousness to continue
+                    return False
+                
                 print("[GoalEngine] ⚠️ Skipping LLM call - global generation in progress")
                 return True
+            else:
+                # Reset the block timer when LLM is not in progress
+                if hasattr(self, '_last_llm_block_time'):
+                    delattr(self, '_last_llm_block_time')
             
             # ✅ NEW: Enhanced conversation state check with cooldown period
             try:

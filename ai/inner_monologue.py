@@ -130,11 +130,29 @@ class InnerMonologue:
     def _should_skip_llm_call(self) -> bool:
         """Enhanced check for LLM calls to prevent circular loops and consciousness floods"""
         try:
-            # Check 1: Global LLM generation state
+            import time as time_module  # ✅ FIX: Explicit import to avoid scope issues
+            
+            # Check 1: Global LLM generation state with timeout check
             from ai.llm_handler import is_llm_generation_in_progress
             if is_llm_generation_in_progress():
+                # ✅ FIX: Add timeout to prevent permanent blocking
+                current_time = time_module.time()
+                if not hasattr(self, '_last_llm_block_time'):
+                    self._last_llm_block_time = current_time
+                
+                # If we've been blocked for more than 30 seconds, something is wrong
+                if current_time - self._last_llm_block_time > 30.0:
+                    print("[InnerMonologue] ⚠️ LLM state has been blocking for >30s - forcing check reset")
+                    self._last_llm_block_time = current_time
+                    # Don't permanently block - allow consciousness to continue
+                    return False
+                
                 print("[InnerMonologue] ⚠️ Skipping LLM call - global generation in progress")
                 return True
+            else:
+                # Reset the block timer when LLM is not in progress
+                if hasattr(self, '_last_llm_block_time'):
+                    delattr(self, '_last_llm_block_time')
             
             # Check 2: Autonomous mode status
             try:

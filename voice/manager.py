@@ -587,10 +587,10 @@ class IntelligentVoiceManager:
                     print(f"[IntelligentVoiceManager] 🚨 CENTROID FORCING SEPARATION: {match_id} (similarity: {similarity:.3f})")
                     print(f"[IntelligentVoiceManager] 🆕 Centroid analysis indicates different person")
 
-                    # 🆕 NEW CLUSTER - process names for new clusters
+                    # 🆕 NEW CLUSTER - only process names if it's an actual introduction
                     new_cluster_result = self._force_create_separate_cluster(current_embedding, f"CENTROID_SEPARATION_FROM_{match_id}")
                     if new_cluster_result[0] and new_cluster_result[0].startswith('Anonymous_'):
-                        self._process_name_for_new_cluster(text, new_cluster_result[0])
+                        self._check_for_spontaneous_introduction(text, new_cluster_result[0])
 
                     return new_cluster_result
 
@@ -598,10 +598,10 @@ class IntelligentVoiceManager:
                 else:
                     print(f"[IntelligentVoiceManager] 🆕 VERY LOW CENTROID SIMILARITY - NEW SPEAKER: (best match: {match_id}, similarity: {similarity:.3f})")
 
-                    # 🆕 NEW CLUSTER - process names for new clusters
+                    # 🆕 NEW CLUSTER - only process names if it's an actual introduction
                     new_cluster_result = self._create_new_cluster_with_tracking(current_embedding, best_match)
                     if new_cluster_result[0] and new_cluster_result[0].startswith('Anonymous_'):
-                        self._process_name_for_new_cluster(text, new_cluster_result[0])
+                        self._check_for_spontaneous_introduction(text, new_cluster_result[0])
 
                     return new_cluster_result
 
@@ -609,9 +609,9 @@ class IntelligentVoiceManager:
             print(f"[IntelligentVoiceManager] 🆕 COMPLETELY NEW VOICE: Creating first cluster")
             new_cluster_result = self._create_new_cluster_with_tracking(current_embedding, None)
 
-            # 🔤 Process names for brand new clusters
+            # 🔤 Only process names for brand new clusters if it's an actual introduction
             if new_cluster_result[0] and new_cluster_result[0].startswith('Anonymous_'):
-                self._process_name_for_new_cluster(text, new_cluster_result[0])
+                self._check_for_spontaneous_introduction(text, new_cluster_result[0])
 
             return new_cluster_result
 
@@ -835,6 +835,46 @@ class IntelligentVoiceManager:
             print(f"[IntelligentVoiceManager] 🤔 Unclear response, asking again")
             speak_streaming(f"Please say either {conflict_data['existing_name']} or {conflict_data['new_name']}")
             return conflict_data['voice_match_id'], "ASKING_NAME_VOICE_CONFLICT_RESOLUTION"
+
+    def _check_for_spontaneous_introduction(self, text: str, cluster_id: str):
+        """🔤 Only check for names when there's an actual introduction attempt"""
+        
+        print(f"[IntelligentVoiceManager] 🔤 Checking for spontaneous introduction in cluster: {cluster_id}")
+        
+        try:
+            # First check if this text contains an introduction using ultra-intelligent manager
+            if hasattr(self, 'ultra_name_manager') and self.ultra_name_manager:
+                # Use the manager_names module to check if this is a spontaneous introduction
+                from voice.manager_names import NameManager
+                name_manager = NameManager
+                
+                # Check if this is actually an introduction
+                is_introduction = name_manager.is_ultra_intelligent_spontaneous_introduction(text)
+                
+                if is_introduction:
+                    print(f"[IntelligentVoiceManager] ✅ Spontaneous introduction detected!")
+                    # Now extract the name using LLM-based extraction
+                    extracted_name = name_manager.extract_name_mega_intelligent(text)
+                    
+                    if extracted_name:
+                        print(f"[NameLink] 🔗 Linking cluster {cluster_id} → {extracted_name}")
+                        success = link_anonymous_to_named(cluster_id, extracted_name)
+                        
+                        if success:
+                            self.current_user = extracted_name
+                            self.current_speaker_cluster_id = extracted_name
+                            print(f"[NameLink] ✅ Cluster linked: {cluster_id} → {extracted_name}")
+                        else:
+                            print(f"[NameLink] ❌ Failed to link cluster")
+                    else:
+                        print(f"[NameLink] 🔤 Name extraction failed for introduction")
+                else:
+                    print(f"[IntelligentVoiceManager] ➡️ Not an introduction - skipping name processing")
+            else:
+                print(f"[IntelligentVoiceManager] ⚠️ Ultra-intelligent name manager not available")
+                    
+        except Exception as e:
+            print(f"[IntelligentVoiceManager] ❌ Introduction check error: {e}")
 
     def _process_name_for_new_cluster(self, text: str, cluster_id: str):
         """🔤 SAFE name processing ONLY for NEW clusters"""

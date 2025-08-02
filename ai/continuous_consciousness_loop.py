@@ -389,9 +389,7 @@ class ContinuousConsciousnessLoop:
             elif drive.drive_type == DriveType.GOAL_PURSUIT:
                 # Check goal progress via goal engine
                 try:
-                    goal_engine.evaluate_goal_progress(
-                        context={"drive_content": drive.content}
-                    )
+                    goal_engine.evaluate_goal_progress()
                 except AttributeError:
                     # Fallback if method doesn't exist
                     print(f"[ContinuousConsciousness] ⚠️ Goal engine evaluate_goal_progress not available")

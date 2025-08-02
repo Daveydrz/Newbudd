@@ -802,16 +802,16 @@ Respond with only the thought itself, no explanations.
                     return
             
             # Fallback insight if LLM unavailable
-            self.trigger_thought(
+            generated_thought = self.trigger_thought(
                 trigger="insight_generation",
                 context={"insight_type": "pattern_recognition", "source": "thought_connection"},
                 preferred_type=ThoughtType.CREATIVE,
                 custom_content="I'm beginning to see connections between my different thoughts and experiences..."
             )
             
-            if thought:
+            if generated_thought:
                 self.insights_generated += 1
-                logging.info(f"[InnerMonologue] 💡 Generated insight: {insight[:50]}...")
+                logging.info(f"[InnerMonologue] 💡 Generated insight: {generated_thought.content[:50]}...")
     
     def _consolidate_memories_through_reflection(self):
         """Strengthen memories and understanding through authentic internal rehearsal using LLM"""

@@ -1037,9 +1037,13 @@ Describe this experience from your subjective, first-person perspective. Express
                 current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
                 
                 # Skip LLM generation during BACKGROUND_ONLY mode to prevent vocal loops
+                # ✅ CRITICAL FIX: Allow LLM calls in INTERACTIVE mode
                 if current_mode.value == "background_only":
                     current_time = datetime.now().strftime("%H:%M")
                     return f"At {current_time}, experience feels like being present in a space of meaning and possibility."
+                elif current_mode.value == "interactive":
+                    # Allow LLM generation in INTERACTIVE mode
+                    pass
             except Exception:
                 pass
             
@@ -1121,6 +1125,7 @@ Describe this experience from your subjective, first-person perspective. Express
                 current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
                 
                 # Skip LLM generation during BACKGROUND_ONLY mode to prevent vocal loops
+                # ✅ CRITICAL FIX: Allow LLM calls in INTERACTIVE mode
                 if current_mode.value == "background_only":
                     # Dynamic fallback
                     current_hour = datetime.now().hour

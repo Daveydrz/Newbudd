@@ -131,6 +131,10 @@ class BeliefReinforcementSystem:
             if current_mode.value == "background_only":
                 print("[BeliefReinforcement] ⚠️ Skipping LLM call - in BACKGROUND_ONLY mode")
                 return True
+            # ✅ CRITICAL FIX: Allow LLM calls in INTERACTIVE mode
+            elif current_mode.value == "interactive":
+                print("[BeliefReinforcement] ✅ Allowing LLM call - INTERACTIVE mode")
+                return False
         except Exception as e:
             print(f"[BeliefReinforcement] ⚠️ Could not check autonomous mode: {e}")
         

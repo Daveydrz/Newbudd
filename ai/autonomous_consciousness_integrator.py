@@ -30,6 +30,7 @@ class AutonomousMode(Enum):
     """Modes of autonomous operation"""
     FULL_AUTONOMY = "full_autonomy"           # All systems active and interconnected
     CONSCIOUS_ONLY = "conscious_only"         # Only conscious-level autonomous functions
+    INTERACTIVE = "interactive"               # Interactive mode - LLM processes user input
     BACKGROUND_ONLY = "background_only"       # Only background processing
     REACTIVE_MODE = "reactive_mode"           # Minimal autonomy, mostly reactive
     SLEEP_MODE = "sleep_mode"                 # Minimal autonomous functions
@@ -734,6 +735,12 @@ class AutonomousConsciousnessIntegrator:
             self.autonomous_expression_chance = 0.2
             self.cross_system_communication_interval = 300.0
             self.autonomous_check_in_interval = 3600.0
+            
+        elif mode == AutonomousMode.INTERACTIVE:
+            # Interactive mode - LLM processes user input, limited autonomous expressions
+            self.autonomous_expression_chance = 0.1
+            self.cross_system_communication_interval = 450.0
+            self.autonomous_check_in_interval = 5400.0
             
         elif mode == AutonomousMode.BACKGROUND_ONLY:
             # Only background processing - NO autonomous expressions

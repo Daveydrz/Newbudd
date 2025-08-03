@@ -2861,13 +2861,9 @@ def main():
                             autonomous_consciousness_system.update_voice_system(voice_manager)
                             autonomous_consciousness_system.update_audio_system(full_duplex_manager)
                             
-                            # Switch to appropriate autonomous mode
-                            if BLANK_SLATE_MODE:
-                                autonomous_consciousness_system.set_autonomous_mode(AutonomousMode.CONSCIOUS_ONLY)
-                                print("[AdvancedBuddy] 🌱 Vocal autonomy: CONSCIOUS_ONLY (building identity)")
-                            else:
-                                autonomous_consciousness_system.set_autonomous_mode(AutonomousMode.FULL_AUTONOMY)
-                                print("[AdvancedBuddy] 🚀 Vocal autonomy: FULL_AUTONOMY (established consciousness)")
+                            # Switch to INTERACTIVE mode for user input processing
+                            autonomous_consciousness_system.set_autonomous_mode(AutonomousMode.INTERACTIVE)
+                            print("[AdvancedBuddy] ✅ Mode switched to INTERACTIVE - LLM will now process user input")
                         except Exception as autonomy_error:
                             print(f"[AdvancedBuddy] ⚠️ Vocal autonomy activation error: {autonomy_error}")
                     
@@ -2959,6 +2955,11 @@ def main():
                 print(f"[AdvancedBuddy] 👂 Enhanced Voice System + Smart Birtinya TRUE streaming mode ready! Say '{wake_word}' to start...")
             else:
                 print(f"[AdvancedBuddy] 👂 Smart Birtinya TRUE streaming mode ready! Say '{wake_word}' to start...")
+            
+            # ✅ CRITICAL FIX: Switch from BACKGROUND_ONLY to INTERACTIVE mode after initialization
+            if AUTONOMOUS_CONSCIOUSNESS_AVAILABLE and autonomous_consciousness_integrator:
+                autonomous_consciousness_integrator.set_autonomous_mode(AutonomousMode.INTERACTIVE)
+                print("[AdvancedBuddy] ✅ Mode switched to INTERACTIVE - LLM will now process user input")
             
             try:
                 while True:

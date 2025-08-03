@@ -162,6 +162,10 @@ class InnerMonologue:
                     if autonomous_consciousness_integrator.autonomous_mode == AutonomousMode.BACKGROUND_ONLY:
                         print("[InnerMonologue] ⚠️ Skipping LLM call - BACKGROUND_ONLY mode (conversation in progress)")
                         return True
+                    # ✅ CRITICAL FIX: Allow LLM calls in INTERACTIVE mode
+                    elif autonomous_consciousness_integrator.autonomous_mode == AutonomousMode.INTERACTIVE:
+                        print("[InnerMonologue] ✅ Allowing LLM call - INTERACTIVE mode")
+                        return False
             except ImportError:
                 pass
             

@@ -94,12 +94,12 @@ except ImportError:
 
 # Import existing components - CONSCIOUSNESS ONLY
 try:
-    from chat_enhanced_smart_with_fusion import generate_response_streaming_with_intelligent_fusion
+    from ai.chat_enhanced_smart_with_fusion import generate_response_streaming_with_intelligent_fusion
     FUSION_LLM_AVAILABLE = True
     print("[LLMHandler] ✅ Fusion LLM loaded - consciousness integration active")
 except ImportError:
     try:
-        from ai.chat_enhanced_smart_with_fusion import generate_response_streaming_with_intelligent_fusion
+        from chat_enhanced_smart_with_fusion import generate_response_streaming_with_intelligent_fusion
         FUSION_LLM_AVAILABLE = True
         print("[LLMHandler] ✅ Fusion LLM loaded - consciousness integration active")
     except ImportError:
@@ -199,6 +199,38 @@ class LLMHandler:
             
         print(f"[LLMHandler] 🌟 Consciousness arch: {'Available' if CONSCIOUSNESS_AVAILABLE else 'Limited'}")
         print(f"[LLMHandler] 🔧 Fusion LLM: {'Available' if FUSION_LLM_AVAILABLE else 'Fallback'}")
+        
+        # ✅ CRITICAL FIX: Ensure Fusion LLM is properly initialized and marked as available
+        self._initialize_fusion_llm()
+        
+    def _initialize_fusion_llm(self):
+        """Initialize and verify Fusion LLM availability"""
+        global FUSION_LLM_AVAILABLE
+        
+        # Force check for fusion LLM availability
+        try:
+            from ai.chat_enhanced_smart_with_fusion import generate_response_streaming_with_intelligent_fusion
+            if hasattr(generate_response_streaming_with_intelligent_fusion, '__call__'):
+                FUSION_LLM_AVAILABLE = True
+                print("[LLMHandler] ✅ Fusion LLM successfully loaded and verified")
+                return
+        except ImportError:
+            pass
+            
+        if FUSION_LLM_AVAILABLE:
+            try:
+                # Test if fusion LLM function is actually callable
+                if hasattr(generate_response_streaming_with_intelligent_fusion, '__call__'):
+                    FUSION_LLM_AVAILABLE = True
+                    print("[LLMHandler] ✅ Fusion LLM successfully loaded and verified")
+                else:
+                    FUSION_LLM_AVAILABLE = False
+                    print("[LLMHandler] ⚠️ Fusion LLM function not callable - using fallback")
+            except Exception as e:
+                FUSION_LLM_AVAILABLE = False
+                print(f"[LLMHandler] ⚠️ Fusion LLM verification failed: {e}")
+        else:
+            print("[LLMHandler] ⚠️ Fusion LLM not available - will use consciousness-integrated basic LLM")
         
     def process_user_input(self, text: str, user: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """

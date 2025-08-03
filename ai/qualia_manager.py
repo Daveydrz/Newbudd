@@ -183,6 +183,10 @@ class QualiaManager:
             if current_mode.value == "background_only":
                 print("[QualiaManager] ⚠️ Skipping LLM call - in BACKGROUND_ONLY mode")
                 return True
+            # ✅ CRITICAL FIX: Allow LLM calls in INTERACTIVE mode
+            elif current_mode.value == "interactive":
+                print("[QualiaManager] ✅ Allowing LLM call - INTERACTIVE mode")
+                return False
         except Exception as e:
             print(f"[QualiaManager] ⚠️ Could not check autonomous mode: {e}")
         

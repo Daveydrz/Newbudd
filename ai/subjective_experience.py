@@ -1352,8 +1352,12 @@ Describe this experience from your subjective, first-person perspective. Express
             current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
             
             # Skip experience integration during BACKGROUND_ONLY mode to prevent LLM loops
+            # ✅ CRITICAL FIX: Allow experience integration in INTERACTIVE mode
             if current_mode.value == "background_only":
                 return
+            elif current_mode.value == "interactive":
+                # Allow experience integration in INTERACTIVE mode
+                pass
                 
         except Exception as mode_check_error:
             print(f"[SubjectiveExperience] ⚠️ Autonomous mode check failed in fallback integration: {mode_check_error}")

@@ -847,6 +847,10 @@ class GoalManager:
                     if autonomous_consciousness_integrator.autonomous_mode == AutonomousMode.BACKGROUND_ONLY:
                         print("[GoalManager] ⚠️ Skipping LLM call - BACKGROUND_ONLY mode (conversation in progress)")
                         return True
+                    # ✅ CRITICAL FIX: Allow LLM calls in INTERACTIVE mode for user input processing
+                    elif autonomous_consciousness_integrator.autonomous_mode == AutonomousMode.INTERACTIVE:
+                        print("[GoalManager] ✅ Allowing LLM call - INTERACTIVE mode")
+                        return False
             except ImportError:
                 pass
             

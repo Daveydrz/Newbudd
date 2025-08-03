@@ -14,7 +14,12 @@ def _should_skip_llm_for_background_mode() -> bool:
     try:
         from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
         current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
-        return current_mode.value == "background_only"
+        # ✅ CRITICAL FIX: Only skip in BACKGROUND_ONLY, allow in INTERACTIVE mode
+        if current_mode.value == "background_only":
+            return True
+        elif current_mode.value == "interactive":
+            return False
+        return False
     except Exception:
         return False  # If we can't check, proceed with LLM
 

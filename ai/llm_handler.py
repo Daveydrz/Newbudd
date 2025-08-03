@@ -217,20 +217,19 @@ class LLMHandler:
         except ImportError:
             pass
             
-        if FUSION_LLM_AVAILABLE:
-            try:
-                # Test if fusion LLM function is actually callable
-                if hasattr(generate_response_streaming_with_intelligent_fusion, '__call__'):
-                    FUSION_LLM_AVAILABLE = True
-                    print("[LLMHandler] ✅ Fusion LLM successfully loaded and verified")
-                else:
-                    FUSION_LLM_AVAILABLE = False
-                    print("[LLMHandler] ⚠️ Fusion LLM function not callable - using fallback")
-            except Exception as e:
-                FUSION_LLM_AVAILABLE = False
-                print(f"[LLMHandler] ⚠️ Fusion LLM verification failed: {e}")
-        else:
-            print("[LLMHandler] ⚠️ Fusion LLM not available - will use consciousness-integrated basic LLM")
+        # Try alternative import path
+        try:
+            from chat_enhanced_smart_with_fusion import generate_response_streaming_with_intelligent_fusion
+            if hasattr(generate_response_streaming_with_intelligent_fusion, '__call__'):
+                FUSION_LLM_AVAILABLE = True
+                print("[LLMHandler] ✅ Fusion LLM successfully loaded and verified")
+                return
+        except ImportError:
+            pass
+        
+        # If we get here, fusion LLM is not available
+        FUSION_LLM_AVAILABLE = False
+        print("[LLMHandler] ⚠️ Fusion LLM not available - will use consciousness-integrated basic LLM")
         
     def process_user_input(self, text: str, user: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """

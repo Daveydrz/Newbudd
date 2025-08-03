@@ -444,8 +444,13 @@ Generate response with complete consciousness integration and debug information.
             base_prompt = ""
             if '{base_prompt}' in template:
                 # Check if this is a user-facing response vs internal reasoning call
-                is_user_facing = context and context.get('user_facing', True)  # Default to user-facing
-                is_internal_reasoning = context and context.get('internal_reasoning', False)
+                # Default to user-facing unless explicitly marked as internal
+                is_user_facing = True
+                is_internal_reasoning = False
+                
+                if context:
+                    is_user_facing = context.get('user_facing', True)  # Default to user-facing
+                    is_internal_reasoning = context.get('internal_reasoning', False)
                 
                 # Skip base prompt for internal reasoning calls
                 if is_internal_reasoning:

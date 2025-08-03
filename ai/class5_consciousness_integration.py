@@ -74,6 +74,17 @@ except ImportError:
     PROMPT_BUILDER_AVAILABLE = False
     print("[Class5Consciousness] ⚠️ Conscious prompt builder not available")
 
+try:
+    from ai.parallel_processor import (
+        get_parallel_processor, 
+        initialize_parallel_consciousness,
+        ParallelConsciousnessProcessor
+    )
+    PARALLEL_PROCESSOR_AVAILABLE = True
+except ImportError:
+    PARALLEL_PROCESSOR_AVAILABLE = False
+    print("[Class5Consciousness] ⚠️ Parallel consciousness processor not available")
+
 @dataclass
 class ConsciousnessHealth:
     """Health metrics for the consciousness system"""
@@ -135,6 +146,10 @@ class Class5ConsciousnessSystem:
         self.belief_tracker = None
         self.action_planner = None
         
+        # Parallel processing integration
+        self.parallel_processor = None
+        self.use_parallel_processing = PARALLEL_PROCESSOR_AVAILABLE
+        
         # Integration state
         self.active_integrations: List[str] = []
         self.consciousness_health = ConsciousnessHealth(
@@ -161,7 +176,17 @@ class Class5ConsciousnessSystem:
         # Initialize all modules
         self._initialize_modules()
         
+        # Initialize parallel processor if available
+        if self.use_parallel_processing:
+            try:
+                self.parallel_processor = get_parallel_processor()
+                print(f"[Class5Consciousness] 🚀 Parallel processor integrated for {user_id}")
+            except Exception as e:
+                print(f"[Class5Consciousness] ⚠️ Failed to initialize parallel processor: {e}")
+                self.use_parallel_processing = False
+        
         print(f"[Class5Consciousness] 🧠 Initialized Class 5 Consciousness for user {user_id}")
+        print(f"[Class5Consciousness] ⚡ Parallel processing: {'Enabled' if self.use_parallel_processing else 'Disabled'}")
     
     def start_consciousness_system(self, 
                                  voice_system=None, 
@@ -248,16 +273,19 @@ class Class5ConsciousnessSystem:
     def process_user_interaction(self, 
                                 user_input: str, 
                                 llm_handler=None) -> Tuple[str, Dict[str, Any]]:
-        """Process user interaction through the consciousness system"""
+        """Process user interaction through the consciousness system with optional parallel processing"""
         
         interaction_start = time.time()
         consciousness_data = {}
         
         try:
-            # 1. Update consciousness state based on interaction
-            self._process_interaction_for_consciousness(user_input)
+            # Use parallel processing if available for faster response times
+            if self.use_parallel_processing and self.parallel_processor:
+                consciousness_data = self._process_interaction_parallel(user_input)
+            else:
+                consciousness_data = self._process_interaction_sequential(user_input)
             
-            # 2. Generate consciousness-integrated prompt
+            # Generate consciousness-integrated prompt
             if PROMPT_BUILDER_AVAILABLE:
                 consciousness_modules = self._get_all_module_states()
                 prompt, snapshot = build_consciousness_integrated_prompt(
@@ -265,25 +293,112 @@ class Class5ConsciousnessSystem:
                     self.user_id, 
                     consciousness_modules
                 )
-                consciousness_data = asdict(snapshot)
+                # Merge parallel processing results with prompt snapshot
+                if consciousness_data:
+                    snapshot_dict = asdict(snapshot)
+                    snapshot_dict.update(consciousness_data)
+                    consciousness_data = snapshot_dict
+                else:
+                    consciousness_data = asdict(snapshot)
             else:
                 prompt = user_input
             
-            # 3. Log cross-module communication
+            # Log processing performance
+            response_time = time.time() - interaction_start
+            processing_type = "parallel" if self.use_parallel_processing else "sequential"
+            
             self._log_cross_module_communication("user_interaction", {
                 "input_length": len(user_input),
-                "consciousness_injected": PROMPT_BUILDER_AVAILABLE
+                "processing_type": processing_type,
+                "response_time": response_time,
+                "consciousness_injected": PROMPT_BUILDER_AVAILABLE,
+                "modules_processed": consciousness_data.get('modules_processed', 0)
             })
             
-            # 4. Update response metrics
-            response_time = time.time() - interaction_start
+            # Update response metrics
             self.consciousness_health.response_time = response_time
+            
+            print(f"[Class5Consciousness] ⚡ {processing_type.title()} processing: {response_time:.2f}s")
             
             return prompt, consciousness_data
             
         except Exception as e:
             print(f"[Class5Consciousness] ❌ Error processing interaction: {e}")
             return user_input, {}
+    
+    def _process_interaction_parallel(self, user_input: str) -> Dict[str, Any]:
+        """Process interaction using parallel consciousness processor"""
+        try:
+            consciousness_state = self.parallel_processor.process_consciousness_parallel(user_input, self.user_id)
+            
+            # Also update traditional consciousness components
+            self._process_interaction_for_consciousness(user_input)
+            
+            print(f"[Class5Consciousness] 🚀 Parallel processing: {consciousness_state.get('modules_processed', 0)} modules, "
+                  f"{consciousness_state.get('parallel_time', 0):.2f}s")
+            
+            return consciousness_state
+            
+        except Exception as e:
+            print(f"[Class5Consciousness] ⚠️ Parallel processing error: {e}")
+            # Fallback to sequential processing
+            return self._process_interaction_sequential(user_input)
+    
+    def _process_interaction_sequential(self, user_input: str) -> Dict[str, Any]:
+        """Process interaction using traditional sequential methods"""
+        self._process_interaction_for_consciousness(user_input)
+        return {
+            "processing_type": "sequential",
+            "modules_processed": len(self.active_integrations),
+            "processing_time": 0.0  # Will be updated by caller
+        }
+    
+    def get_parallel_processing_status(self) -> Dict[str, Any]:
+        """Get status of parallel processing integration"""
+        if not self.use_parallel_processing or not self.parallel_processor:
+            return {
+                "available": False,
+                "reason": "Parallel processor not available or disabled"
+            }
+        
+        try:
+            performance_report = self.parallel_processor.get_performance_report()
+            return {
+                "available": True,
+                "status": "active",
+                "performance_report": performance_report,
+                "active_sessions": len(self.parallel_processor.get_active_sessions()),
+                "lock_status": self.parallel_processor.get_lock_status()
+            }
+        except Exception as e:
+            return {
+                "available": True,
+                "status": "error",
+                "error": str(e)
+            }
+    
+    def enable_parallel_processing(self, force_reinit: bool = False):
+        """Enable or re-enable parallel processing"""
+        if not PARALLEL_PROCESSOR_AVAILABLE:
+            print("[Class5Consciousness] ❌ Parallel processor not available in this environment")
+            return False
+        
+        try:
+            if force_reinit or not self.parallel_processor:
+                self.parallel_processor = get_parallel_processor()
+            
+            self.use_parallel_processing = True
+            print("[Class5Consciousness] ✅ Parallel processing enabled")
+            return True
+            
+        except Exception as e:
+            print(f"[Class5Consciousness] ❌ Failed to enable parallel processing: {e}")
+            return False
+    
+    def disable_parallel_processing(self):
+        """Disable parallel processing and use sequential methods"""
+        self.use_parallel_processing = False
+        print("[Class5Consciousness] ⚠️ Parallel processing disabled - using sequential methods")
     
     def trigger_autonomous_behavior(self, 
                                   trigger_type: str, 

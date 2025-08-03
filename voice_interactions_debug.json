@@ -10,5 +10,11 @@
     "text": "your plans for tomorrow.",
     "audio_length": 40448,
     "interaction_id": 2
+  },
+  {
+    "timestamp": "2025-08-03T02:19:08.423482",
+    "text": "Hello how are you?",
+    "audio_length": 0,
+    "interaction_id": 1
   }
 ]

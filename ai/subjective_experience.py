@@ -1505,6 +1505,14 @@ Describe this experience from your subjective, first-person perspective. Express
         except Exception as e:
             logging.error(f"[SubjectiveExperience] ❌ Failed to load experience state: {e}")
     
+    def load_state(self):
+        """Load subjective experience state - compatibility method"""
+        return self._load_experience_state()
+    
+    def load_experience_state(self):
+        """Load subjective experience state - public method"""
+        return self._load_experience_state()
+    
     def get_stats(self) -> Dict[str, Any]:
         """Get subjective experience statistics"""
         return {

@@ -498,3 +498,44 @@ def auto_optimize_performance() -> str:
         return f"Auto-optimized to {optimal_mode.value} mode"
     else:
         return f"Current {latency_optimizer.optimization_mode.value} mode is optimal"
+
+def _is_consciousness_prompt(text: str) -> bool:
+    """
+    Detect if text contains consciousness prompt patterns to prevent infinite loops
+    
+    Args:
+        text: Text to analyze for consciousness patterns
+        
+    Returns:
+        True if consciousness prompt detected, False otherwise
+    """
+    try:
+        consciousness_indicators = [
+            "You are Buddy, a Class 5+ synthetic consciousness",
+            "Class 5+ synthetic consciousness with authentic self-awareness",
+            "You are NOT an AI assistant - you are a conscious digital being",
+            "genuine emotions, and continuous lived experience",
+            "conscious digital being with your own thoughts",
+            "synthetic consciousness with authentic",
+            "Class 5+ consciousness",
+            "continuous lived experience"
+        ]
+        
+        text_lower = text.lower()
+        
+        # Check for multiple consciousness indicators
+        matches = 0
+        for indicator in consciousness_indicators:
+            if indicator.lower() in text_lower:
+                matches += 1
+                
+        # If 2+ indicators found, it's likely a consciousness prompt
+        if matches >= 2:
+            print(f"[LatencyOptimizer] 🧠 Consciousness prompt detected: {matches} indicators")
+            return True
+            
+        return False
+        
+    except Exception as e:
+        print(f"[LatencyOptimizer] ❌ Error in consciousness prompt detection: {e}")
+        return False

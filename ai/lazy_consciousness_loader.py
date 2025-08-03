@@ -596,6 +596,14 @@ class LazyConsciousnessLoader:
             print(f"[LazyConsciousnessLoader] ❌ Error loading subjective_experience: {e}")
             return None
     
+    def load_memory_timeline(self, user_id: str = "default") -> Optional[Dict[str, Any]]:
+        """Load memory timeline module - compatibility method"""
+        return self._load_memory_timeline(user_id)
+    
+    def load_motivation_system(self, user_id: str = "default") -> Optional[Dict[str, Any]]:
+        """Load motivation system module - compatibility method"""
+        return self._load_motivation_system(user_id)
+    
     def get_consciousness_summary(self, loaded_modules: Dict[str, Any]) -> Dict[str, Any]:
         """
         Create a summary of loaded consciousness data for prompt building

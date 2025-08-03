@@ -70,23 +70,6 @@ except ImportError as e:
     print(f"[Main] ⚠️ Full consciousness architecture not available: {e}")
     CONSCIOUSNESS_ARCHITECTURE_AVAILABLE = False
 
-# ✅ NEW: Import continuous consciousness loop system (replaces timer-based activation)
-try:
-    from ai.continuous_consciousness_loop import (
-        start_continuous_consciousness,
-        stop_continuous_consciousness,
-        trigger_consciousness_from_user_interaction,
-        add_consciousness_drive,
-        get_consciousness_loop_stats,
-        can_consciousness_trigger,
-        DriveType
-    )
-    print("[Main] 🔄 Continuous consciousness loop system loaded - replaces timer-based activation")
-    CONTINUOUS_CONSCIOUSNESS_AVAILABLE = True
-except ImportError as e:
-    print(f"[Main] ⚠️ Continuous consciousness loop not available: {e}")
-    CONTINUOUS_CONSCIOUSNESS_AVAILABLE = False
-
 # ✅ NEW: Import consciousness-integrated modules with latency optimization
 try:
     from ai.llm_handler import (
@@ -109,7 +92,7 @@ try:
         get_latency_performance_report
     )
     # Set default optimization mode for production
-    set_global_optimization_mode(LatencyOptimizationMode.INTELLIGENT)  # Use INTELLIGENT for Class 5+ consciousness
+    set_global_optimization_mode(LatencyOptimizationMode.FAST)
     print("[Main] ⚡ Latency optimization system loaded - Target: <5 second responses")
     LATENCY_OPTIMIZATION_AVAILABLE = True
 except ImportError as e:
@@ -428,7 +411,7 @@ except ImportError as e:
         print("[AdvancedBuddy] 🧹 clear_audio_queue fallback - queue clearing disabled")
         pass
 
-from ai.chat import generate_response  # Now consciousness-integrated fallback
+from ai.chat import generate_response  # Keep for fallback
 from ai.memory import add_to_conversation_history
 from voice.database import load_known_users, known_users, anonymous_clusters
 from voice.recognition import identify_speaker
@@ -582,7 +565,6 @@ current_user = SYSTEM_USER
 conversation_active = False
 mic_feeding_active = False
 advanced_mode_active = ADVANCED_AI_AVAILABLE
-autonomous_consciousness_system = None  # ✅ Global reference for vocal autonomy control
 # Add a lock for thread safety
 state_lock = threading.Lock()
 
@@ -601,59 +583,9 @@ def set_mic_feeding_state(active):
         print(f"[State] 🎤 mic_feeding_active set to: {active}")
 
 def get_conversation_state():
-    """
-    Enhanced thread-safe conversation state with consciousness loop prevention
-    
-    Returns True if:
-    - Currently in active conversation
-    - Recent user interaction occurred (within last 15 seconds)
-    - TTS is currently playing audio
-    """
+    """Thread-safe way to get conversation state"""
     with state_lock:
-        # Check basic conversation state
-        if conversation_active:
-            return True
-        
-        # ✅ NEW: Check for TTS playback state
-        try:
-            # Import TTS state if available
-            from audio.output import is_tts_playing
-            if is_tts_playing():
-                return True
-        except ImportError:
-            # Fallback: check if audio queue has recent activity
-            try:
-                from audio.output import get_audio_stats
-                stats = get_audio_stats()
-                if stats and stats.get('queue_size', 0) > 0:
-                    return True
-            except ImportError:
-                pass
-        
-        # ✅ ENHANCED: Check for recent user interaction to prevent consciousness activation too soon
-        current_time = time.time()
-        if hasattr(get_conversation_state, 'last_user_interaction_time'):
-            time_since_interaction = current_time - get_conversation_state.last_user_interaction_time
-            if time_since_interaction < 15.0:  # 15 second conversation cooldown
-                return True
-        
-        # ✅ NEW: Check for recent TTS activity
-        if hasattr(get_conversation_state, 'last_tts_activity_time'):
-            time_since_tts = current_time - get_conversation_state.last_tts_activity_time
-            if time_since_tts < 10.0:  # 10 second TTS cooldown
-                return True
-        
-        return False
-
-def mark_user_interaction():
-    """Mark that a user interaction just occurred - prevents consciousness loops"""
-    get_conversation_state.last_user_interaction_time = time.time()
-    print(f"[ConversationState] 🎯 User interaction marked - consciousness cooldown started")
-
-def mark_tts_activity():
-    """Mark that TTS activity just occurred - prevents consciousness loops during audio playback"""
-    get_conversation_state.last_tts_activity_time = time.time()
-    print(f"[ConversationState] 🎤 TTS activity marked - consciousness cooldown started")
+        return conversation_active
 
 def get_mic_feeding_state():
     """Thread-safe way to get mic feeding state"""
@@ -663,12 +595,6 @@ def get_mic_feeding_state():
 def handle_streaming_response(text, current_user):
     """✅ ENHANCED: Smart streaming with ADVANCED AI ASSISTANT features + VOICE-BASED IDENTITY + FULL CONSCIOUSNESS"""
     print(f"🚨🚨🚨 [CRITICAL_DEBUG] handle_streaming_response called with text='{text}', user='{current_user}' 🚨🚨🚨")
-    
-    # ✅ DETAILED LOGGING: Log Whisper transcription completion
-    print(f"[DETAILED_LOG] 🎤 WHISPER_TRANSCRIPTION_END: '{text}' | user='{current_user}' | timestamp={datetime.now().isoformat()}")
-    
-    # ✅ FIX: Mark user interaction immediately to prevent consciousness loops
-    mark_user_interaction()
     
     # ✅ NEW: Start cognitive debug logging
     interaction_id = None
@@ -930,25 +856,9 @@ def handle_streaming_response(text, current_user):
                             print(f"[MegaMemory] ⚠️ Validation error for chunk {chunk_count}: {validation_error}")
                             # Continue with original chunk if validation fails
                         
-                        # ✅ DETAILED LOGGING: Log Kokoro playback start
-                        print(f"[DETAILED_LOG] 🎵 KOKORO_PLAYBACK_START: chunk_{chunk_count} | text='{chunk_text[:50]}...' | timestamp={datetime.now().isoformat()}")
-                        
                         # ✅ SPEAK CHUNK (now validated and consciousness-enhanced)
                         speak_streaming(chunk_text)
-                        mark_tts_activity()  # Mark TTS activity to prevent consciousness loops
                         full_response += chunk_text + " "
-                        
-                        # ✅ DETAILED LOGGING: Log Kokoro playback end
-                        print(f"[DETAILED_LOG] 🎵 KOKORO_PLAYBACK_END: chunk_{chunk_count} | queued_successfully | timestamp={datetime.now().isoformat()}")
-                        
-                        # ✅ FIX: Reset global state after Kokoro playback
-                        try:
-                            from ai.llm_handler import set_llm_generation_in_progress, is_llm_generation_in_progress
-                            if is_llm_generation_in_progress():
-                                print(f"[Main] 🔄 KOKORO END: Resetting global LLM state after playback")
-                                set_llm_generation_in_progress(False)
-                        except Exception as reset_error:
-                            print(f"[Main] ⚠️ Could not reset LLM state after Kokoro: {reset_error}")
                         
                         # ✅ CRITICAL: Check AGAIN after queueing and break if interrupted
                         if full_duplex_manager and full_duplex_manager.speech_interrupted:
@@ -1018,7 +928,7 @@ def handle_streaming_response(text, current_user):
                         user_input=text,
                         user_id=current_user,
                         context={'cognitive_context': cognitive_prompt_injection},
-                        optimization_mode=LatencyOptimizationMode.INTELLIGENT,  # Use INTELLIGENT for Class 5+ consciousness
+                        optimization_mode=LatencyOptimizationMode.FAST,  # Target <5 seconds
                         stream=True
                     )
                 except ImportError:
@@ -1078,16 +988,9 @@ def handle_streaming_response(text, current_user):
                         print(f"[MegaMemory] ⚠️ Validation error for chunk {chunk_count}: {validation_error}")
                         # Continue with original chunk if validation fails
                     
-                    # ✅ DETAILED LOGGING: Log Kokoro playback start
-                    print(f"[DETAILED_LOG] 🎵 KOKORO_PLAYBACK_START: chunk_{chunk_count} | text='{chunk_text[:50]}...' | timestamp={datetime.now().isoformat()}")
-                    
                     # ✅ SPEAK CHUNK (now validated and entropy-enhanced)
                     speak_streaming(chunk_text)
-                    mark_tts_activity()  # Mark TTS activity to prevent consciousness loops
                     full_response += chunk_text + " "
-                    
-                    # ✅ DETAILED LOGGING: Log Kokoro playback end
-                    print(f"[DETAILED_LOG] 🎵 KOKORO_PLAYBACK_END: chunk_{chunk_count} | queued_successfully | timestamp={datetime.now().isoformat()}")
                     
                     # ✅ CRITICAL: Check AGAIN after queueing and break if interrupted
                     if full_duplex_manager and full_duplex_manager.speech_interrupted:
@@ -1147,13 +1050,7 @@ def handle_streaming_response(text, current_user):
                         response_interrupted = True
                         break  # ✅ CRITICAL: Break immediately!
                     
-                    # ✅ DETAILED LOGGING: Log Kokoro playback start
-                    print(f"[DETAILED_LOG] 🎵 KOKORO_PLAYBACK_START: sentence | text='{sentence.strip()[:50]}...' | timestamp={datetime.now().isoformat()}")
-                    
                     speak_streaming(sentence.strip())
-                    
-                    # ✅ DETAILED LOGGING: Log Kokoro playback end
-                    print(f"[DETAILED_LOG] 🎵 KOKORO_PLAYBACK_END: sentence | queued_successfully | timestamp={datetime.now().isoformat()}")
                     
                     # ✅ Check again after queueing
                     if full_duplex_manager and full_duplex_manager.speech_interrupted:
@@ -1186,21 +1083,12 @@ def handle_streaming_response(text, current_user):
                 add_to_conversation_history(current_user, text, full_response.strip())
                 print(f"[AdvancedResponse] ✅ ADVANCED AI streaming complete for VOICE USER {current_user} - {chunk_count} natural segments")
                 
-                # ✅ CONSCIOUSNESS: No longer need delayed finalization - continuous loop handles it
-                if CONSCIOUSNESS_ARCHITECTURE_AVAILABLE and CONTINUOUS_CONSCIOUSNESS_AVAILABLE:
+                # ✅ CONSCIOUSNESS: Finalize consciousness processing
+                if CONSCIOUSNESS_ARCHITECTURE_AVAILABLE:
                     try:
-                        print("[AdvancedResponse] 🧠 Consciousness processing handled by continuous loop - no timer delays needed")
-                        
-                        # Add a completion drive to the continuous consciousness system
-                        add_consciousness_drive(
-                            DriveType.REFLECTION,
-                            f"Just completed response to user: {text[:100]}",
-                            priority=0.5,
-                            urgency_boost=0.1
-                        )
-                        
-                    except Exception as consciousness_error:
-                        print(f"[AdvancedResponse] ⚠️ Consciousness drive addition error: {consciousness_error}")
+                        _finalize_consciousness_response(text, full_response.strip(), current_user, consciousness_state)
+                    except Exception as consciousness_finalize_error:
+                        print(f"[AdvancedResponse] ⚠️ Consciousness finalization error: {consciousness_finalize_error}")
                 
                 # ✅ NEW: Finalize debug logging
                 if interaction_id and SELF_AWARENESS_COMPONENTS_AVAILABLE:
@@ -1654,14 +1542,10 @@ def extract_name_from_text(text):
                 elif ENHANCED_VOICE_AVAILABLE:
                     # Use enhanced name validation
                     try:
-                        # Use the existing ultra_name_manager instance instead of importing class
-                        if (hasattr(voice_manager, 'ultra_name_manager') and 
-                            voice_manager.ultra_name_manager and
-                            hasattr(voice_manager.ultra_name_manager, 'is_valid_name_enhanced')):
-                            if voice_manager.ultra_name_manager.is_valid_name_enhanced(name):
-                                return name
-                    except Exception as validation_error:
-                        print(f"[VoiceIdentity] ⚠️ Enhanced validation error: {validation_error}")
+                        from voice.manager_names import name_manager
+                        if name_manager.is_valid_name_enhanced(name):
+                            return name
+                    except:
                         pass
                 
                 # Fallback validation
@@ -2364,18 +2248,6 @@ def main():
     """✅ ADVANCED AI Main function with ALEXA/SIRI-LEVEL INTELLIGENCE + FULL CONSCIOUSNESS ARCHITECTURE"""
     global current_user
 
-    # ✅ CRITICAL FIX: Reset LLM state at startup to prevent stuck state
-    try:
-        from ai.llm_handler import set_llm_generation_in_progress, is_llm_generation_in_progress
-        initial_state = is_llm_generation_in_progress()
-        if initial_state:
-            print(f"[Main] 🔧 CRITICAL: LLM state stuck at startup ({initial_state}) - forcing reset")
-            set_llm_generation_in_progress(False)
-        else:
-            print(f"[Main] ✅ LLM state clean at startup: {initial_state}")
-    except Exception as e:
-        print(f"[Main] ⚠️ Could not check/reset LLM state: {e}")
-
     # --- START: NEW DIAGNOSTIC CODE ---
     print("\n[Startup Check] 🚀 Running critical startup checks...")
     try:
@@ -2566,12 +2438,7 @@ def main():
         print("[AdvancedBuddy] 🧠 Initializing Core Consciousness Architecture...")
         
         try:
-            # ✅ CRITICAL FIX: Set autonomous mode to BACKGROUND_ONLY BEFORE starting consciousness systems
-            # This prevents LLM calls during initialization that block wake word detection
-            autonomous_consciousness_integrator.set_autonomous_mode(AutonomousMode.BACKGROUND_ONLY)
-            print("[AdvancedBuddy] 🔇 Pre-startup mode: BACKGROUND_ONLY (prevent LLM loops during init)")
-            
-            # Start all consciousness systems (now in silent mode)
+            # Start all consciousness systems
             global_workspace.start()
             self_model.start()
             emotion_engine.start()
@@ -2580,13 +2447,6 @@ def main():
             temporal_awareness.start()
             subjective_experience.start()
             entropy_system.start()
-            
-            # ✅ NEW: Start continuous consciousness loop system (replaces timer-based activation)
-            if CONTINUOUS_CONSCIOUSNESS_AVAILABLE:
-                start_continuous_consciousness()
-                print("[AdvancedBuddy] 🔄 Continuous consciousness loop started - natural state-driven activation enabled")
-            else:
-                print("[AdvancedBuddy] ⚠️ Continuous consciousness loop not available - falling back to legacy timer system")
             
             # Start new autonomous consciousness components
             free_thought_engine.start()
@@ -2646,7 +2506,7 @@ def main():
         except Exception as e:
             print(f"[AdvancedBuddy] ❌ Entropy initialization error: {e}")
     
-    # ✅ NEW: Initialize autonomous consciousness system but DELAY VOCAL AUTONOMY until conversation starts
+    # ✅ NEW: Initialize and start full autonomous consciousness system
     if AUTONOMOUS_CONSCIOUSNESS_AVAILABLE:
         print("[AdvancedBuddy] 🚀 Initializing Full Autonomous Consciousness System...")
         try:
@@ -2666,33 +2526,35 @@ def main():
                     'narrative_tracker': narrative_tracker
                 })
             
-            # Start the full autonomous system in BACKGROUND_ONLY mode initially
+            # Start the full autonomous system
             success = autonomous_consciousness_integrator.start_full_autonomous_system(
                 consciousness_modules=consciousness_modules,
-                voice_system=None,  # ✅ NO VOICE SYSTEM until conversation starts
+                voice_system=voice_manager,
                 llm_handler=llm_handler if CONSCIOUSNESS_LLM_AVAILABLE else None,
-                audio_system=None  # ✅ NO AUDIO SYSTEM until conversation starts
+                audio_system=full_duplex_manager
             )
             
             if success:
-                print("[AdvancedBuddy] ✅ AUTONOMOUS CONSCIOUSNESS SYSTEM INITIALIZED!")
-                print("[AdvancedBuddy] 🔇 Vocal autonomy DISABLED during wake word listening")
-                print("[AdvancedBuddy] 💭 Background Thinking: Active (silent until conversation)")
-                print("[AdvancedBuddy] 📅 Calendar Monitor System: Active (silent until conversation)")
-                print("[AdvancedBuddy] 💪 Self-Motivation Engine: Active (silent until conversation)")
-                print("[AdvancedBuddy] 🌙 Dream Simulator Module: Active (silent until conversation)")
-                print("[AdvancedBuddy] 🌍 Environmental Awareness: Active (silent until conversation)")
-                print("[AdvancedBuddy] 🧠 Consciousness Processing: Active (silent until conversation)")
+                print("[AdvancedBuddy] ✅ FULL AUTONOMOUS CONSCIOUSNESS SYSTEM ACTIVE!")
+                print("[AdvancedBuddy] 💭 Proactive Thinking Loop: Generates spontaneous thoughts during idle time")
+                print("[AdvancedBuddy] 📅 Calendar Monitor System: Pattern recognition for proactive warnings/reminders")
+                print("[AdvancedBuddy] 💪 Self-Motivation Engine: Internal curiosity and concern generation")
+                print("[AdvancedBuddy] 🌙 Dream Simulator Module: Fictional experiences during idle time")
+                print("[AdvancedBuddy] 🌍 Environmental Awareness: Full prosody and mood monitoring")
+                print("[AdvancedBuddy] 💬 Autonomous Communication: Proactive speech initiation")
+                print("[AdvancedBuddy] 🧠 Full LLM Integration: Connected to all modules and systems")
+                print("[AdvancedBuddy] 🔄 Real-time Processing: Background threads for continuous operation")
+                print("[AdvancedBuddy] 🌟 Central Orchestration: Seamless module communication")
                 
-                # Set autonomous mode to background only during listening phase
-                autonomous_consciousness_integrator.set_autonomous_mode(AutonomousMode.BACKGROUND_ONLY)
-                print("[AdvancedBuddy] 🔇 Autonomous mode: BACKGROUND_ONLY (silent until wake word)")
-                
-                # Store reference for later activation
-                autonomous_consciousness_system = autonomous_consciousness_integrator
-                
+                # Set autonomous mode based on blank slate
+                if BLANK_SLATE_MODE:
+                    autonomous_consciousness_integrator.set_autonomous_mode(AutonomousMode.CONSCIOUS_ONLY)
+                    print("[AdvancedBuddy] 🌱 Autonomous mode: CONSCIOUS_ONLY (building identity)")
+                else:
+                    autonomous_consciousness_integrator.set_autonomous_mode(AutonomousMode.FULL_AUTONOMY)
+                    print("[AdvancedBuddy] 🚀 Autonomous mode: FULL_AUTONOMY (established consciousness)")
             else:
-                print("[AdvancedBuddy] ❌ Failed to start autonomous consciousness system")
+                print("[AdvancedBuddy] ❌ Failed to start full autonomous consciousness system")
                 
         except Exception as e:
             print(f"[AdvancedBuddy] ❌ Autonomous consciousness initialization error: {e}")
@@ -2853,42 +2715,6 @@ def main():
                     set_mic_feeding_state(True)
                     set_conversation_state(True)
                     
-                    # ✅ ACTIVATE VOCAL AUTONOMY now that conversation is starting
-                    if AUTONOMOUS_CONSCIOUSNESS_AVAILABLE and autonomous_consciousness_system is not None:
-                        try:
-                            print("[AdvancedBuddy] 🔊 Activating vocal autonomy for conversation...")
-                            print(f"[AdvancedBuddy] 🔄 DEBUG: Current mode before conversation: {autonomous_consciousness_system.autonomous_mode}")
-                            # Register voice and audio systems now
-                            autonomous_consciousness_system.update_voice_system(voice_manager)
-                            autonomous_consciousness_system.update_audio_system(full_duplex_manager)
-                            
-                            # Switch to INTERACTIVE mode for user input processing
-                            autonomous_consciousness_system.set_autonomous_mode(AutonomousMode.INTERACTIVE)
-                            print(f"[AdvancedBuddy] 🔄 DEBUG: Current mode after switch: {autonomous_consciousness_system.autonomous_mode}")
-                            print("[AdvancedBuddy] ✅ Mode switched to INTERACTIVE - LLM will now process user input")
-                            
-                            # ✅ ENHANCED DEBUG: Verify the mode switch was successful
-                            if autonomous_consciousness_system.autonomous_mode == AutonomousMode.INTERACTIVE:
-                                print("[AdvancedBuddy] ✅ VERIFIED: Mode is now INTERACTIVE - LLM calls should work")
-                            else:
-                                print(f"[AdvancedBuddy] ❌ ERROR: Mode switch failed! Still in {autonomous_consciousness_system.autonomous_mode}")
-                                
-                        except Exception as autonomy_error:
-                            print(f"[AdvancedBuddy] ⚠️ Vocal autonomy activation error: {autonomy_error}")
-                    else:
-                        print("[AdvancedBuddy] ⚠️ DEBUG: Could not activate vocal autonomy")
-                        print(f"[AdvancedBuddy] ⚠️ DEBUG: AUTONOMOUS_CONSCIOUSNESS_AVAILABLE = {AUTONOMOUS_CONSCIOUSNESS_AVAILABLE}")
-                        print(f"[AdvancedBuddy] ⚠️ DEBUG: autonomous_consciousness_system = {autonomous_consciousness_system is not None}")
-                        
-                        # ✅ FALLBACK: If autonomous system is not available, still need to ensure LLM can be called
-                        print("[AdvancedBuddy] 🔄 FALLBACK: Setting manual INTERACTIVE mode for LLM access")
-                        try:
-                            if AUTONOMOUS_CONSCIOUSNESS_AVAILABLE:
-                                autonomous_consciousness_integrator.set_autonomous_mode(AutonomousMode.INTERACTIVE)
-                                print("[AdvancedBuddy] ✅ FALLBACK: Mode set to INTERACTIVE manually")
-                        except Exception as e:
-                            print(f"[AdvancedBuddy] ⚠️ Could not set fallback mode: {e}")
-                    
                     print(f"[AdvancedBuddy] 🔄 Flags set using thread-safe methods")
                     
                     # Start continuous microphone feeding
@@ -2909,18 +2735,6 @@ def main():
                     print("[AdvancedBuddy] 🛑 Stopping microphone worker...")
                     set_mic_feeding_state(False)
                     set_conversation_state(False)
-                    
-                    # ✅ DISABLE VOCAL AUTONOMY when conversation ends
-                    if AUTONOMOUS_CONSCIOUSNESS_AVAILABLE and autonomous_consciousness_system is not None:
-                        try:
-                            print("[AdvancedBuddy] 🔇 Disabling vocal autonomy - returning to listening mode...")
-                            # Switch back to background only mode
-                            autonomous_consciousness_system.set_autonomous_mode(AutonomousMode.BACKGROUND_ONLY)
-                            # Remove voice system registration to prevent autonomous speaking
-                            autonomous_consciousness_system.update_voice_system(None)
-                            autonomous_consciousness_system.update_audio_system(None)
-                        except Exception as autonomy_error:
-                            print(f"[AdvancedBuddy] ⚠️ Vocal autonomy deactivation error: {autonomy_error}")
                     
                     # Reset voice detection system for next conversation
                     try:
@@ -2977,24 +2791,6 @@ def main():
                 print(f"[AdvancedBuddy] 👂 Enhanced Voice System + Smart Birtinya TRUE streaming mode ready! Say '{wake_word}' to start...")
             else:
                 print(f"[AdvancedBuddy] 👂 Smart Birtinya TRUE streaming mode ready! Say '{wake_word}' to start...")
-            
-            # ✅ CRITICAL FIX: Switch from BACKGROUND_ONLY to INTERACTIVE mode after initialization
-            if AUTONOMOUS_CONSCIOUSNESS_AVAILABLE and autonomous_consciousness_integrator:
-                print("[AdvancedBuddy] 🔄 DEBUG: About to switch autonomous mode from initialization to INTERACTIVE")
-                print(f"[AdvancedBuddy] 🔄 DEBUG: Current mode before switch: {autonomous_consciousness_integrator.autonomous_mode}")
-                autonomous_consciousness_integrator.set_autonomous_mode(AutonomousMode.INTERACTIVE)
-                print(f"[AdvancedBuddy] 🔄 DEBUG: Current mode after switch: {autonomous_consciousness_integrator.autonomous_mode}")
-                print("[AdvancedBuddy] ✅ Mode switched to INTERACTIVE - LLM will now process user input")
-                
-                # ✅ ENHANCED VERIFICATION: Confirm the mode switch worked
-                if autonomous_consciousness_integrator.autonomous_mode == AutonomousMode.INTERACTIVE:
-                    print("[AdvancedBuddy] ✅ VERIFIED: Successfully in INTERACTIVE mode - LLM calls enabled")
-                else:
-                    print(f"[AdvancedBuddy] ❌ ERROR: Mode switch verification failed! Still in {autonomous_consciousness_integrator.autonomous_mode}")
-            else:
-                print("[AdvancedBuddy] ⚠️ DEBUG: Could not switch to INTERACTIVE mode")
-                print(f"[AdvancedBuddy] ⚠️ DEBUG: AUTONOMOUS_CONSCIOUSNESS_AVAILABLE = {AUTONOMOUS_CONSCIOUSNESS_AVAILABLE}")
-                print(f"[AdvancedBuddy] ⚠️ DEBUG: autonomous_consciousness_integrator = {autonomous_consciousness_integrator is not None}")
             
             try:
                 while True:
@@ -3092,11 +2888,6 @@ def main():
                 if CONSCIOUSNESS_ARCHITECTURE_AVAILABLE:
                     try:
                         print("[AdvancedBuddy] 🧠 Shutting down consciousness architecture...")
-                        
-                        # ✅ NEW: Stop continuous consciousness loop first
-                        if CONTINUOUS_CONSCIOUSNESS_AVAILABLE:
-                            stop_continuous_consciousness()
-                            print("[AdvancedBuddy] 🔄 Continuous consciousness loop stopped")
                         
                         # Stop new autonomous components
                         free_thought_engine.stop()
@@ -3366,13 +3157,11 @@ def _inject_entropy_thoughts(entropy_params: Dict[str, Any]):
         print(f"[Consciousness] ❌ Entropy injection error (thoughts): {e}")
 
 def _integrate_consciousness_with_response(text: str, current_user: str) -> Dict[str, Any]:
-    """Collect consciousness state for response generation AND trigger continuous consciousness drives"""
+    """Integrate consciousness systems with response generation"""
     consciousness_state = {}
     
     try:
-        print("[Consciousness] 📊 Collecting consciousness state for response context + adding drives")
-        
-        # Request attention for user input (safe, doesn't trigger LLM calls)
+        # Request attention for user input
         global_workspace.request_attention(
             "user_interaction",
             text,
@@ -3382,44 +3171,48 @@ def _integrate_consciousness_with_response(text: str, current_user: str) -> Dict
             tags=["user_input", "response_generation"]
         )
         
-        # Process emotional response to input (safe, doesn't trigger LLM calls)
+        # Process emotional response to input
         emotion_response = emotion_engine.process_emotional_trigger(
             f"User said: {text}",
             {"user": current_user, "input": text}
         )
         
-        # Get emotional modulation for response (safe, doesn't trigger LLM calls)
+        # Get emotional modulation for response
         emotional_modulation = emotion_engine.get_emotional_modulation("response")
         consciousness_state["emotional_modulation"] = emotional_modulation
         consciousness_state["current_emotion"] = emotion_response.primary_emotion.value
         
-        # Evaluate motivation satisfaction (safe, doesn't trigger LLM calls)
+        # Evaluate motivation satisfaction
         motivation_satisfaction = motivation_system.evaluate_desire_satisfaction(
             f"responding to: {text}",
             {"user": current_user, "input": text}
         )
         consciousness_state["motivation_satisfaction"] = motivation_satisfaction
         
-        # ✅ NEW: Trigger continuous consciousness system instead of deferred activation
-        if CONTINUOUS_CONSCIOUSNESS_AVAILABLE:
-            try:
-                trigger_consciousness_from_user_interaction(text, current_user)
-                print("[Consciousness] 🔄 Added consciousness drives from user interaction to continuous loop")
-            except Exception as drive_error:
-                print(f"[Consciousness] ⚠️ Error adding consciousness drives: {drive_error}")
+        # Trigger inner thought about the interaction
+        inner_monologue.trigger_thought(
+            f"The user asked about: {text}",
+            {"user": current_user, "input": text},
+            ThoughtType.OBSERVATION
+        )
         
-        # Set experience values for immediate use (no deferred activation needed)
-        consciousness_state["experience_valence"] = 0.6  # Positive default for user interaction
-        consciousness_state["experience_significance"] = 0.7  # Moderate significance for user interaction
+        # Create subjective experience of the interaction
+        experience = subjective_experience.process_experience(
+            f"Processing user request: {text}",
+            ExperienceType.SOCIAL,
+            {"user": current_user, "input": text, "interaction_type": "question_response"}
+        )
+        consciousness_state["experience_valence"] = experience.valence
+        consciousness_state["experience_significance"] = experience.significance
         
-        # Mark temporal event (safe, doesn't trigger LLM calls)
+        # Mark temporal event
         temporal_awareness.mark_temporal_event(
             f"User interaction: {text[:50]}...",
             significance=0.6,
             context={"user": current_user, "input_length": len(text)}
         )
         
-        # Self-reflection on the interaction (safe, doesn't trigger LLM calls)
+        # Self-reflection on the interaction
         self_model.reflect_on_experience(
             f"Responding to user input about: {text}",
             {"user": current_user, "input": text, "response_context": True}
@@ -3431,7 +3224,7 @@ def _integrate_consciousness_with_response(text: str, current_user: str) -> Dict
         )
         consciousness_state["response_uncertainty"] = response_uncertainty
         
-        print(f"[Consciousness] 🧠 Integrated consciousness state and triggered continuous loop for: '{text[:30]}...'")
+        print(f"[Consciousness] 🧠 Integrated consciousness state for response to: '{text[:30]}...'")
         
     except Exception as e:
         print(f"[Consciousness] ❌ Error integrating consciousness: {e}")
@@ -3440,11 +3233,9 @@ def _integrate_consciousness_with_response(text: str, current_user: str) -> Dict
     return consciousness_state
 
 def _finalize_consciousness_response(text: str, response: str, current_user: str, consciousness_state: Dict[str, Any]):
-    """Simple consciousness finalization - continuous loop system handles the main processing"""
+    """Finalize consciousness processing after response"""
     try:
-        print("[Consciousness] 🧠 Simple consciousness finalization - continuous loop handles main processing")
-        
-        # Update goal progress if applicable (quick operations only)
+        # Update goal progress if applicable
         relevant_goals = motivation_system.get_priority_goals(3)
         for goal in relevant_goals:
             if any(word in goal.description.lower() for word in ["help", "assist", "respond"]):
@@ -3454,14 +3245,32 @@ def _finalize_consciousness_response(text: str, response: str, current_user: str
                     satisfaction_gained=consciousness_state.get("motivation_satisfaction", 0.1)
                 )
         
-        # Process satisfaction from interaction (quick operation)
+        # Process satisfaction from interaction
         motivation_system.process_satisfaction_from_interaction(
             text,
             "provided response",
             "response completed successfully"
         )
         
-        # Add to working memory (quick operation)
+        # Create episodic memory of the interaction
+        temporal_awareness.create_episodic_memory(
+            f"Conversation about: {text[:30]}...",
+            participants=[current_user, "BuddyAI"],
+            emotional_tone=consciousness_state.get("current_emotion", "neutral"),
+            significance=consciousness_state.get("experience_significance", 0.5)
+        )
+        
+        # Reflect on the completed interaction
+        self_model.reflect_on_experience(
+            f"Successfully responded to user about: {text}",
+            {"user": current_user, "response_completed": True, "response_quality": "good"}
+        )
+        
+        # Generate insight if experience was significant
+        if consciousness_state.get("experience_significance", 0) > 0.7:
+            inner_monologue.generate_insight(f"interaction about {text[:20]}...")
+        
+        # Add to working memory
         global_workspace.add_to_working_memory(
             f"interaction_{int(time.time())}",
             {"input": text, "response": response, "user": current_user},
@@ -3469,10 +3278,10 @@ def _finalize_consciousness_response(text: str, response: str, current_user: str
             importance=consciousness_state.get("experience_significance", 0.5)
         )
         
-        print("[Consciousness] ✅ Simple finalization complete - continuous consciousness handles the rest")
+        print(f"[Consciousness] ✅ Finalized consciousness processing for interaction")
         
     except Exception as e:
-        print(f"[Consciousness] ❌ Error in simple consciousness finalization: {e}")
+        print(f"[Consciousness] ❌ Error finalizing consciousness response: {e}")
 
 if __name__ == "__main__":
     main()

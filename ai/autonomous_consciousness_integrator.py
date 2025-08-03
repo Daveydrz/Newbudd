@@ -30,7 +30,6 @@ class AutonomousMode(Enum):
     """Modes of autonomous operation"""
     FULL_AUTONOMY = "full_autonomy"           # All systems active and interconnected
     CONSCIOUS_ONLY = "conscious_only"         # Only conscious-level autonomous functions
-    INTERACTIVE = "interactive"               # Interactive mode - LLM processes user input
     BACKGROUND_ONLY = "background_only"       # Only background processing
     REACTIVE_MODE = "reactive_mode"           # Minimal autonomy, mostly reactive
     SLEEP_MODE = "sleep_mode"                 # Minimal autonomous functions
@@ -158,47 +157,6 @@ class AutonomousConsciousnessIntegrator:
         self._adjust_autonomous_behavior(mode)
         
         logging.info(f"[AutonomousIntegrator] 🔧 Autonomous mode set to: {mode.value}")
-    
-    def update_voice_system(self, voice_system: Any):
-        """Update voice system registration for all modules"""
-        with self.lock:
-            self.voice_system = voice_system
-        
-        # Re-register with all modules
-        self._register_voice_system_with_modules()
-        
-        logging.info(f"[AutonomousIntegrator] 🗣️ Voice system {'registered' if voice_system else 'unregistered'}")
-    
-    def update_audio_system(self, audio_system: Any):
-        """Update audio system registration for all modules"""
-        with self.lock:
-            self.audio_system = audio_system
-        
-        # Re-register with environmental awareness
-        if self.environmental_awareness:
-            if audio_system:
-                self.environmental_awareness.register_audio_system(audio_system)
-            # Note: No unregister method available, so we just skip registration
-        
-        logging.info(f"[AutonomousIntegrator] 🎵 Audio system {'registered' if audio_system else 'unregistered'}")
-    
-    def _register_voice_system_with_modules(self):
-        """Register voice system with all modules that need it"""
-        modules = [
-            self.proactive_thinking,
-            self.calendar_monitor,
-            self.self_motivation,
-            self.dream_simulator,
-            self.environmental_awareness,
-            self.communication_manager
-        ]
-        
-        for module in modules:
-            try:
-                if hasattr(module, 'register_voice_system'):
-                    module.register_voice_system(self.voice_system)
-            except Exception as e:
-                logging.error(f"[AutonomousIntegrator] ❌ Voice system registration error for {module}: {e}")
     
     def trigger_autonomous_expression(self, trigger_type: str, context: Dict[str, Any]):
         """Trigger autonomous expression based on external events"""
@@ -736,15 +694,9 @@ class AutonomousConsciousnessIntegrator:
             self.cross_system_communication_interval = 300.0
             self.autonomous_check_in_interval = 3600.0
             
-        elif mode == AutonomousMode.INTERACTIVE:
-            # Interactive mode - LLM processes user input, limited autonomous expressions
-            self.autonomous_expression_chance = 0.1
-            self.cross_system_communication_interval = 450.0
-            self.autonomous_check_in_interval = 5400.0
-            
         elif mode == AutonomousMode.BACKGROUND_ONLY:
-            # Only background processing - NO autonomous expressions
-            self.autonomous_expression_chance = 0.0  # ✅ FIX: Completely silent during listening/responding
+            # Only background processing
+            self.autonomous_expression_chance = 0.05
             self.cross_system_communication_interval = 600.0
             self.autonomous_check_in_interval = 7200.0
             
@@ -861,10 +813,6 @@ class AutonomousConsciousnessIntegrator:
     def get_comprehensive_stats(self) -> Dict[str, Any]:
         """Alias for get_autonomous_stats for compatibility"""
         return self.get_autonomous_stats()
-    
-    def get_autonomous_mode(self) -> AutonomousMode:
-        """Get current autonomous mode"""
-        return self.autonomous_mode
 
 
 # Global instance

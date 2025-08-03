@@ -1,8 +1,7 @@
-# ai/chat_enhanced_smart_with_fusion.py - Enhanced chat with intelligent memory fusion and consciousness
+# ai/chat_enhanced_smart_with_fusion.py - Enhanced chat with intelligent memory fusion
 from ai.human_memory_smart import SmartHumanLikeMemory
+from ai.chat import generate_response_streaming
 from ai.memory_fusion_intelligent import get_intelligent_unified_username
-# ✅ CRITICAL FIX: Don't import LLMHandler to avoid circular import
-# Will import at runtime when needed
 import random
 
 # ✅ ENTROPY SYSTEM: Import consciousness emergence components
@@ -230,34 +229,8 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
             
             print(f"[ChatFusion] 🌀 Generating multiple consciousness pathways...")
             
-            # ✅ Use consciousness-integrated LLM handler for all pathways
-            try:
-                from ai.llm_handler import llm_handler
-            except ImportError:
-                # Fallback to creating instance if global not available
-                from ai.llm_handler import LLMHandler
-                llm_handler = LLMHandler()
-            
-            # Build enhanced context for fusion chat
-            fusion_context = {
-                'memory_fusion_active': True,
-                'unified_username': username,
-                'optimization_level': optimization_level,
-                'consciousness_summary': consciousness_summary,
-                'cognitive_context_summary': cognitive_context_summary,
-                'emotional_context': emotional_context if 'emotional_context' in locals() else {},
-                'conversation_context': conversation_context if 'conversation_context' in locals() else "",
-                'context': 'intelligent_fusion_chat'
-            }
-            
-            # Primary pathway (main response) with consciousness integration
-            response_pathways.append(("primary", llm_handler.generate_response_with_consciousness(
-                text=optimized_question, 
-                user=username, 
-                context=fusion_context,
-                stream=True,
-                is_primary_call=True
-            )))
+            # Primary pathway (main response) with optimized prompt
+            response_pathways.append(("primary", generate_response_streaming(optimized_question, username, lang)))
             
             # Check for alternative pathways based on uncertainty (only if not ultra-optimized)
             if optimization_level != "ultra":
@@ -268,18 +241,7 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
                         uncertain_question = f"Uncertain: '{question}' {full_consciousness_summary[:30]}"
                     else:
                         uncertain_question = f"I'm not entirely sure, but regarding '{question}' {full_consciousness_summary}"
-                    # Add uncertainty context
-                    uncertainty_context = fusion_context.copy()
-                    uncertainty_context['uncertainty_level'] = 'high'
-                    uncertainty_context['response_type'] = 'uncertain'
-                    
-                    response_pathways.append(("uncertain", llm_handler.generate_response_with_consciousness(
-                        text=uncertain_question,
-                        user=username,
-                        context=uncertainty_context,
-                        stream=True,
-                        is_primary_call=True
-                    )))
+                    response_pathways.append(("uncertain", generate_response_streaming(uncertain_question, username, lang)))
             
             # Probabilistic pathway selection
             if len(response_pathways) > 1:
@@ -292,56 +254,18 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
                 
         except Exception as pathway_error:
             print(f"[ChatFusion] ⚠️ Pathway generation error: {pathway_error}")
-            # Fallback with consciousness integration
-            try:
-                from ai.llm_handler import llm_handler
-            except ImportError:
-                from ai.llm_handler import LLMHandler
-                llm_handler = LLMHandler()
+            # Fallback with basic optimization
             fallback_question = f"{question} {full_consciousness_summary if 'full_consciousness_summary' in locals() else consciousness_summary}" if consciousness_summary else question
-            
-            fallback_context = {
-                'memory_fusion_active': True,
-                'unified_username': username,
-                'fallback_mode': True,
-                'context': 'intelligent_fusion_fallback'
-            }
-            
-            chosen_generator = llm_handler.generate_response_with_consciousness(
-                text=fallback_question,
-                user=username,
-                context=fallback_context,
-                stream=True,
-                is_primary_call=True
-            )
+            chosen_generator = generate_response_streaming(fallback_question, username, lang)
     else:
         # No entropy system available - use basic consciousness optimization
-        try:
-            from ai.llm_handler import llm_handler
-        except ImportError:
-            from ai.llm_handler import LLMHandler
-            llm_handler = LLMHandler()
         full_consciousness_summary = consciousness_summary
         if cognitive_context_summary:
             full_consciousness_summary = f"{consciousness_summary} {cognitive_context_summary}"
         
         if full_consciousness_summary:
             optimized_question = f"{question} {full_consciousness_summary}"
-            
-        basic_context = {
-            'memory_fusion_active': True,
-            'unified_username': username,
-            'consciousness_summary': full_consciousness_summary,
-            'context': 'intelligent_fusion_basic'
-        }
-        
-        chosen_generator = llm_handler.generate_response_with_consciousness(
-            text=optimized_question,
-            user=username,
-            context=basic_context,
-            stream=True,
-            is_primary_call=True
-        )
+        chosen_generator = generate_response_streaming(optimized_question, username, lang)
     
     # Step 5: Generate main response with unified memory context + CONSCIOUSNESS ENTROPY + TOKEN OPTIMIZATION
     print(f"[ChatFusion] 💭 Generating CONSCIOUSNESS response with unified memory for {username}")

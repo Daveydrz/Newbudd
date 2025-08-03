@@ -413,12 +413,9 @@ class LazyConsciousnessLoader:
             return {
                 'recent_memories': [m.content[:100] for m in recent_memories],
                 'memory_count': len(recent_memories),
-                'context_topics': [getattr(m, 'topics', getattr(m, 'tags', ['general']))[0] if getattr(m, 'topics', getattr(m, 'tags', None)) else 'general' for m in recent_memories]
+                'context_topics': [m.tags[0] if m.tags else 'general' for m in recent_memories]
             }
         except ImportError:
-            return None
-        except Exception as e:
-            print(f"[LazyConsciousnessLoader] ❌ Error loading memory_timeline: {e}")
             return None
     
     def _load_goal_manager(self, user_id: str) -> Optional[Dict[str, Any]]:
@@ -487,49 +484,25 @@ class LazyConsciousnessLoader:
         """Load motivation system module"""
         try:
             from ai.motivation import motivation_system
-            motivations_list = motivation_system.get_current_motivations(limit=3)
-            
-            # ✅ FIX: Handle case where motivations_list could be different types
-            if isinstance(motivations_list, list) and len(motivations_list) > 0:
-                if isinstance(motivations_list[0], (list, tuple)) and len(motivations_list[0]) > 1:
-                    # Expected format: [(motivation_type, intensity), ...]
-                    return {
-                        'current_motivations': [(str(mt), intensity) for mt, intensity in motivations_list],
-                        'motivation_level': motivations_list[0][1] if motivations_list else 0.7
-                    }
-                else:
-                    # Handle single values or different format
-                    return {
-                        'current_motivations': [str(item) for item in motivations_list],
-                        'motivation_level': 0.7
-                    }
-            else:
-                # Empty or None
-                return {
-                    'current_motivations': [],
-                    'motivation_level': 0.7
-                }
+            motivation_state = motivation_system.get_current_motivations(user_id)
+            return {
+                'current_motivations': motivation_state.get('active_motivations', []),
+                'motivation_level': motivation_state.get('overall_level', 0.7)
+            }
         except ImportError:
-            return None
-        except Exception as e:
-            print(f"[LazyConsciousnessLoader] ❌ Error loading motivation_system: {e}")
             return None
     
     def _load_temporal_awareness(self, user_id: str) -> Optional[Dict[str, Any]]:
         """Load temporal awareness module"""
         try:
             from ai.temporal_awareness import temporal_awareness
-            # ✅ FIX: get_current_time_context() is a method, not a function with user_id
-            temporal_state = temporal_awareness.get_current_time_context()
+            temporal_state = temporal_awareness.get_current_time_context(user_id)
             return {
                 'time_of_day': temporal_state.get('time_period', 'unknown'),
                 'session_duration': temporal_state.get('session_length', 'short'),
                 'temporal_patterns': temporal_state.get('patterns', [])
             }
         except ImportError:
-            return None
-        except Exception as e:
-            print(f"[LazyConsciousnessLoader] ❌ Error loading temporal_awareness: {e}")
             return None
     
     def _load_self_model(self, user_id: str) -> Optional[Dict[str, Any]]:
@@ -550,17 +523,13 @@ class LazyConsciousnessLoader:
     def _load_belief_tracker(self, user_id: str) -> Optional[Dict[str, Any]]:
         """Load belief tracker module"""
         try:
-            from ai.belief_evolution_tracker import get_belief_evolution_tracker
-            belief_tracker = get_belief_evolution_tracker(user_id)
+            from ai.belief_evolution_tracker import get_belief_tracker
+            belief_tracker = get_belief_tracker(user_id)
             active_beliefs = belief_tracker.get_active_beliefs()
-            # ✅ FIX: Use existing method instead of non-existent detect_contradictions()
-            conflicts = belief_tracker.get_belief_conflicts(unresolved_only=True)
-            contradictions = [f"{conflict.description[:50]}..." for conflict in conflicts[:3]]
-            
             return {
                 'active_beliefs': [b.content[:60] for b in active_beliefs[:3]],
-                'belief_strength': [b.confidence_score for b in active_beliefs[:3]],
-                'contradictions': contradictions
+                'belief_strength': [b.confidence for b in active_beliefs[:3]],
+                'contradictions': belief_tracker.detect_contradictions()
             }
         except (ImportError, AttributeError) as e:
             print(f"[LazyConsciousnessLoader] ❌ Error loading belief_tracker: {e}")
@@ -595,14 +564,6 @@ class LazyConsciousnessLoader:
         except (ImportError, AttributeError) as e:
             print(f"[LazyConsciousnessLoader] ❌ Error loading subjective_experience: {e}")
             return None
-    
-    def load_memory_timeline(self, user_id: str = "default") -> Optional[Dict[str, Any]]:
-        """Load memory timeline module - compatibility method"""
-        return self._load_memory_timeline(user_id)
-    
-    def load_motivation_system(self, user_id: str = "default") -> Optional[Dict[str, Any]]:
-        """Load motivation system module - compatibility method"""
-        return self._load_motivation_system(user_id)
     
     def get_consciousness_summary(self, loaded_modules: Dict[str, Any]) -> Dict[str, Any]:
         """

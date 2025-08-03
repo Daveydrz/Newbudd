@@ -259,56 +259,6 @@ class BeliefEvolutionTracker:
         print(f"[BeliefEvolution] ✨ Formed belief: {content[:50]}... ({belief_type.value})")
         return belief_id
     
-    def add_belief(self, content: str, belief_type: str = "factual", **kwargs) -> str:
-        """
-        Alias for form_belief to maintain compatibility
-        
-        Args:
-            content: The belief content
-            belief_type: Type of belief (factual, evaluative, etc.)
-            **kwargs: Additional arguments passed to form_belief
-            
-        Returns:
-            Belief ID
-        """
-        try:
-            # Map string belief types to enum
-            belief_type_map = {
-                "factual": BeliefType.FACTUAL,
-                "evaluative": BeliefType.EVALUATIVE,
-                "causal": BeliefType.CAUSAL,
-                "predictive": BeliefType.PREDICTIVE,
-                "normative": BeliefType.NORMATIVE,
-                "personal": BeliefType.PERSONAL,
-                "experiential": BeliefType.EXPERIENTIAL,
-                "conceptual": BeliefType.CONCEPTUAL
-            }
-            
-            belief_type_enum = belief_type_map.get(belief_type.lower(), BeliefType.FACTUAL)
-            strength = kwargs.get('strength', BeliefStrength.MODERATE)
-            
-            # Handle strength as string
-            if isinstance(strength, str):
-                strength_map = {
-                    "weak": BeliefStrength.WEAK,
-                    "moderate": BeliefStrength.MODERATE,
-                    "strong": BeliefStrength.STRONG
-                }
-                strength = strength_map.get(strength.lower(), BeliefStrength.MODERATE)
-            
-            return self.form_belief(
-                content=content,
-                belief_type=belief_type_enum,
-                strength=strength,
-                domains=kwargs.get('domains'),
-                formation_context=kwargs.get('formation_context', ''),
-                supporting_evidence=kwargs.get('supporting_evidence')
-            )
-        except Exception as e:
-            print(f"[BeliefEvolution] ❌ Error in add_belief: {e}")
-            # Return a dummy ID to prevent crashes
-            return f"belief_error_{int(time.time())}"
-    
     def add_evidence(self,
                     belief_id: str,
                     evidence_content: str,
@@ -535,20 +485,6 @@ class BeliefEvolutionTracker:
         conflicts.sort(key=lambda c: c.severity, reverse=True)
         
         return conflicts
-    
-    def detect_contradictions(self) -> List[str]:
-        """
-        Detect contradictions in beliefs - instance method for compatibility
-        
-        Returns:
-            List of contradiction descriptions
-        """
-        try:
-            conflicts = self.get_belief_conflicts(unresolved_only=True)
-            return [f"{conflict.description}" for conflict in conflicts[:5]]
-        except Exception as e:
-            print(f"[BeliefEvolution] ❌ Error detecting contradictions: {e}")
-            return []
     
     def get_belief_network(self, belief_id: str, max_depth: int = 2) -> Dict[str, Any]:
         """Get belief relationship network"""
@@ -1134,25 +1070,3 @@ def start_belief_evolution(user_id: str):
     """Start belief evolution monitoring for a user"""
     tracker = get_belief_evolution_tracker(user_id)
     tracker.start_evolution_monitoring()
-
-def detect_contradictions(user_id: str = None) -> List[str]:
-    """
-    Detect contradictions in user's beliefs - compatibility method
-    
-    Args:
-        user_id: User identifier (optional, defaults to 'system')
-        
-    Returns:
-        List of contradiction descriptions
-    """
-    try:
-        # Use default user if none provided for backward compatibility
-        if user_id is None:
-            user_id = 'system'
-            
-        tracker = get_belief_evolution_tracker(user_id)
-        conflicts = tracker.get_belief_conflicts(unresolved_only=True)
-        return [f"{conflict.description}" for conflict in conflicts[:5]]
-    except Exception as e:
-        print(f"[BeliefEvolution] ❌ Error detecting contradictions: {e}")
-        return []

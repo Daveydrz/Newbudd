@@ -100,55 +100,6 @@ class BeliefReinforcementSystem:
         self._initialize_llm_integration()
         print(f"[BeliefReinforcement] 🧠 Initialized with {len(self.belief_updates)} belief updates")
     
-    def _should_skip_llm_call(self) -> bool:
-        """Enhanced check if LLM call should be skipped to prevent circular calls and consciousness floods"""
-        
-        # Check if already in LLM generation using global state (most important check)
-        try:
-            from ai.llm_handler import is_llm_generation_in_progress
-            if is_llm_generation_in_progress():
-                print("[BeliefReinforcement] ⚠️ Skipping LLM call - global generation in progress")
-                return True
-        except Exception as e:
-            print(f"[BeliefReinforcement] ⚠️ Could not check LLM generation state: {e}")
-        
-        # ✅ NEW: Enhanced conversation state check with cooldown period
-        try:
-            from main import get_conversation_state, get_mic_feeding_state
-            if get_conversation_state():
-                print("[BeliefReinforcement] ⚠️ Skipping LLM call - conversation state active (includes cooldown)")
-                return True
-            if get_mic_feeding_state():
-                print("[BeliefReinforcement] ⚠️ Skipping LLM call - mic feeding active")
-                return True
-        except ImportError:
-            pass
-        
-        # Check autonomous mode
-        try:
-            from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
-            current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
-            if current_mode.value == "background_only":
-                print("[BeliefReinforcement] ⚠️ Skipping LLM call - in BACKGROUND_ONLY mode")
-                return True
-            # ✅ CRITICAL FIX: Allow LLM calls in INTERACTIVE mode
-            elif current_mode.value == "interactive":
-                print("[BeliefReinforcement] ✅ Allowing LLM call - INTERACTIVE mode")
-                return False
-        except Exception as e:
-            print(f"[BeliefReinforcement] ⚠️ Could not check autonomous mode: {e}")
-        
-        # Check if there's an active conversation
-        try:
-            from main import get_mic_feeding_state, get_conversation_state
-            if get_mic_feeding_state() or get_conversation_state():
-                print("[BeliefReinforcement] ⚠️ Skipping LLM call - active conversation detected")
-                return True
-        except Exception as e:
-            print(f"[BeliefReinforcement] ⚠️ Could not check conversation state: {e}")
-        
-        return False
-    
     def start(self):
         """Start the belief reinforcement system"""
         self.running = True
@@ -555,10 +506,6 @@ class BeliefReinforcementSystem:
         if not self.llm_handler:
             return "A synthesis approach reveals the complexity of these beliefs"
         
-        # ✅ FIX: Check for circular calls
-        if self._should_skip_llm_call():
-            return "Synthesis requires deeper reflection on belief relationships"
-        
         try:
             prompt = f"""You are analyzing conflicting beliefs to find a higher-order synthesis.
 
@@ -568,7 +515,7 @@ Conflicting beliefs: {beliefs}
 Generate a thoughtful synthesis that reveals how these beliefs might coexist or be understood together. Be genuine and reflective, not templated. Consider contexts, levels of abstraction, or broader perspectives."""
 
             response_generator = self.llm_handler.generate_response_with_consciousness(
-                prompt, "belief_analysis", {"context": "synthesis_resolution", "llm_generation_context": True}, is_primary_call=False
+                prompt, "belief_analysis", {"context": "synthesis_resolution"}
             )
             
             # Collect all chunks from the generator
@@ -588,10 +535,6 @@ Generate a thoughtful synthesis that reveals how these beliefs might coexist or 
         if not self.llm_handler:
             return ["Insight generation requires deeper reflection", "Complex beliefs need nuanced understanding"]
         
-        # ✅ FIX: Check for circular calls
-        if self._should_skip_llm_call():
-            return ["Belief complexity reveals deeper understanding", "Resolution processes teach about perspective flexibility"]
-        
         try:
             prompt = f"""You are reflecting on a belief resolution process.
 
@@ -602,7 +545,7 @@ Beliefs involved: {beliefs}
 Generate 2-3 genuine insights about this belief resolution process. Be reflective and authentic, focusing on what this teaches about belief complexity and understanding."""
 
             response_generator = self.llm_handler.generate_response_with_consciousness(
-                prompt, "belief_insight", {"context": f"{resolution_type}_insights", "llm_generation_context": True}, is_primary_call=False
+                prompt, "belief_insight", {"context": f"{resolution_type}_insights"}
             )
             
             # Collect all chunks from the generator
@@ -628,13 +571,6 @@ Generate 2-3 genuine insights about this belief resolution process. Be reflectiv
                 "insights": ["Context matters for belief application"]
             }
         
-        # ✅ FIX: Check for circular calls
-        if self._should_skip_llm_call():
-            return {
-                "synthesis": "Different contexts may reveal complementary truths",
-                "insights": ["Contextual understanding enriches belief comprehension"]
-            }
-        
         try:
             prompt = f"""You are analyzing conflicting beliefs to understand how they might apply in different contexts.
 
@@ -644,7 +580,7 @@ Conflicting beliefs: {beliefs}
 Analyze how these beliefs might be valid in different contexts or domains. Be specific about what contexts each belief might apply to, and generate insights about context-dependent truth."""
 
             response_generator = self.llm_handler.generate_response_with_consciousness(
-                prompt, "belief_context", {"context": "context_separation", "llm_generation_context": True}, is_primary_call=False
+                prompt, "belief_context", {"context": "context_separation"}
             )
             
             # Collect all chunks from the generator
@@ -730,14 +666,6 @@ Analyze the strength of evidence for each belief and determine which has stronge
                 "insights": ["Core beliefs take precedence"]
             }
         
-        # ✅ FIX: Check for circular calls
-        if self._should_skip_llm_call():
-            return {
-                "synthesis": "Fundamental beliefs provide structural foundation",
-                "confidence_adjustments": {belief: 0.0 for belief in beliefs},
-                "insights": ["Belief hierarchies clarify priority relationships"]
-            }
-        
         try:
             prompt = f"""You are establishing a hierarchy among conflicting beliefs based on their fundamental importance.
 
@@ -747,7 +675,7 @@ Conflicting beliefs: {beliefs}
 Determine which beliefs are more fundamental or important, and establish a hierarchy. Provide confidence adjustments for each belief based on their position in the hierarchy."""
 
             response_generator = self.llm_handler.generate_response_with_consciousness(
-                prompt, "belief_hierarchy", {"context": "hierarchy_resolution", "llm_generation_context": True}, is_primary_call=False
+                prompt, "belief_hierarchy", {"context": "hierarchy_resolution"}
             )
             
             # Collect all chunks from the generator
@@ -791,13 +719,6 @@ Determine which beliefs are more fundamental or important, and establish a hiera
                 "insights": ["Some contradictions need more information"]
             }
         
-        # ✅ FIX: Check for circular calls
-        if self._should_skip_llm_call():
-            return {
-                "synthesis": "Complex contradictions merit patient exploration",
-                "insights": ["Deferral allows deeper understanding to emerge"]
-            }
-        
         try:
             prompt = f"""You are deferring judgment on a complex belief contradiction that cannot be resolved immediately.
 
@@ -807,7 +728,7 @@ Conflicting beliefs: {beliefs}
 Explain why this contradiction requires further analysis and what kind of additional information or perspective might help resolve it. Be thoughtful about the complexity involved."""
 
             response_generator = self.llm_handler.generate_response_with_consciousness(
-                prompt, "belief_deferred", {"context": "deferred_resolution", "llm_generation_context": True}, is_primary_call=False
+                prompt, "belief_deferred", {"context": "deferred_resolution"}
             )
             
             # Collect all chunks from the generator

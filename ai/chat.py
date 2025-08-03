@@ -46,20 +46,12 @@ Respond as yourself with your natural personality - be authentic, not overly apo
             # Try to get LLM response
             try:
                 llm_handler = LLMHandler()
-                response_generator = llm_handler.generate_response_with_consciousness(
-                    consciousness_prompt, "system", {"context": "error_handling", "use_optimization": False}, 
-                    stream=False, is_primary_call=False
+                response = llm_handler.generate_response_with_consciousness(
+                    consciousness_prompt, "system", {"context": "error_handling"}
                 )
-                # Collect all response chunks
-                response_chunks = []
-                for chunk in response_generator:
-                    if chunk:
-                        response_chunks.append(chunk)
-                response = "".join(response_chunks).strip()
-                if response:
-                    return response
-            except Exception as e:
-                print(f"[Chat] ⚠️ LLM error handling failed: {e}")
+                if response and response.strip():
+                    return response.strip()
+            except:
                 pass
                 
         except ImportError:
@@ -119,13 +111,296 @@ def get_current_brisbane_time():
             'timezone': 'Australia/Brisbane (+10:00)'
         }
 
-def generate_response_streaming(question, username, lang=DEFAULT_LANG):
-    """✅ CONSCIOUSNESS-INTEGRATED: Generate AI response with consciousness integration and streaming"""
+def ask_kobold_streaming(messages, max_tokens=MAX_TOKENS):
+    """✅ SMART RESPONSIVE: Wait for 40-50% completion or first complete phrase"""
+    payload = {
+        "model": "llama3",
+        "messages": messages,
+        "max_tokens": max_tokens,
+        "temperature": TEMPERATURE,
+        "stream": True
+    }
+    
     try:
-        print(f"[ChatStream] 🧠 Starting consciousness-integrated streaming for '{question}' from user '{username}'")
+        print(f"[SmartResponsive] 🎭 Starting smart responsive streaming to: {KOBOLD_URL}")
         
-        # Import LLMHandler for consciousness integration
-        from ai.llm_handler import LLMHandler
+        response = requests.post(
+            KOBOLD_URL, 
+            json=payload, 
+            timeout=60,
+            stream=True
+        )
+        
+        if response.status_code == 200:
+            buffer = ""
+            word_count = 0
+            chunk_count = 0
+            first_chunk_sent = False
+            estimated_total_words = max_tokens // 1.3  # Rough estimate of final word count
+            
+            # ✅ SMART THRESHOLDS: Wait for natural completion
+            MIN_WORDS_FOR_FIRST_CHUNK = 8              # Minimum words before considering first chunk
+            TARGET_COMPLETION_PERCENTAGE = 0.45        # Target 45% completion
+            TARGET_WORDS = int(estimated_total_words * TARGET_COMPLETION_PERCENTAGE)
+            
+            print(f"[SmartResponsive] 🎯 Targeting 40-50% completion (~{TARGET_WORDS} words) or first complete phrase")
+            
+            for line in response.iter_lines():
+                if line:
+                    line_text = line.decode('utf-8')
+                    
+                    if not line_text.strip() or line_text.startswith(':'):
+                        continue
+                    
+                    if line_text.startswith('data: '):
+                        data_content = line_text[6:]
+                        
+                        if data_content.strip() == '[DONE]':
+                            break
+                        
+                        try:
+                            chunk_data = json.loads(data_content)
+                            
+                            if 'choices' in chunk_data and len(chunk_data['choices']) > 0:
+                                choice = chunk_data['choices'][0]
+                                
+                                content = ""
+                                if 'delta' in choice and 'content' in choice['delta']:
+                                    content = choice['delta']['content']
+                                elif 'message' in choice and 'content' in choice['message']:
+                                    content = choice['message']['content']
+                                
+                                if content:
+                                    buffer += content
+                                    word_count = len(buffer.split())
+                                    
+                                    # ✅ SMART FIRST CHUNK: Wait for natural break OR target completion
+                                    if not first_chunk_sent and word_count >= MIN_WORDS_FOR_FIRST_CHUNK:
+                                        
+                                        # Priority 1: Look for complete sentences (best option)
+                                        sentence_match = re.search(r'^(.*?[.!?])\s+', buffer)
+                                        if sentence_match:
+                                            first_chunk = sentence_match.group(1).strip()
+                                            if len(first_chunk.split()) >= 4:  # Ensure meaningful length
+                                                chunk_count += 1
+                                                first_chunk_sent = True
+                                                print(f"[SmartResponsive] 📝 SMART first chunk (complete sentence): '{first_chunk}'")
+                                                yield first_chunk
+                                                buffer = buffer[sentence_match.end():].strip()
+                                                continue
+                                        
+                                        # Priority 2: Look for natural phrase breaks (comma, etc.)
+                                        phrase_patterns = [
+                                            r'^(.*?,)\s+',           # After comma
+                                            r'^(.*?;\s+)',           # After semicolon
+                                            r'^(.*?:\s+)',           # After colon
+                                            r'^(.*?\s+and\s+)',      # Before "and"
+                                            r'^(.*?\s+but\s+)',      # Before "but"
+                                            r'^(.*?\s+so\s+)',       # Before "so"
+                                            r'^(.*?\s+because\s+)',  # Before "because"
+                                            r'^(.*?\s+however\s+)',  # Before "however"
+                                        ]
+                                        
+                                        for pattern in phrase_patterns:
+                                            phrase_match = re.search(pattern, buffer)
+                                            if phrase_match:
+                                                first_chunk = phrase_match.group(1).strip()
+                                                if len(first_chunk.split()) >= 5:  # Ensure meaningful phrase
+                                                    chunk_count += 1
+                                                    first_chunk_sent = True
+                                                    print(f"[SmartResponsive] 🎭 SMART first chunk (natural phrase): '{first_chunk}'")
+                                                    yield first_chunk
+                                                    buffer = buffer[phrase_match.end():].strip()
+                                                    break
+                                        
+                                        # Priority 3: Wait for target completion percentage
+                                        if not first_chunk_sent and word_count >= TARGET_WORDS:
+                                            # Take a reasonable chunk that doesn't cut words
+                                            words = buffer.split()
+                                            # Find a good breaking point (not in the middle of a word)
+                                            chunk_size = min(12, len(words))  # Up to 12 words
+                                            first_chunk = ' '.join(words[:chunk_size])
+                                            
+                                            # Ensure we don't cut off mid-sentence awkwardly
+                                            if not first_chunk.endswith(('.', '!', '?', ',', ';', ':')):
+                                                # Look for a better breaking point
+                                                for i in range(chunk_size-1, 4, -1):  # Work backwards
+                                                    test_chunk = ' '.join(words[:i])
+                                                    if test_chunk.endswith((',', ';', ':')):
+                                                        first_chunk = test_chunk
+                                                        chunk_size = i
+                                                        break
+                                            
+                                            chunk_count += 1
+                                            first_chunk_sent = True
+                                            completion_pct = (word_count / estimated_total_words) * 100
+                                            print(f"[SmartResponsive] 📊 SMART first chunk (target completion {completion_pct:.1f}%): '{first_chunk}'")
+                                            yield first_chunk
+                                            buffer = ' '.join(words[chunk_size:])
+                                    
+                                    # ✅ SUBSEQUENT CHUNKS: Continue with natural breaks
+                                    elif first_chunk_sent:
+                                        # Complete sentences (highest priority)
+                                        sentence_endings = re.finditer(r'([.!?]+)\s+', buffer)
+                                        last_end = 0
+                                        
+                                        for match in sentence_endings:
+                                            sentence = buffer[last_end:match.end()].strip()
+                                            if sentence and len(sentence.split()) >= 3:
+                                                chunk_count += 1
+                                                print(f"[SmartResponsive] 📝 Sentence chunk {chunk_count}: '{sentence}'")
+                                                yield sentence
+                                                last_end = match.end()
+                                        
+                                        buffer = buffer[last_end:]
+                                        
+                                        # Natural phrase breaks (second priority)
+                                        current_words = len(buffer.split())
+                                        if current_words >= 8:  # Wait for reasonable chunk size
+                                            pause_patterns = [
+                                                r'([^.!?]*?,)\s+',        # Up to comma
+                                                r'([^.!?]*?;\s+)',        # Up to semicolon
+                                                r'([^.!?]*?:\s+)',        # Up to colon
+                                                r'([^.!?]*?\s+and\s+)',   # Up to "and"
+                                                r'([^.!?]*?\s+but\s+)',   # Up to "but"
+                                                r'([^.!?]*?\s+so\s+)',    # Up to "so"
+                                            ]
+                                            
+                                            for pattern in pause_patterns:
+                                                matches = list(re.finditer(pattern, buffer))
+                                                if matches:
+                                                    last_match = matches[-1]
+                                                    chunk_text = last_match.group(1).strip()
+                                                    if len(chunk_text.split()) >= 4:
+                                                        chunk_count += 1
+                                                        print(f"[SmartResponsive] 🎭 Natural pause chunk {chunk_count}: '{chunk_text}'")
+                                                        yield chunk_text
+                                                        buffer = buffer[last_match.end():]
+                                                        break
+                        
+                        except json.JSONDecodeError:
+                            continue
+            
+            # ✅ Send any remaining content as final chunk
+            if buffer.strip():
+                final_chunk = buffer.strip()
+                if len(final_chunk.split()) >= 2:
+                    chunk_count += 1
+                    print(f"[SmartResponsive] 🏁 Final chunk {chunk_count}: '{final_chunk}'")
+                    yield final_chunk
+            
+            print(f"[SmartResponsive] ✅ Smart responsive streaming complete - {chunk_count} natural chunks")
+                    
+        else:
+            print(f"[SmartResponsive] ❌ HTTP Error {response.status_code}: {response.text}")
+            # Generate dynamic error response through LLM
+            error_context = {
+                'error_type': 'connection_error',
+                'error_code': response.status_code,
+                'situation': 'streaming_response'
+            }
+            error_response = _generate_dynamic_error_response(error_context)
+            yield error_response
+            
+    except Exception as e:
+        print(f"[SmartResponsive] ❌ Error: {e}")
+        # Generate dynamic error response through LLM
+        error_context = {
+            'error_type': 'general_error',
+            'error_message': str(e),
+            'situation': 'streaming_response'
+        }
+        error_response = _generate_dynamic_error_response(error_context)
+        yield error_response
+
+def ask_kobold(messages, max_tokens=MAX_TOKENS):
+    """Original non-streaming KoboldCpp request (kept for compatibility)"""
+    payload = {
+        "model": "llama3",
+        "messages": messages,
+        "max_tokens": max_tokens,
+        "temperature": TEMPERATURE,
+        "stream": False
+    }
+    
+    try:
+        print(f"[KoboldCpp] 🔗 Connecting to: {KOBOLD_URL}")
+        print(f"[KoboldCpp] 📤 Sending payload: {json.dumps(payload, indent=2)}")
+        
+        response = requests.post(KOBOLD_URL, json=payload, timeout=30)
+        
+        print(f"[KoboldCpp] 📡 Response Status: {response.status_code}")
+        print(f"[KoboldCpp] 📄 Response Headers: {dict(response.headers)}")
+        
+        if response.status_code == 200:
+            try:
+                data = response.json()
+                print(f"[KoboldCpp] 📄 Response Data Keys: {list(data.keys())}")
+                print(f"[KoboldCpp] 📄 Full Response: {json.dumps(data, indent=2)}")
+                
+                if "choices" in data and len(data["choices"]) > 0:
+                    result = data["choices"][0]["message"]["content"].strip()
+                    print(f"[KoboldCpp] ✅ Extracted Response: '{result}'")
+                    return result
+                else:
+                    print(f"[KoboldCpp] ❌ No 'choices' field or empty choices")
+                    # Generate dynamic error response
+                    error_context = {
+                        'error_type': 'no_choices',
+                        'situation': 'kobold_response'
+                    }
+                    return _generate_dynamic_error_response(error_context)
+                    
+            except json.JSONDecodeError as e:
+                print(f"[KoboldCpp] ❌ JSON Decode Error: {e}")
+                print(f"[KoboldCpp] 📄 Raw Response: {response.text[:500]}")
+                # Generate dynamic error response
+                error_context = {
+                    'error_type': 'json_decode_error',
+                    'situation': 'kobold_response'
+                }
+                return _generate_dynamic_error_response(error_context)
+        else:
+            print(f"[KoboldCpp] ❌ HTTP Error {response.status_code}")
+            print(f"[KoboldCpp] 📄 Error Response: {response.text[:500]}")
+            # Generate dynamic error response
+            error_context = {
+                'error_type': 'http_error',
+                'error_code': response.status_code,
+                'situation': 'kobold_request'
+            }
+            return _generate_dynamic_error_response(error_context)
+            
+    except requests.exceptions.ConnectionError:
+        print(f"[KoboldCpp] ❌ Connection Error - Cannot reach {KOBOLD_URL}")
+        # Generate dynamic error response
+        error_context = {
+            'error_type': 'connection_error',
+            'situation': 'kobold_connection'
+        }
+        return _generate_dynamic_error_response(error_context)
+    except requests.exceptions.Timeout:
+        print(f"[KoboldCpp] ❌ Timeout after 30 seconds")
+        # Generate dynamic error response
+        error_context = {
+            'error_type': 'timeout_error',
+            'situation': 'kobold_request'
+        }
+        return _generate_dynamic_error_response(error_context)
+    except Exception as e:
+        print(f"[KoboldCpp] ❌ Unexpected Error: {type(e).__name__}: {e}")
+        # Generate dynamic error response
+        error_context = {
+            'error_type': 'unexpected_error',
+            'error_message': str(e),
+            'situation': 'kobold_general'
+        }
+        return _generate_dynamic_error_response(error_context)
+
+def generate_response_streaming(question, username, lang=DEFAULT_LANG):
+    """✅ ULTRA-RESPONSIVE: Generate AI response with TRUE streaming - speaks as it generates"""
+    try:
+        print(f"[ChatStream] ⚡ Starting ULTRA-RESPONSIVE streaming generation for '{question}' from user '{username}'")
         
         # 🔧 FIX: Check for unified username from memory fusion
         try:
@@ -205,41 +480,51 @@ def generate_response_streaming(question, username, lang=DEFAULT_LANG):
         if follow_ups:
             follow_up_text = f"\nMight be worth asking: {follow_ups[0]}" if len(follow_ups) > 0 else ""
         
-        # Prepare enhanced context for consciousness integration
+        # Create enhanced system message using compressed tokens
+        from ai.prompt_compressor import compress_prompt, expand_prompt, estimate_tokens
+        
         context_text = f"Chat History & What I Remember:\n{context}" if context else ""
         name_instruction = f"You can call them {display_name}" if use_name else "Avoid using any names or just say 'hey' or 'mate'"
         
-        # Build comprehensive context for consciousness system
-        consciousness_context = {
-            'username': username,
-            'display_name': display_name,
-            'use_name': use_name,
+        # Prepare context data for template expansion
+        context_data = {
             'name_instruction': name_instruction,
             'current_location': current_location,
-            'time_info': time_info,
-            'context_text': context_text,
+            'time_12h': time_info['time_12h'],
+            'date': time_info['date'],
+            'context': context_text,
             'reminder_text': reminder_text,
             'follow_up_text': follow_up_text,
-            'natural_context': natural_context,
-            'conversation_context': context,
-            'user_memory': {
-                'reminders': reminders,
-                'follow_ups': follow_ups
-            }
+            'natural_context': natural_context,  # 🧠 WORKING MEMORY: Natural context injection
+            'emotion': 'neutral',
+            'goal': 'assist_user'
         }
         
-        print(f"[ChatStream] 🧠 Using consciousness-integrated response generation...")
+        # Create compressed system message
+        compressed_system_msg = compress_prompt("", context_data)
         
-        # ✅ Use consciousness-integrated LLM handler with streaming
-        llm_handler = LLMHandler()
+        # For token budget estimation
+        if estimate_tokens(compressed_system_msg) > 100:
+            # Optimize context if still too large
+            from ai.prompt_compressor import prompt_compressor
+            optimized_context = prompt_compressor.optimize_context_for_budget(context_text, 30)
+            context_data['context'] = optimized_context
+            compressed_system_msg = compress_prompt("", context_data)
         
-        # Stream the response chunks through consciousness system
-        for chunk in llm_handler.generate_response_with_consciousness(
-            text=question,
-            user=username,
-            context={**consciousness_context, "use_optimization": False},  # ✅ Disable optimization to prevent loops in chat
-            stream=True
-        ):
+        print(f"[ChatStream] 🗜️ Using compressed prompt: {len(compressed_system_msg)} chars (~{estimate_tokens(compressed_system_msg)} tokens)")
+        
+        # Store compressed version for internal use, expand for LLM
+        system_msg = expand_prompt(compressed_system_msg, context_data)
+
+        messages = [
+            {"role": "system", "content": system_msg},
+            {"role": "user", "content": question}
+        ]
+        
+        print(f"[ChatStream] 🚀 Starting ULTRA-RESPONSIVE streaming generation...")
+        
+        # ✅ Stream the response chunks as they're generated with ultra-early trigger
+        for chunk in ask_kobold_streaming(messages):
             if chunk and chunk.strip():
                 # Clean chunk
                 cleaned_chunk = re.sub(r'^(Buddy:|Assistant:|Human:|AI:)\s*', '', chunk, flags=re.IGNORECASE)
@@ -251,10 +536,10 @@ def generate_response_streaming(question, username, lang=DEFAULT_LANG):
                 cleaned_chunk = cleaned_chunk.strip()
                 
                 if cleaned_chunk:
-                    print(f"[ChatStream] 🧠 Consciousness chunk: '{cleaned_chunk}'")
+                    print(f"[ChatStream] ⚡ Ultra-responsive yielding: '{cleaned_chunk}'")
                     yield cleaned_chunk
         
-        print(f"[ChatStream] ✅ Consciousness-integrated streaming complete")
+        print(f"[ChatStream] ✅ Ultra-responsive streaming generation complete")
         
     except Exception as e:
         print(f"[ChatStream] ❌ Streaming error: {e}")
@@ -270,12 +555,9 @@ def generate_response_streaming(question, username, lang=DEFAULT_LANG):
         yield error_response
 
 def generate_response(question, username, lang=DEFAULT_LANG):
-    """Consciousness-integrated response function (non-streaming)"""
+    """Original generate response function with dynamic personality (ADDED BACK)"""
     try:
-        print(f"[Chat] 🧠 Generating consciousness-integrated response for '{question}' from user '{username}'")
-        
-        # Import LLMHandler for consciousness integration
-        from ai.llm_handler import LLMHandler
+        print(f"[Chat] 🧠 Generating response for '{question}' from user '{username}'")
         
         # 🎯 NEW: Smart name handling - avoid Anonymous_001
         display_name = None
@@ -309,7 +591,7 @@ def generate_response(question, username, lang=DEFAULT_LANG):
             display_name = username if not username.startswith('Anonymous_') else None
             use_name = display_name is not None
         
-        # Check for simple questions first (before consciousness processing for efficiency)
+        # Check for simple questions first
         question_lower = question.lower()
         
         # Handle name questions with personality
@@ -384,47 +666,52 @@ def generate_response(question, username, lang=DEFAULT_LANG):
         if follow_ups:
             follow_up_text = f"\nMight be worth asking: {follow_ups[0]}" if len(follow_ups) > 0 else ""
         
-        # Prepare enhanced context for consciousness integration
+        # Create enhanced system message using compressed tokens
+        from ai.prompt_compressor import compress_prompt, expand_prompt, estimate_tokens
+        
         context_text = f"Chat History & What I Remember:\n{context}" if context else ""
         name_instruction = f"You can call them {display_name}" if use_name else "Avoid using any names or just say 'hey' or 'mate'"
         
-        # Build comprehensive context for consciousness system
-        consciousness_context = {
-            'username': username,
-            'display_name': display_name,
-            'use_name': use_name,
+        # Prepare context data for template expansion
+        context_data = {
             'name_instruction': name_instruction,
             'current_location': current_location,
-            'time_info': time_info,
-            'context_text': context_text,
+            'time_12h': time_info['time_12h'],
+            'date': time_info['date'],
+            'context': context_text,
             'reminder_text': reminder_text,
             'follow_up_text': follow_up_text,
-            'natural_context': natural_context,
-            'conversation_context': context,
-            'user_memory': {
-                'reminders': reminders,
-                'follow_ups': follow_ups
-            }
+            'natural_context': natural_context,  # 🧠 WORKING MEMORY: Natural context injection
+            'emotion': 'neutral',
+            'goal': 'assist_user'
         }
         
-        print(f"[Chat] 🧠 Using consciousness-integrated response generation...")
+        # Create compressed system message
+        compressed_system_msg = compress_prompt("", context_data)
         
-        # ✅ Use consciousness-integrated LLM handler (non-streaming)
-        llm_handler = LLMHandler()
+        # For token budget estimation
+        if estimate_tokens(compressed_system_msg) > 100:
+            # Optimize context if still too large
+            from ai.prompt_compressor import prompt_compressor
+            optimized_context = prompt_compressor.optimize_context_for_budget(context_text, 30)
+            context_data['context'] = optimized_context
+            compressed_system_msg = compress_prompt("", context_data)
         
-        # Collect all chunks into a complete response
-        full_response = ""
-        for chunk in llm_handler.generate_response_with_consciousness(
-            text=question,
-            user=username,
-            context={**consciousness_context, "use_optimization": False},  # ✅ Disable optimization to prevent loops in chat
-            stream=False  # Non-streaming mode
-        ):
-            if chunk and chunk.strip():
-                full_response += chunk.strip() + " "
+        print(f"[Chat] 🗜️ Using compressed prompt: {len(compressed_system_msg)} chars (~{estimate_tokens(compressed_system_msg)} tokens)")
+        
+        # Store compressed version for internal use, expand for LLM
+        system_msg = expand_prompt(compressed_system_msg, context_data)
+
+        messages = [
+            {"role": "system", "content": system_msg},
+            {"role": "user", "content": question}
+        ]
+        
+        print(f"[Chat] 🚀 Sending to KoboldCpp...")
+        response = ask_kobold(messages)
         
         # Enhanced response cleaning
-        response = re.sub(r'^(Buddy:|Assistant:|Human:|AI:)\s*', '', full_response, flags=re.IGNORECASE)
+        response = re.sub(r'^(Buddy:|Assistant:|Human:|AI:)\s*', '', response, flags=re.IGNORECASE)
         response = response.strip()
         
         # Remove any remaining artifacts
@@ -433,7 +720,7 @@ def generate_response(question, username, lang=DEFAULT_LANG):
         response = re.sub(r'```.*?```', '', response, flags=re.DOTALL)  # Remove code blocks
         response = response.strip()
         
-        print(f"[Chat] ✅ Final consciousness response: '{response}'")
+        print(f"[Chat] ✅ Final response: '{response}'")
         
         return response
         
@@ -549,8 +836,10 @@ def optimize_context_for_token_limit(context: str, max_tokens: int = 1500) -> st
             print(f"[Optimize] Error: {e}")
         return context[:max_tokens * 4]  # Fallback: simple truncation
 
-# ✅ Main streaming function removed - use generate_response_streaming directly
-# No need for alias function that could create bypass opportunities
+# ✅ Main streaming function
+def generate_streaming_response(question, username, lang=DEFAULT_LANG):
+    """Generate streaming response - ULTRA-RESPONSIVE streaming from LLM"""
+    return generate_response_streaming(question, username, lang)
 
 def get_response_mode():
     """Get current response mode"""

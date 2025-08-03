@@ -228,79 +228,6 @@ class AutonomousActionPlanner:
         self.running = False
         
         # Learning and adaptation
-        self.action_effectiveness: Dict[str, float] = {}
-        self.context_preferences: Dict[str, float] = {}
-        
-        # Load existing data
-        self._load_planner_data()
-        print(f"[AutonomousPlanner] 🤖 Initialized for user {user_id}")
-    
-    def _should_skip_llm_call(self) -> bool:
-        """Enhanced check if LLM call should be skipped to prevent circular calls and consciousness floods"""
-        
-        # Check if already in LLM generation using global state (most important check)
-        try:
-            import time as time_module  # ✅ FIX: Explicit import to avoid scope issues
-            
-            from ai.llm_handler import is_llm_generation_in_progress
-            if is_llm_generation_in_progress():
-                # ✅ FIX: Add timeout to prevent permanent blocking
-                current_time = time_module.time()
-                if not hasattr(self, '_last_llm_block_time'):
-                    self._last_llm_block_time = current_time
-                
-                # If we've been blocked for more than 30 seconds, something is wrong
-                if current_time - self._last_llm_block_time > 30.0:
-                    print("[AutonomousPlanner] ⚠️ LLM state has been blocking for >30s - forcing check reset")
-                    self._last_llm_block_time = current_time
-                    # Don't permanently block - allow consciousness to continue
-                    return False
-                
-                print("[AutonomousPlanner] ⚠️ Skipping LLM call - global generation in progress")
-                return True
-            else:
-                # Reset the block timer when LLM is not in progress
-                if hasattr(self, '_last_llm_block_time'):
-                    delattr(self, '_last_llm_block_time')
-        except Exception as e:
-            print(f"[AutonomousPlanner] ⚠️ Could not check LLM generation state: {e}")
-        
-        # ✅ NEW: Enhanced conversation state check with cooldown period
-        try:
-            from main import get_conversation_state, get_mic_feeding_state
-            if get_conversation_state():
-                print("[AutonomousPlanner] ⚠️ Skipping LLM call - conversation state active (includes cooldown)")
-                return True
-            if get_mic_feeding_state():
-                print("[AutonomousPlanner] ⚠️ Skipping LLM call - mic feeding active")
-                return True
-        except ImportError:
-            pass
-        
-        # Check autonomous mode
-        try:
-            from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
-            current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
-            if current_mode.value == "background_only":
-                print("[AutonomousPlanner] ⚠️ Skipping LLM call - in BACKGROUND_ONLY mode")
-                return True
-            # ✅ CRITICAL FIX: Allow LLM calls in INTERACTIVE mode
-            elif current_mode.value == "interactive":
-                print("[AutonomousPlanner] ✅ Allowing LLM call - INTERACTIVE mode")
-                return False
-        except Exception as e:
-            print(f"[AutonomousPlanner] ⚠️ Could not check autonomous mode: {e}")
-        
-        # Check if there's an active conversation
-        try:
-            from main import get_mic_feeding_state, get_conversation_state
-            if get_mic_feeding_state() or get_conversation_state():
-                print("[AutonomousPlanner] ⚠️ Skipping LLM call - active conversation detected")
-                return True
-        except Exception as e:
-            print(f"[AutonomousPlanner] ⚠️ Could not check conversation state: {e}")
-        
-        return False
         self.learning_rate = 0.1
         self.adaptation_enabled = True
         self.user_preferences = self._load_user_preferences()
@@ -979,10 +906,6 @@ class AutonomousActionPlanner:
             # Even without LLM handler, generate more dynamic responses
             return self._generate_dynamic_fallback_action(action_type, context)
         
-        # ✅ FIX: Check for circular calls
-        if self._should_skip_llm_call():
-            return self._generate_dynamic_fallback_action(action_type, context)
-        
         try:
             # Build context for LLM
             context_info = f"""
@@ -1015,7 +938,7 @@ Context: {context_info}
 Generate a natural, authentic message that feels genuine and personal. Don't use templates or artificial language. Consider the user's current context and state. Be warm, thoughtful, and appropriate for the situation."""
 
             response_generator = self.llm_handler.generate_response_with_consciousness(
-                prompt, self.user_id, {"context": f"autonomous_{action_type.value}", "llm_generation_context": True}, is_primary_call=False
+                prompt, self.user_id, {"context": f"autonomous_{action_type.value}"}
             )
             
             # Collect all chunks from the generator
@@ -1088,10 +1011,6 @@ Generate a natural, authentic message that feels genuine and personal. Don't use
         if not self.llm_handler:
             return self._generate_dynamic_curiosity_fallback(context)
         
-        # ✅ FIX: Check for circular calls
-        if self._should_skip_llm_call():
-            return self._generate_dynamic_curiosity_fallback(context)
-        
         try:
             context_info = f"""
 Current conversation context: {context.recent_interactions}
@@ -1107,7 +1026,7 @@ Context: {context_info}
 Generate an authentic curiosity question that feels natural and engaging. Don't use templates - express genuine curiosity about something interesting or meaningful. Make it conversational and thoughtful."""
             
             response_generator = self.llm_handler.generate_response_with_consciousness(
-                prompt, self.user_id, {"context": "autonomous_curiosity", "llm_generation_context": True}, is_primary_call=False
+                prompt, self.user_id, {"context": "autonomous_curiosity"}
             )
             
             # Collect all chunks from the generator
@@ -1148,6 +1067,34 @@ Generate an authentic curiosity question that feels natural and engaging. Don't 
         except Exception as e:
             print(f"[AutonomousActionPlanner] ⚠️ Curiosity fallback error: {e}")
             return "What's something that's been intriguing you lately?"
+        
+        try:
+            context_info = f"""
+Time: {context.time_of_day}
+Mood: {context.current_mood}
+Recent topics: {context.recent_interactions}
+"""
+            
+            prompt = f"""You are naturally curious and want to ask the user a genuine, thoughtful question.
+
+Context: {context_info}
+
+Generate a single curious question that feels natural and engaging. Be genuinely interested, not artificial. Consider what would be interesting to explore given the context."""
+
+            response_generator = self.llm_handler.generate_response_with_consciousness(
+                prompt, self.user_id, {"context": "curiosity_question"}
+            )
+            
+            # Collect all chunks from the generator
+            response_chunks = []
+            for chunk in response_generator:
+                if chunk:
+                    response_chunks.append(chunk)
+            
+            return "".join(response_chunks).strip()
+        except Exception as e:
+            print(f"[AutonomousActionPlanner] ❌ Error generating curiosity question: {e}")
+            return "What's something interesting you've been thinking about?"
     
     def _load_user_preferences(self) -> Dict[str, Any]:
         """Load user preferences for action planning"""

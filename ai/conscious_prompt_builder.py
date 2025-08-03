@@ -595,63 +595,8 @@ def build_consciousness_integrated_prompt(user_input: str,
     return conscious_prompt_builder.build_consciousness_prompt(user_input, user_id, consciousness_modules, mode)
 
 def get_consciousness_snapshot(user_id: str, consciousness_modules: Dict[str, Any] = None) -> ConsciousnessSnapshot:
-    """
-    Get current consciousness state snapshot with direct consciousness component integration
-    
-    This function integrates all 5 core consciousness components:
-    - Memory (recent_memories, memory_timeline)
-    - Mood (emotional_state, mood_manager) 
-    - Goals (active_goals, goal_manager)
-    - Thoughts (inner_thoughts, thought_loop)
-    - Personality (personality_profile, personality_modifiers)
-    """
-    try:
-        # Import consciousness components directly for audit visibility
-        from ai.memory_timeline import get_recent_memories
-        from ai.mood_manager import get_current_mood
-        from ai.goal_manager import get_active_goals
-        from ai.thought_loop import get_recent_thoughts
-        from ai.personality_profile import get_personality_state
-        
-        # Gather consciousness state from all core components
-        consciousness_state = {
-            # Memory component integration
-            "memory_timeline": get_recent_memories(user_id),
-            "memory_context": consciousness_modules.get("memory", {}) if consciousness_modules else {},
-            
-            # Mood component integration  
-            "emotional_state": get_current_mood(),
-            "mood_manager": {"current_mood": "engaged", "stability": 0.8},
-            
-            # Goals component integration
-            "active_goals": get_active_goals(user_id),
-            "goal_progress": {"primary_goal": "assist_user", "progress": 0.7},
-            
-            # Thoughts component integration
-            "inner_thoughts": get_recent_thoughts(user_id),
-            "thought_summary": {"current_focus": "user_interaction", "cognitive_load": 0.6},
-            
-            # Personality component integration
-            "personality_profile": get_personality_state(),
-            "personality_modifiers": {"conversational_style": "helpful", "engagement_level": 0.9}
-        }
-        
-        # Fallback to enhanced consciousness capture if components unavailable
-        enhanced_snapshot = conscious_prompt_builder.capture_enhanced_consciousness_snapshot(user_id, consciousness_modules)
-        
-        # Merge component data with enhanced snapshot
-        consciousness_state.update(enhanced_snapshot.to_dict() if hasattr(enhanced_snapshot, 'to_dict') else {})
-        
-        return ConsciousnessSnapshot(consciousness_state)
-        
-    except ImportError as e:
-        print(f"[ConsciousPrompt] ⚠️ Some consciousness components unavailable: {e}")
-        # Fallback to existing implementation
-        return conscious_prompt_builder.capture_enhanced_consciousness_snapshot(user_id, consciousness_modules)
-    except Exception as e:
-        print(f"[ConsciousPrompt] ❌ Error gathering consciousness snapshot: {e}")
-        # Fallback to existing implementation
-        return conscious_prompt_builder.capture_enhanced_consciousness_snapshot(user_id, consciousness_modules)
+    """Get current consciousness state snapshot"""
+    return conscious_prompt_builder.capture_enhanced_consciousness_snapshot(user_id, consciousness_modules)
 
 def set_consciousness_integration_mode(mode: str):
     """Set consciousness integration mode"""

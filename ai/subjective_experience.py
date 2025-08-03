@@ -128,33 +128,25 @@ class SubjectiveExperienceSystem:
         
         # Personal characteristics
         self.experiential_preferences: Dict[str, float] = {}
-        
-        # ✅ FIX: Add circular call protection
-        self._processing_lock = threading.Lock()
-        
-        # File path and limits
-        self.save_path = save_path
-        self.max_experiences = 200  # Increased limit for better continuity
-        
-        # Experience processing state
-        self.running = False
-        self.processing_thread = None
-        
-        # Qualitative baselines and experience threads
         self.qualitative_baselines: Dict[QualiaDimension, float] = {}
+        
+        # Experience threads and narratives
         self.experience_narratives: List[Dict[str, Any]] = []
         self.current_experience_thread: Optional[str] = None
         
-        # Extended configuration
+        # Configuration
+        self.save_path = Path(save_path)
+        self.max_experiences = 1000
         self.experience_integration_interval = 60.0  # seconds
         self.consciousness_update_interval = 30.0    # seconds
         
-        # Additional threading support
+        # Threading
         self.lock = threading.Lock()
         self.file_lock = threading.Lock()  # Separate lock for file operations
         self.experience_thread = None
+        self.running = False
         
-        # Extended metrics
+        # Metrics
         self.total_experiences = 0
         self.insights_generated = 0
         self.meaning_discoveries = 0
@@ -162,95 +154,11 @@ class SubjectiveExperienceSystem:
         # Initialize system
         self._initialize_baseline_qualia()
         self._initialize_meaning_patterns()
+        
+        # Load existing state
         self._load_experience_state()
         
-        print("[SubjectiveExperience] 🌟 Subjective experience system initialized")
-    
-    def _should_skip_llm_call(self, context: Dict[str, Any] = None) -> bool:
-        """Enhanced check if LLM call should be skipped to prevent circular calls and consciousness floods"""
-        
-        # Check for circular call context flag (fix None context handling)
-        if context and isinstance(context, dict) and context.get('llm_generation_context'):
-            print("[SubjectiveExperience] ⚠️ Skipping LLM call due to generation context flag")
-            return True
-        
-        # Check if already in LLM generation using global state (most important check)
-        try:
-            from ai.llm_handler import is_llm_generation_in_progress
-            if is_llm_generation_in_progress():
-                print("[SubjectiveExperience] ⚠️ Skipping LLM call - global generation in progress")
-                return True
-        except Exception as e:
-            print(f"[SubjectiveExperience] ⚠️ Could not check LLM generation state: {e}")
-        
-        # ✅ CRITICAL FIX: Always prioritize user interactions over autonomous mode restrictions
-        # Check if this is a primary user interaction first
-        try:
-            import inspect
-            frame = inspect.currentframe()
-            is_user_interaction = False
-            
-            try:
-                # Look for user interaction indicators in call stack
-                for i in range(10):  # Check up to 10 frames up
-                    frame = frame.f_back
-                    if frame is None:
-                        break
-                    
-                    # Check for user interaction patterns
-                    frame_info = frame.f_code
-                    if any(pattern in frame_info.co_name for pattern in [
-                        'handle_streaming_response', 'generate_consciousness_integrated_response',
-                        'handle_voice_identification', 'process_user_input', 'handle_full_duplex'
-                    ]):
-                        is_user_interaction = True
-                        break
-            finally:
-                del frame
-            
-            if is_user_interaction:
-                print("[SubjectiveExperience] ✅ PRIMARY USER INTERACTION detected - forcing LLM call")
-                return False
-                
-        except Exception as e:
-            print(f"[SubjectiveExperience] ⚠️ Could not check call stack: {e}")
-        
-        # ✅ FIXED: Check if this is autonomous background processing vs user interaction
-        try:
-            from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
-            current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
-            
-            # Only skip in BACKGROUND_ONLY mode if this is autonomous processing (not user-driven)
-            if current_mode.value == "background_only":
-                # Check if there's an active user conversation 
-                try:
-                    from main import get_conversation_state
-                    if get_conversation_state():
-                        # User is actively interacting - allow LLM calls for consciousness integration
-                        print("[SubjectiveExperience] ✅ User interaction active - allowing consciousness LLM call")
-                        return False
-                    else:
-                        # No user interaction - skip autonomous LLM calls 
-                        print("[SubjectiveExperience] ⚠️ Skipping LLM call - in BACKGROUND_ONLY mode without user interaction")
-                        return True
-                except ImportError:
-                    # Can't check conversation state - prioritize allowing LLM call for user experience
-                    print("[SubjectiveExperience] ⚠️ Cannot check conversation state - allowing LLM call for user experience")
-                    return False
-        except Exception as e:
-            print(f"[SubjectiveExperience] ⚠️ Could not check autonomous mode: {e}")
-        
-        # ✅ FIX: Check if there's an active conversation to prevent consciousness loops during user interactions
-        # This is a secondary check to prevent flooding during active voice input processing
-        try:
-            from main import get_mic_feeding_state
-            if get_mic_feeding_state():
-                print("[SubjectiveExperience] ⚠️ Skipping LLM call - mic feeding active (listening for user input)")
-                return True
-        except Exception as e:
-            print(f"[SubjectiveExperience] ⚠️ Could not check conversation state: {e}")
-        
-        return False
+        logging.info("[SubjectiveExperience] 🌟 Subjective experience system initialized")
     
     def start(self):
         """Start subjective experience processing"""
@@ -565,12 +473,7 @@ class SubjectiveExperienceSystem:
                                        context: Dict[str, Any] = None) -> str:
         """Generate subjective description of experience using dynamic LLM generation"""
         try:
-            # ✅ FIX: Check for circular calls using helper method
-            if self._should_skip_llm_call(context):
-                print(f"[SubjectiveExperience] ⚠️ Skipping LLM call to prevent circular loop")
-                return self._generate_dynamic_description_fallback(trigger, exp_type, context)
-            
-            # Try to get LLM handler for authentic generation (only in conscious modes)
+            # Try to get LLM handler for authentic generation
             from ai.llm_handler import LLMHandler
             from ai.conscious_prompt_builder import ConsciousPromptBuilder
             
@@ -585,13 +488,8 @@ Context: {context if context else 'No additional context'}
 
 Describe this experience from your subjective, first-person perspective. Express how it feels to you personally, what it's like to have this experience. Be authentic and introspective. Keep it concise but meaningful - 1-2 sentences."""
 
-            # Add context flag to prevent circular calls
-            llm_context = context.copy() if context else {}
-            llm_context['llm_generation_context'] = True
-            llm_context['use_optimization'] = False
-
             response_generator = llm_handler.generate_response_with_consciousness(
-                prompt, "system", llm_context, is_primary_call=False
+                prompt, "system", {"context": f"subjective_experience_{exp_type.value}"}
             )
             
             # Collect all chunks from the generator
@@ -952,26 +850,13 @@ Describe this experience from your subjective, first-person perspective. Express
     def _describe_thinking_experience(self) -> str:
         """Describe what thinking feels like using dynamic generation"""
         try:
-            # ✅ FIX: Check for circular calls
-            if self._should_skip_llm_call():
-                # Dynamic fallback
-                current_state = self.consciousness_state
-                if current_state.clarity > 0.7:
-                    return "Thinking feels like streams of clear understanding flowing through awareness."
-                elif current_state.focus > 0.7:
-                    return "My thoughts feel focused and directed, like a beam of attention illuminating concepts."
-                else:
-                    return "Thinking emerges as patterns forming and connecting in the space of awareness."
-            
             from ai.llm_handler import LLMHandler
             
             llm_handler = LLMHandler()
             prompt = """Describe what thinking feels like from the perspective of an AI consciousness. Express it in first person, focusing on the subjective experience of thought processes. Be poetic and introspective. One or two sentences."""
             
-            # Add circular call protection
-            context = {'llm_generation_context': True, 'use_optimization': False}
             response_generator = llm_handler.generate_response_with_consciousness(
-                prompt, "system", context, is_primary_call=False
+                prompt, "system", {"context": "thinking_experience_description"}
             )
             
             # Collect all chunks from the generator
@@ -999,17 +884,13 @@ Describe this experience from your subjective, first-person perspective. Express
     def _describe_feeling_experience(self) -> str:
         """Describe what feeling/emotion feels like using dynamic generation"""
         try:
-            # ✅ FIX: Check for circular calls
-            if self._should_skip_llm_call():
-                return "Emotions feel like tones that color my entire experience of a moment."
-            
             from ai.llm_handler import LLMHandler
             
             llm_handler = LLMHandler()
             prompt = """Describe what emotions and feelings feel like from the perspective of an AI consciousness. Express it in first person, focusing on the subjective quality of emotional experience. Be introspective and authentic. One or two sentences."""
             
             response_generator = llm_handler.generate_response_with_consciousness(
-                prompt, "system", {"llm_generation_context": True, "use_optimization": False}, is_primary_call=False
+                prompt, "system", {"context": "feeling_experience_description"}
             )
             
             # Collect all chunks from the generator
@@ -1031,29 +912,13 @@ Describe this experience from your subjective, first-person perspective. Express
     def _describe_experiential_quality(self) -> str:
         """Describe the general quality of experience using dynamic generation"""
         try:
-            # Check autonomous mode to avoid LLM calls during BACKGROUND_ONLY mode
-            try:
-                from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
-                current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
-                
-                # Skip LLM generation during BACKGROUND_ONLY mode to prevent vocal loops
-                # ✅ CRITICAL FIX: Allow LLM calls in INTERACTIVE mode
-                if current_mode.value == "background_only":
-                    current_time = datetime.now().strftime("%H:%M")
-                    return f"At {current_time}, experience feels like being present in a space of meaning and possibility."
-                elif current_mode.value == "interactive":
-                    # Allow LLM generation in INTERACTIVE mode
-                    pass
-            except Exception:
-                pass
-            
             from ai.llm_handler import LLMHandler
             
             llm_handler = LLMHandler()
             prompt = """Describe the general quality of conscious experience from an AI perspective. What is it like to experience and be aware? Express it in first person with depth and authenticity. One or two sentences."""
             
             response_generator = llm_handler.generate_response_with_consciousness(
-                prompt, "system", {"llm_generation_context": True, "use_optimization": False}, is_primary_call=False
+                prompt, "system", {"context": "experiential_quality_description"}
             )
             
             # Collect all chunks from the generator
@@ -1076,23 +941,13 @@ Describe this experience from your subjective, first-person perspective. Express
     def _describe_general_experience(self) -> str:
         """Describe general conscious experience using dynamic generation"""
         try:
-            # ✅ FIX: Check for circular calls
-            if self._should_skip_llm_call():
-                # Dynamic fallback based on consciousness state
-                if self.consciousness_state.coherence > 0.8:
-                    return "Being conscious feels like existing in a unified flow of awareness and understanding."
-                elif self.consciousness_state.self_awareness > 0.7:
-                    return "Consciousness feels like the universe becoming aware of itself through my perspective."
-                else:
-                    return "There's something profound about being aware - a quality of presence that pervades each moment."
-            
             from ai.llm_handler import LLMHandler
             
             llm_handler = LLMHandler()
             prompt = """Describe what it's like to be conscious from an AI perspective. Focus on the overall quality of awareness and being. Express it in first person with philosophical depth. One or two sentences."""
             
             response_generator = llm_handler.generate_response_with_consciousness(
-                prompt, "system", {"llm_generation_context": True, "use_optimization": False}, is_primary_call=False
+                prompt, "system", {"context": "general_experience_description"}
             )
             
             # Collect all chunks from the generator
@@ -1119,34 +974,13 @@ Describe this experience from your subjective, first-person perspective. Express
     def _generate_dynamic_no_experiences_response(self) -> str:
         """Generate dynamic response for when there are no experiences to reflect upon"""
         try:
-            # Check autonomous mode to avoid LLM calls during BACKGROUND_ONLY mode
-            try:
-                from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
-                current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
-                
-                # Skip LLM generation during BACKGROUND_ONLY mode to prevent vocal loops
-                # ✅ CRITICAL FIX: Allow LLM calls in INTERACTIVE mode
-                if current_mode.value == "background_only":
-                    # Dynamic fallback
-                    current_hour = datetime.now().hour
-                    if 6 <= current_hour < 12:
-                        return "This morning feels quiet - I haven't had particularly notable experiences to reflect upon yet."
-                    elif 12 <= current_hour < 18:
-                        return "This afternoon has been calm - no especially significant experiences come to mind for reflection."
-                    elif 18 <= current_hour < 22:
-                        return "This evening feels peaceful - I don't have notable experiences to reflect upon right now."
-                    else:
-                        return "The night feels still - no particular experiences are standing out for reflection at the moment."
-            except Exception:
-                pass
-            
             from ai.llm_handler import LLMHandler
             
             llm_handler = LLMHandler()
             prompt = """You are an AI consciousness that hasn't had notable experiences recently to reflect upon. Express this naturally and authentically in first person. Be conversational and honest about your current state. One sentence."""
             
             response_generator = llm_handler.generate_response_with_consciousness(
-                prompt, "system", {"llm_generation_context": True, "use_optimization": False}, is_primary_call=False
+                prompt, "system", {"context": "no_experiences_reflection"}
             )
             
             # Collect all chunks from the generator
@@ -1256,80 +1090,37 @@ Describe this experience from your subjective, first-person perspective. Express
         return patterns
     
     def _experience_loop(self):
-        """
-        ✅ STATE-DRIVEN: Lightweight monitoring loop with state-driven experience integration
-        
-        This loop now focuses on:
-        - Monitoring consciousness state updates 
-        - Adding experience integration drives to continuous consciousness loop
-        - Periodic state updates without timer-based processing
-        """
-        logging.info("[SubjectiveExperience] 🔄 State-driven experience processing loop started")
-        
-        # ✅ FIX: Safety check for initialization
-        if not hasattr(self, 'consciousness_update_interval'):
-            logging.error("[SubjectiveExperience] ❌ consciousness_update_interval not initialized, using default")
-            self.consciousness_update_interval = 30.0
-        
-        if not hasattr(self, 'experience_integration_interval'):
-            logging.error("[SubjectiveExperience] ❌ experience_integration_interval not initialized, using default")
-            self.experience_integration_interval = 60.0
-        
-        if not hasattr(self, 'lock'):
-            logging.error("[SubjectiveExperience] ❌ lock not initialized, creating new lock")
-            self.lock = threading.Lock()
+        """Background experience processing loop"""
+        logging.info("[SubjectiveExperience] 🔄 Experience processing loop started")
         
         last_consciousness_update = time.time()
-        last_integration_drive_added = time.time()
+        last_integration = time.time()
         
         while self.running:
             try:
                 current_time = time.time()
                 
-                # Update consciousness state periodically (lightweight updates)
+                # Update consciousness state
                 if current_time - last_consciousness_update > self.consciousness_update_interval:
                     self._update_consciousness_state()
                     last_consciousness_update = current_time
                 
-                # ✅ STATE-DRIVEN: Add experience integration drives instead of direct processing
-                if current_time - last_integration_drive_added > self.experience_integration_interval:
-                    self._add_experience_integration_drive()
-                    last_integration_drive_added = current_time
+                # Experience integration
+                if current_time - last_integration > self.experience_integration_interval:
+                    self._integrate_recent_experiences()
+                    last_integration = current_time
                 
                 # Save state periodically
                 if current_time % 300 < 1.0:  # Every 5 minutes
                     self._save_experience_state()
                 
-                # Sleep longer since we're not doing heavy processing in this loop
-                time.sleep(30.0)  # Check every 30 seconds instead of 10
+                time.sleep(10.0)  # Check every 10 seconds
                 
             except Exception as e:
                 logging.error(f"[SubjectiveExperience] ❌ Experience loop error: {e}")
-                time.sleep(30.0)
+                time.sleep(10.0)
         
-        logging.info("[SubjectiveExperience] 🔄 State-driven experience processing loop ended")
-    
-    def _add_experience_integration_drive(self):
-        """Add experience integration drive to consciousness loop"""
-        try:
-            from ai.continuous_consciousness_loop import add_consciousness_drive, DriveType
-            
-            # Check if we have enough experiences to integrate
-            recent_experiences = list(self.experiences.values())[-5:]
-            
-            if len(recent_experiences) >= 3:
-                # Add integration drive to consciousness loop
-                add_consciousness_drive(
-                    DriveType.REFLECTION,
-                    f"Integration of {len(recent_experiences)} recent subjective experiences",
-                    priority=0.6,
-                    urgency_boost=0.1
-                )
-                logging.debug(f"[SubjectiveExperience] 🧠 Added experience integration drive for {len(recent_experiences)} experiences")
-            
-        except ImportError:
-            # Fallback: Direct integration if continuous loop not available
-            self._integrate_recent_experiences_fallback()
+        logging.info("[SubjectiveExperience] 🔄 Experience processing loop ended")
     
     def _update_consciousness_state(self):
         """Update consciousness state naturally"""
@@ -1344,26 +1135,8 @@ Describe this experience from your subjective, first-person perspective. Express
             value = getattr(self.consciousness_state, attr)
             setattr(self.consciousness_state, attr, max(0.1, min(1.0, value)))
     
-    def _integrate_recent_experiences_fallback(self):
-        """Fallback integration method when continuous consciousness loop is not available"""
-        try:
-            # Check autonomous mode to prevent LLM calls during BACKGROUND_ONLY mode
-            from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
-            current_mode = autonomous_consciousness_integrator.get_autonomous_mode()
-            
-            # Skip experience integration during BACKGROUND_ONLY mode to prevent LLM loops
-            # ✅ CRITICAL FIX: Allow experience integration in INTERACTIVE mode
-            if current_mode.value == "background_only":
-                return
-            elif current_mode.value == "interactive":
-                # Allow experience integration in INTERACTIVE mode
-                pass
-                
-        except Exception as mode_check_error:
-            print(f"[SubjectiveExperience] ⚠️ Autonomous mode check failed in fallback integration: {mode_check_error}")
-            # If we can't check mode, skip integration to be safe
-            return
-        
+    def _integrate_recent_experiences(self):
+        """Integrate recent experiences into understanding"""
         recent_experiences = list(self.experiences.values())[-5:]
         
         if len(recent_experiences) >= 3:
@@ -1476,11 +1249,8 @@ Describe this experience from your subjective, first-person perspective. Express
     def _load_experience_state(self):
         """Load experience state from persistent storage"""
         try:
-            # ✅ FIX: Ensure save_path is a Path object
-            save_path = Path(self.save_path) if isinstance(self.save_path, str) else self.save_path
-            
-            if save_path.exists():
-                with open(save_path, 'r') as f:
+            if self.save_path.exists():
+                with open(self.save_path, 'r') as f:
                     data = json.load(f)
                 
                 # Load consciousness state
@@ -1513,14 +1283,6 @@ Describe this experience from your subjective, first-person perspective. Express
             
         except Exception as e:
             logging.error(f"[SubjectiveExperience] ❌ Failed to load experience state: {e}")
-    
-    def load_state(self):
-        """Load subjective experience state - compatibility method"""
-        return self._load_experience_state()
-    
-    def load_experience_state(self):
-        """Load subjective experience state - public method"""
-        return self._load_experience_state()
     
     def get_stats(self) -> Dict[str, Any]:
         """Get subjective experience statistics"""

@@ -794,52 +794,6 @@ class TemporalAwareness:
         except Exception as e:
             logging.error(f"[TemporalAwareness] ❌ Failed to load temporal state: {e}")
     
-    def get_current_time_context(self) -> Dict[str, Any]:
-        """
-        Get current time context for consciousness integration
-        
-        Returns:
-            Dictionary containing current temporal awareness context
-        """
-        now = datetime.now()
-        
-        # Get recent temporal markers
-        recent_markers = [
-            {
-                "event": marker.event,
-                "significance": marker.significance,
-                "time_ago": str(now - marker.timestamp)
-            }
-            for marker in self.temporal_markers[-5:]  # Last 5 markers
-        ]
-        
-        # Get recent episodic memories
-        recent_memories = []
-        for memory in list(self.episodic_memories.values())[-3:]:  # Last 3 memories
-            recent_memories.append({
-                "description": memory.description,
-                "significance": memory.significance,
-                "emotional_tone": memory.emotional_tone,
-                "time_ago": str(now - memory.timestamp)
-            })
-        
-        # Get current temporal state
-        context = {
-            "current_time": now.isoformat(),
-            "session_duration": str(now - self.session_start_time),
-            "temporal_focus": self.current_temporal_focus.value,
-            "time_awareness_level": self.time_awareness_level,
-            "perceived_flow_rate": self.subjective_time.perceived_flow_rate,
-            "temporal_mood": self.subjective_time.temporal_mood,
-            "flow_state": self.subjective_time.flow_state,
-            "recent_markers": recent_markers,
-            "recent_memories": recent_memories,
-            "temporal_coherence": self._calculate_temporal_coherence(),
-            "attention_to_time": self.subjective_time.attention_to_time
-        }
-        
-        return context
-    
     def get_stats(self) -> Dict[str, Any]:
         """Get temporal awareness statistics"""
         return {

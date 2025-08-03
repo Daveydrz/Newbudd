@@ -256,99 +256,38 @@ class ThoughtLoop:
             }
     
     def _autonomous_thought_loop(self):
-        """
-        ✅ STATE-DRIVEN: Lightweight thought monitoring loop with state-driven thought generation
-        
-        This loop now focuses on:
-        - Monitoring thought state and needs
-        - Adding thought generation drives to continuous consciousness loop
-        - Periodic state updates without timer-based thought generation
-        """
-        print("[ThoughtLoop] 💭 State-driven autonomous thought loop starting...")
-        
-        last_drive_added = time.time()
+        """Main autonomous thought generation loop"""
+        print("[ThoughtLoop] 💭 Starting autonomous thought generation...")
         
         while self.running:
             try:
-                current_time = time.time()
+                # Calculate time since last thought
                 time_since_last = (datetime.now() - self.current_state.last_thought_time).total_seconds()
                 
-                # ✅ STATE-DRIVEN: Add thought generation drives instead of direct processing
-                if current_time - last_drive_added > max(30.0, self.base_thought_interval / 2):
-                    self._add_thought_generation_drives(time_since_last)
-                    last_drive_added = current_time
+                # Determine if we should generate a thought
+                should_think = self._should_generate_thought(time_since_last)
                 
-                # Update state based on passage of time (lightweight)
+                if should_think:
+                    # Generate appropriate thought based on current state
+                    thought = self._generate_autonomous_thought()
+                    
+                    if thought:
+                        self._process_thought(thought)
+                        
+                        # If thought should be verbalized, attempt to speak it
+                        if thought.should_verbalize and self.voice_system:
+                            self._attempt_verbalization(thought)
+                
+                # Update state based on passage of time
                 self._update_state_over_time(time_since_last)
                 
-                # Sleep longer since we're not generating thoughts directly
-                time.sleep(30.0)  # Check every 30 seconds instead of frequent calculations
+                # Sleep for appropriate interval
+                sleep_time = self._calculate_sleep_interval()
+                time.sleep(sleep_time)
                 
             except Exception as e:
                 print(f"[ThoughtLoop] ❌ Error in thought loop: {e}")
-                time.sleep(30.0)  # Recovery pause
-    
-    def _add_thought_generation_drives(self, time_since_last: float):
-        """Add thought generation drives to consciousness loop based on current state"""
-        try:
-            from ai.continuous_consciousness_loop import add_consciousness_drive, DriveType
-            
-            # Determine if thoughts are needed based on state
-            should_think = self._should_generate_thought(time_since_last)
-            
-            if should_think:
-                # Determine appropriate drive type based on current state
-                if self.current_state.introspection_level > 0.7:
-                    drive_type = DriveType.SELF_UNDERSTANDING
-                    content = "High introspection level calling for self-reflective thoughts"
-                    priority = 0.7
-                elif self.current_state.creativity_level > 0.6:
-                    drive_type = DriveType.CREATIVE_EXPLORATION 
-                    content = "Creative state inspiring imaginative thoughts"
-                    priority = 0.6
-                elif self.current_state.curiosity_level > 0.6:
-                    drive_type = DriveType.CURIOSITY
-                    content = "Curiosity-driven thought exploration"
-                    priority = 0.6
-                else:
-                    drive_type = DriveType.REFLECTION
-                    content = "General reflective thought generation"
-                    priority = 0.5
-                
-                # Add urgency based on time since last thought
-                urgency_boost = min(0.3, time_since_last / (self.base_thought_interval * 2))
-                
-                add_consciousness_drive(
-                    drive_type,
-                    content,
-                    priority=priority,
-                    urgency_boost=urgency_boost
-                )
-                
-                print(f"[ThoughtLoop] 💭 Added {drive_type.value} drive (priority: {priority:.2f}, urgency: {urgency_boost:.2f})")
-            
-        except ImportError:
-            # Fallback: Direct thought generation if continuous loop not available
-            self._generate_thought_fallback(time_since_last)
-    
-    def _generate_thought_fallback(self, time_since_last: float):
-        """Fallback thought generation when continuous consciousness loop is not available"""
-        try:
-            should_think = self._should_generate_thought(time_since_last)
-            
-            if should_think:
-                # Generate appropriate thought based on current state
-                thought = self._generate_autonomous_thought()
-                
-                if thought:
-                    self._process_thought(thought)
-                    
-                    # If thought should be verbalized, attempt to speak it
-                    if thought.should_verbalize and self.voice_system:
-                        self._attempt_verbalization(thought)
-            
-        except Exception as e:
-            print(f"[ThoughtLoop] ❌ Error in fallback thought generation: {e}")
+                time.sleep(5.0)  # Recovery pause
     
     def _should_generate_thought(self, time_since_last: float) -> bool:
         """Determine if a thought should be generated"""
@@ -501,84 +440,9 @@ class ThoughtLoop:
         # Fallback to basic contextual thought if LLM unavailable
         return f"I'm genuinely thinking about {context} in relation to {trigger.value}..."
     
-    def _should_skip_llm_call(self) -> bool:
-        """Enhanced check if LLM calls should be skipped to prevent circular loops and consciousness floods"""
-        try:
-            # Import the global state check
-            import time as time_module  # ✅ FIX: Explicit import to avoid scope issues
-            from ai.llm_handler import is_llm_generation_in_progress
-            
-            # Check if global LLM generation is in progress with timeout protection
-            if is_llm_generation_in_progress():
-                # ✅ FIX: Add timeout to prevent permanent blocking
-                current_time = time_module.time()
-                if not hasattr(self, '_last_llm_block_time'):
-                    self._last_llm_block_time = current_time
-                
-                # If we've been blocked for more than 30 seconds, something is wrong
-                if current_time - self._last_llm_block_time > 30.0:
-                    print("[ThoughtLoop] ⚠️ LLM state has been blocking for >30s - forcing check reset")
-                    self._last_llm_block_time = current_time
-                    # Don't permanently block - allow consciousness to continue
-                    return False
-                
-                print("[ThoughtLoop] ⚠️ Skipping LLM call - global generation in progress")
-                return True
-            else:
-                # Reset the block timer when LLM is not in progress
-                if hasattr(self, '_last_llm_block_time'):
-                    delattr(self, '_last_llm_block_time')
-            
-            # ✅ NEW: Enhanced conversation state check with cooldown period
-            try:
-                from main import get_conversation_state, get_mic_feeding_state
-                if get_conversation_state():
-                    print("[ThoughtLoop] ⚠️ Skipping LLM call - conversation state active (includes cooldown)")
-                    return True
-                if get_mic_feeding_state():
-                    print("[ThoughtLoop] ⚠️ Skipping LLM call - mic feeding active")
-                    return True
-            except ImportError:
-                pass
-            
-            # Check if we're in autonomous mode where consciousness should be silent
-            try:
-                from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
-                if hasattr(autonomous_consciousness_integrator, 'autonomous_mode'):
-                    from ai.autonomous_consciousness_integrator import AutonomousMode
-                    if autonomous_consciousness_integrator.autonomous_mode == AutonomousMode.BACKGROUND_ONLY:
-                        print("[ThoughtLoop] ⚠️ Skipping LLM call - BACKGROUND_ONLY mode (conversation in progress)")
-                        return True
-                    # ✅ CRITICAL FIX: Allow LLM calls in INTERACTIVE mode for user input processing
-                    elif autonomous_consciousness_integrator.autonomous_mode == AutonomousMode.INTERACTIVE:
-                        print("[ThoughtLoop] ✅ Allowing LLM call - INTERACTIVE mode")
-                        return False
-            except ImportError:
-                pass
-            
-            # Check if there's an active conversation or mic feeding
-            try:
-                from main import get_conversation_state, get_mic_feeding_state
-                if get_conversation_state() or get_mic_feeding_state():
-                    print("[ThoughtLoop] ⚠️ Skipping LLM call - active conversation/mic feeding")
-                    return True
-            except ImportError:
-                pass
-            
-            return False
-            
-        except Exception as e:
-            print(f"[ThoughtLoop] ⚠️ Error checking LLM skip condition: {e}")
-            # If we can't determine the state, err on the side of caution and skip
-            return True
-    
     def _generate_authentic_contextual_thought_with_llm(self, thought_type: str, context: str, trigger: ThoughtLoopTrigger) -> Optional[str]:
         """Generate authentic contextual thought content using LLM consciousness integration"""
         if not self.llm_handler:
-            return None
-        
-        # ✅ Check if we should skip LLM call to prevent circular loops
-        if self._should_skip_llm_call():
             return None
         
         try:
@@ -600,16 +464,7 @@ Generate a genuine internal thought in response to this trigger and context. Thi
 Respond with only the thought itself, no explanations.
 """
             
-            # ✅ Use proper consciousness-aware LLM call with circular call protection
-            response_generator = self.llm_handler.generate_response_with_consciousness(
-                text=prompt.strip(),
-                user="thought_loop_system",
-                context={"max_tokens": 120},
-                stream=False,
-                is_primary_call=False,
-                llm_generation_context=True
-            )
-            authentic_thought = next(response_generator, None)
+            authentic_thought = self.llm_handler.generate_response(prompt.strip(), max_tokens=120)
             return authentic_thought.strip() if authentic_thought else None
             
         except Exception as e:
@@ -741,16 +596,7 @@ Convert this to natural, conversational speech as if you're sharing a genuine th
 Respond with only the spoken version, no explanations.
 """
             
-            # ✅ Use proper consciousness-aware LLM call with circular call protection
-            response_generator = self.llm_handler.generate_response_with_consciousness(
-                text=prompt.strip(),
-                user="thought_loop_system",
-                context={"max_tokens": 100},
-                stream=False,
-                is_primary_call=False,
-                llm_generation_context=True
-            )
-            verbalization = next(response_generator, None)
+            verbalization = self.llm_handler.generate_response(prompt.strip(), max_tokens=100)
             return verbalization.strip() if verbalization else None
             
         except Exception as e:
@@ -845,16 +691,7 @@ Generate a single, authentic internal thought that reflects your genuine conscio
 Respond with only the thought itself, no explanations or quotations.
 """
             
-            # ✅ Use proper consciousness-aware LLM call with circular call protection
-            response_generator = self.llm_handler.generate_response_with_consciousness(
-                text=prompt.strip(),
-                user="thought_loop_system",
-                context={"max_tokens": 150},
-                stream=False,
-                is_primary_call=False,
-                llm_generation_context=True
-            )
-            authentic_thought = next(response_generator, None)
+            authentic_thought = self.llm_handler.generate_response(prompt.strip(), max_tokens=150)
             return authentic_thought.strip() if authentic_thought else None
             
         except Exception as e:
@@ -909,16 +746,7 @@ Respond with only the thought itself, no explanations or quotations.
             Respond with just the enhanced thought, no explanations.
             """
             
-            # ✅ Use proper consciousness-aware LLM call with circular call protection
-            response_generator = self.llm_handler.generate_response_with_consciousness(
-                text=prompt,
-                user="thought_loop_system",
-                context={"max_tokens": 100},
-                stream=False,
-                is_primary_call=False,
-                llm_generation_context=True
-            )
-            enhanced = next(response_generator, None)
+            enhanced = self.llm_handler.generate_response(prompt, max_tokens=100)
             return enhanced.strip() if enhanced else None
             
         except Exception as e:

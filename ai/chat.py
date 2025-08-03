@@ -46,12 +46,20 @@ Respond as yourself with your natural personality - be authentic, not overly apo
             # Try to get LLM response
             try:
                 llm_handler = LLMHandler()
-                response = llm_handler.generate_response_with_consciousness(
-                    consciousness_prompt, "system", {"context": "error_handling"}
+                response_generator = llm_handler.generate_response_with_consciousness(
+                    consciousness_prompt, "system", {"context": "error_handling", "use_optimization": False}, 
+                    stream=False, is_primary_call=False
                 )
-                if response and response.strip():
-                    return response.strip()
-            except:
+                # Collect all response chunks
+                response_chunks = []
+                for chunk in response_generator:
+                    if chunk:
+                        response_chunks.append(chunk)
+                response = "".join(response_chunks).strip()
+                if response:
+                    return response
+            except Exception as e:
+                print(f"[Chat] ⚠️ LLM error handling failed: {e}")
                 pass
                 
         except ImportError:
@@ -229,7 +237,7 @@ def generate_response_streaming(question, username, lang=DEFAULT_LANG):
         for chunk in llm_handler.generate_response_with_consciousness(
             text=question,
             user=username,
-            context=consciousness_context,
+            context={**consciousness_context, "use_optimization": False},  # ✅ Disable optimization to prevent loops in chat
             stream=True
         ):
             if chunk and chunk.strip():
@@ -409,7 +417,7 @@ def generate_response(question, username, lang=DEFAULT_LANG):
         for chunk in llm_handler.generate_response_with_consciousness(
             text=question,
             user=username,
-            context=consciousness_context,
+            context={**consciousness_context, "use_optimization": False},  # ✅ Disable optimization to prevent loops in chat
             stream=False  # Non-streaming mode
         ):
             if chunk and chunk.strip():

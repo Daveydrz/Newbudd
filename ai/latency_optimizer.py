@@ -178,14 +178,15 @@ class LatencyOptimizer:
                     optimized_prompt, user_id, "en", context=cognitive_context
                 )
             else:
-                # ✅ CONSCIOUSNESS-INTEGRATED FALLBACK: Use LLMHandler instead of direct chat
+                # ✅ CONSCIOUSNESS-INTEGRATED FALLBACK: Use LLMHandler WITHOUT optimization to prevent infinite loop
                 if LLM_HANDLER_AVAILABLE:
                     llm_handler = LLMHandler()
                     response_generator = llm_handler.generate_response_with_consciousness(
                         text=optimized_prompt,
                         user=user_id,
                         context={"latency_optimized": True, "optimization_mode": "fast"},
-                        stream=True
+                        stream=True,
+                        use_optimization=False  # ✅ CRITICAL: Disable optimization to prevent recursion
                     )
                 else:
                     # Ultimate fallback with error message
@@ -253,13 +254,14 @@ class LatencyOptimizer:
                     f"You are Buddy. Respond to: {user_input}", user_id, "en"
                 )
             elif LLM_HANDLER_AVAILABLE:
-                # ✅ CONSCIOUSNESS-INTEGRATED FALLBACK: Use LLMHandler
+                # ✅ CRITICAL FIX: Use LLMHandler WITHOUT optimization to prevent infinite loop
                 llm_handler = LLMHandler()
                 response_generator = llm_handler.generate_response_with_consciousness(
                     text=f"You are Buddy. Respond to: {user_input}",
                     user=user_id,
                     context={"latency_optimized": True, "fallback_mode": True},
-                    stream=True
+                    stream=True,
+                    use_optimization=False  # ✅ CRITICAL: Disable optimization to prevent recursion
                 )
             else:
                 # Ultimate fallback

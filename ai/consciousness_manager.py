@@ -430,6 +430,9 @@ class ConsciousnessManager:
         if not self.module_states:
             return
         
+        # ✅ DETAILED LOGGING: Log belief/memory updates
+        print(f"[DETAILED_LOG] 💭 BELIEF_MEMORY_UPDATE: modules={len(self.module_states)} | timestamp={datetime.now().isoformat()}")
+        
         # Calculate aggregate metrics
         total_activity = sum(state['activity_level'] for state in self.module_states.values())
         avg_activity = total_activity / len(self.module_states)
@@ -444,6 +447,9 @@ class ConsciousnessManager:
             # Higher coherence when modules are more synchronized
             coherence_bonus = max(0.0, (30.0 - time_spread) / 30.0 * 0.2)
             self.metrics.coherence_level = min(1.0, 0.7 + coherence_bonus)
+            
+            # ✅ DETAILED LOGGING: Log coherence calculation
+            print(f"[DETAILED_LOG] 💭 CONSCIOUSNESS_COHERENCE: {self.metrics.coherence_level:.3f} | time_spread={time_spread:.1f}s | timestamp={datetime.now().isoformat()}")
     
     def _apply_consciousness_decay(self):
         """Apply natural decay to consciousness metrics"""

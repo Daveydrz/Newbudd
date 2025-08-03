@@ -426,6 +426,9 @@ class LLMHandler:
         Yields response chunks if streaming, otherwise returns complete response
         """
         try:
+            # ✅ DETAILED LOGGING: Log LLM request start
+            print(f"[DETAILED_LOG] 🤖 LLM_REQUEST_START: '{text[:50]}...' | user='{user}' | timestamp={datetime.now().isoformat()}")
+            
             # ✅ FIX: Enhanced debugging for circular call detection 
             print(f"[LLMHandler] 🔍 CALL DEBUG: is_primary_call={is_primary_call}, global_state={is_llm_generation_in_progress()}, use_optimization={use_optimization}")
             
@@ -557,6 +560,8 @@ class LLMHandler:
                 generation_start_time = time.time()
                 has_yielded_content = False
                 timeout_threshold = 5.0  # 5 second timeout
+                chunk_count = 0
+                first_token_logged = False
                 
                 # Stream response while tracking tokens
                 for chunk in response_generator:
@@ -565,6 +570,13 @@ class LLMHandler:
                         full_response += chunk_text + " "
                         output_tokens += estimate_tokens_from_text(chunk_text)
                         has_yielded_content = True
+                        chunk_count += 1
+                        
+                        # ✅ DETAILED LOGGING: Log first token
+                        if not first_token_logged:
+                            print(f"[DETAILED_LOG] 🤖 LLM_FIRST_TOKEN: '{chunk_text[:20]}...' | timestamp={datetime.now().isoformat()}")
+                            first_token_logged = True
+                        
                         yield chunk_text
                     
                     # Check for timeout during streaming
@@ -575,6 +587,14 @@ class LLMHandler:
                         has_yielded_content = True
                         yield fallback_response
                         break
+                
+                # ✅ DETAILED LOGGING: Log last token
+                if has_yielded_content:
+                    print(f"[DETAILED_LOG] 🤖 LLM_LAST_TOKEN: chunk_{chunk_count} | timestamp={datetime.now().isoformat()}")
+                    
+                    # ✅ FIX: Reset global state after final token
+                    print(f"[LLMHandler] 🔄 FINAL TOKEN: Resetting global LLM state after last token")
+                    set_llm_generation_in_progress(False)
 
                 # ✅ FIX: Ensure TTS fallback if LLM stalls or produces no content
                 if not has_yielded_content or len(full_response.strip()) < 5:

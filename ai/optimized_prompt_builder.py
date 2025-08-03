@@ -204,6 +204,10 @@ Generate response with complete consciousness integration and debug information.
             # Compress consciousness to symbolic tokens
             consciousness_tokens = self._compress_consciousness(consciousness_data, consciousness_tier)
             
+            # ✅ DETAILED LOGGING: Log consciousness prompt injection
+            token_count = len(consciousness_tokens.split()) if isinstance(consciousness_tokens, str) else 0
+            print(f"[DETAILED_LOG] 🧠 CONSCIOUSNESS_PROMPT_INJECTION: tier={consciousness_tier.value} | tokens={token_count} | timestamp={datetime.now().isoformat()}")
+            
             # Build memory context within budget
             memory_context = self._build_memory_context(consciousness_data, budget.memory_tokens)
             

@@ -664,6 +664,9 @@ def handle_streaming_response(text, current_user):
     """✅ ENHANCED: Smart streaming with ADVANCED AI ASSISTANT features + VOICE-BASED IDENTITY + FULL CONSCIOUSNESS"""
     print(f"🚨🚨🚨 [CRITICAL_DEBUG] handle_streaming_response called with text='{text}', user='{current_user}' 🚨🚨🚨")
     
+    # ✅ DETAILED LOGGING: Log Whisper transcription completion
+    print(f"[DETAILED_LOG] 🎤 WHISPER_TRANSCRIPTION_END: '{text}' | user='{current_user}' | timestamp={datetime.now().isoformat()}")
+    
     # ✅ FIX: Mark user interaction immediately to prevent consciousness loops
     mark_user_interaction()
     
@@ -927,10 +930,25 @@ def handle_streaming_response(text, current_user):
                             print(f"[MegaMemory] ⚠️ Validation error for chunk {chunk_count}: {validation_error}")
                             # Continue with original chunk if validation fails
                         
+                        # ✅ DETAILED LOGGING: Log Kokoro playback start
+                        print(f"[DETAILED_LOG] 🎵 KOKORO_PLAYBACK_START: chunk_{chunk_count} | text='{chunk_text[:50]}...' | timestamp={datetime.now().isoformat()}")
+                        
                         # ✅ SPEAK CHUNK (now validated and consciousness-enhanced)
                         speak_streaming(chunk_text)
                         mark_tts_activity()  # Mark TTS activity to prevent consciousness loops
                         full_response += chunk_text + " "
+                        
+                        # ✅ DETAILED LOGGING: Log Kokoro playback end
+                        print(f"[DETAILED_LOG] 🎵 KOKORO_PLAYBACK_END: chunk_{chunk_count} | queued_successfully | timestamp={datetime.now().isoformat()}")
+                        
+                        # ✅ FIX: Reset global state after Kokoro playback
+                        try:
+                            from ai.llm_handler import set_llm_generation_in_progress, is_llm_generation_in_progress
+                            if is_llm_generation_in_progress():
+                                print(f"[Main] 🔄 KOKORO END: Resetting global LLM state after playback")
+                                set_llm_generation_in_progress(False)
+                        except Exception as reset_error:
+                            print(f"[Main] ⚠️ Could not reset LLM state after Kokoro: {reset_error}")
                         
                         # ✅ CRITICAL: Check AGAIN after queueing and break if interrupted
                         if full_duplex_manager and full_duplex_manager.speech_interrupted:
@@ -1060,10 +1078,16 @@ def handle_streaming_response(text, current_user):
                         print(f"[MegaMemory] ⚠️ Validation error for chunk {chunk_count}: {validation_error}")
                         # Continue with original chunk if validation fails
                     
+                    # ✅ DETAILED LOGGING: Log Kokoro playback start
+                    print(f"[DETAILED_LOG] 🎵 KOKORO_PLAYBACK_START: chunk_{chunk_count} | text='{chunk_text[:50]}...' | timestamp={datetime.now().isoformat()}")
+                    
                     # ✅ SPEAK CHUNK (now validated and entropy-enhanced)
                     speak_streaming(chunk_text)
                     mark_tts_activity()  # Mark TTS activity to prevent consciousness loops
                     full_response += chunk_text + " "
+                    
+                    # ✅ DETAILED LOGGING: Log Kokoro playback end
+                    print(f"[DETAILED_LOG] 🎵 KOKORO_PLAYBACK_END: chunk_{chunk_count} | queued_successfully | timestamp={datetime.now().isoformat()}")
                     
                     # ✅ CRITICAL: Check AGAIN after queueing and break if interrupted
                     if full_duplex_manager and full_duplex_manager.speech_interrupted:
@@ -1123,7 +1147,13 @@ def handle_streaming_response(text, current_user):
                         response_interrupted = True
                         break  # ✅ CRITICAL: Break immediately!
                     
+                    # ✅ DETAILED LOGGING: Log Kokoro playback start
+                    print(f"[DETAILED_LOG] 🎵 KOKORO_PLAYBACK_START: sentence | text='{sentence.strip()[:50]}...' | timestamp={datetime.now().isoformat()}")
+                    
                     speak_streaming(sentence.strip())
+                    
+                    # ✅ DETAILED LOGGING: Log Kokoro playback end
+                    print(f"[DETAILED_LOG] 🎵 KOKORO_PLAYBACK_END: sentence | queued_successfully | timestamp={datetime.now().isoformat()}")
                     
                     # ✅ Check again after queueing
                     if full_duplex_manager and full_duplex_manager.speech_interrupted:

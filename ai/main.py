@@ -1467,9 +1467,24 @@ def handle_full_duplex_conversation():
                     print(f"[FullDuplex] 🎵 ✅ ADVANCED AI STREAMING response for: '{text}' (User: {current_user})")
                     handle_streaming_response(text, current_user)
                     
+                    # ✅ CRITICAL FIX: Reset VAD state after response completion
+                    print(f"[FullDuplex] 🔄 Resetting VAD state for next user input...")
+                    try:
+                        full_duplex_manager.force_reset_to_waiting()
+                        print(f"[FullDuplex] ✅ VAD state reset - ready for next user speech")
+                    except Exception as reset_error:
+                        print(f"[FullDuplex] ⚠️ VAD reset error: {reset_error}")
+                    
                 except Exception as e:
                     print(f"[FullDuplex] ADVANCED AI streaming response error: {e}")
                     speak_streaming("Sorry, I had a problem generating a response.")
+                    
+                    # ✅ CRITICAL FIX: Reset VAD state even on error
+                    try:
+                        full_duplex_manager.force_reset_to_waiting()
+                        print(f"[FullDuplex] ✅ VAD state reset after error")
+                    except Exception as reset_error:
+                        print(f"[FullDuplex] ⚠️ VAD reset error after exception: {reset_error}")
             
             # Print advanced stats periodically
             if DEBUG and time.time() - last_stats_time > 10:

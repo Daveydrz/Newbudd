@@ -671,6 +671,25 @@ def handle_streaming_response(text, current_user):
     try:
         print(f"[AdvancedResponse] 🎭 Starting ADVANCED AI streaming for: '{text}'")
         
+        # ✅ CRITICAL FIX: Extract and store memory from user input FIRST
+        print(f"[AdvancedResponse] 🧠 Extracting memories from user input...")
+        try:
+            from ai.memory import get_user_memory
+            user_memory = get_user_memory(current_user)
+            user_memory.extract_memories_from_text(text)
+            print(f"[AdvancedResponse] ✅ Memory extraction completed for user: {current_user}")
+            
+            # Also extract with smart memory system if available
+            try:
+                from ai.human_memory_smart import SmartHumanLikeMemory
+                smart_memory = SmartHumanLikeMemory(current_user)
+                smart_memory.extract_and_store_human_memories(text)
+                print(f"[AdvancedResponse] ✅ Smart memory extraction completed")
+            except ImportError:
+                print(f"[AdvancedResponse] ⚠️ Smart memory system not available")
+        except Exception as memory_error:
+            print(f"[AdvancedResponse] ⚠️ Memory extraction error: {memory_error}")
+        
         # ✅ NEW: Get voice-based identity FIRST (overrides system login)
         voice_identified_user = None
         try:

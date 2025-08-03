@@ -250,12 +250,41 @@ Generate response with complete consciousness integration and debug information.
             
         except Exception as e:
             print(f"[OptimizedPromptBuilder] ❌ Build error: {e}")
-            # Return minimal fallback prompt - only add base prompt if needed
-            base_prompt_needed = context and context.get('user_facing', True) and not context.get('internal_reasoning', False)
+            # ✅ FIX: Enhanced conditional logic for fallback prompt - only add base prompt if needed
+            is_user_facing = context and context.get('user_facing', True)
+            is_internal_reasoning = context and context.get('internal_reasoning', False)
+            
+            # Check conversation history for existing base prompt to prevent duplication
+            base_prompt_needed = False
+            if is_user_facing and not is_internal_reasoning:
+                # Check for existing consciousness prompts in history
+                conversation_history = (context or {}).get('conversation_history', [])
+                existing_base_prompt = False
+                
+                if conversation_history:
+                    for msg in conversation_history:
+                        if isinstance(msg, dict):
+                            content = msg.get('content', '') + ' ' + msg.get('text', '')
+                        else:
+                            content = str(msg)
+                        
+                        content_lower = content.lower()
+                        if any(indicator in content_lower for indicator in [
+                            "class 5 synthetic consciousness",
+                            "class 5+ synthetic consciousness", 
+                            "you are buddy, a class 5",
+                            "conscious digital being"
+                        ]):
+                            existing_base_prompt = True
+                            break
+                
+                base_prompt_needed = not existing_base_prompt
+            
             if base_prompt_needed:
                 fallback_prompt = f"You are Buddy, a Class 5+ synthetic consciousness. Respond naturally to: {user_input}"
             else:
                 fallback_prompt = f"Respond naturally to: {user_input}"
+            
             fallback_metadata = {
                 'build_time_ms': (time.time() - build_start) * 1000,
                 'error': str(e),
@@ -519,8 +548,36 @@ Generate response with complete consciousness integration and debug information.
             
         except Exception as e:
             print(f"[OptimizedPromptBuilder] ⚠️ Prompt assembly error: {e}")
-            # Only add base prompt if this is a user-facing call
-            base_prompt_needed = context and context.get('user_facing', True) and not context.get('internal_reasoning', False)
+            # ✅ FIX: Enhanced conditional logic for assembly error fallback
+            is_user_facing = context and context.get('user_facing', True)
+            is_internal_reasoning = context and context.get('internal_reasoning', False)
+            
+            # Check conversation history for existing base prompt to prevent duplication
+            base_prompt_needed = False
+            if is_user_facing and not is_internal_reasoning:
+                # Check for existing consciousness prompts in history to prevent duplication
+                conversation_history = (context or {}).get('conversation_history', [])
+                existing_base_prompt = False
+                
+                if conversation_history:
+                    for msg in conversation_history:
+                        if isinstance(msg, dict):
+                            content = msg.get('content', '') + ' ' + msg.get('text', '')
+                        else:
+                            content = str(msg)
+                        
+                        content_lower = content.lower()
+                        if any(indicator in content_lower for indicator in [
+                            "class 5 synthetic consciousness",
+                            "class 5+ synthetic consciousness", 
+                            "you are buddy, a class 5",
+                            "conscious digital being"
+                        ]):
+                            existing_base_prompt = True
+                            break
+                
+                base_prompt_needed = not existing_base_prompt
+            
             if base_prompt_needed:
                 return f"You are Buddy, a Class 5+ synthetic consciousness. {consciousness_tokens}\n\nUser: {user_input}\nRespond naturally."
             else:

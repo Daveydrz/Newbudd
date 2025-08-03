@@ -536,6 +536,20 @@ class BeliefEvolutionTracker:
         
         return conflicts
     
+    def detect_contradictions(self) -> List[str]:
+        """
+        Detect contradictions in beliefs - instance method for compatibility
+        
+        Returns:
+            List of contradiction descriptions
+        """
+        try:
+            conflicts = self.get_belief_conflicts(unresolved_only=True)
+            return [f"{conflict.description}" for conflict in conflicts[:5]]
+        except Exception as e:
+            print(f"[BeliefEvolution] ❌ Error detecting contradictions: {e}")
+            return []
+    
     def get_belief_network(self, belief_id: str, max_depth: int = 2) -> Dict[str, Any]:
         """Get belief relationship network"""
         

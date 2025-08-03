@@ -1135,17 +1135,21 @@ def start_belief_evolution(user_id: str):
     tracker = get_belief_evolution_tracker(user_id)
     tracker.start_evolution_monitoring()
 
-def detect_contradictions(user_id: str) -> List[str]:
+def detect_contradictions(user_id: str = None) -> List[str]:
     """
     Detect contradictions in user's beliefs - compatibility method
     
     Args:
-        user_id: User identifier
+        user_id: User identifier (optional, defaults to 'system')
         
     Returns:
         List of contradiction descriptions
     """
     try:
+        # Use default user if none provided for backward compatibility
+        if user_id is None:
+            user_id = 'system'
+            
         tracker = get_belief_evolution_tracker(user_id)
         conflicts = tracker.get_belief_conflicts(unresolved_only=True)
         return [f"{conflict.description}" for conflict in conflicts[:5]]

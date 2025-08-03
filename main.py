@@ -2857,15 +2857,21 @@ def main():
                     if AUTONOMOUS_CONSCIOUSNESS_AVAILABLE and autonomous_consciousness_system is not None:
                         try:
                             print("[AdvancedBuddy] 🔊 Activating vocal autonomy for conversation...")
+                            print(f"[AdvancedBuddy] 🔄 DEBUG: Current mode before conversation: {autonomous_consciousness_system.autonomous_mode}")
                             # Register voice and audio systems now
                             autonomous_consciousness_system.update_voice_system(voice_manager)
                             autonomous_consciousness_system.update_audio_system(full_duplex_manager)
                             
                             # Switch to INTERACTIVE mode for user input processing
                             autonomous_consciousness_system.set_autonomous_mode(AutonomousMode.INTERACTIVE)
+                            print(f"[AdvancedBuddy] 🔄 DEBUG: Current mode after switch: {autonomous_consciousness_system.autonomous_mode}")
                             print("[AdvancedBuddy] ✅ Mode switched to INTERACTIVE - LLM will now process user input")
                         except Exception as autonomy_error:
                             print(f"[AdvancedBuddy] ⚠️ Vocal autonomy activation error: {autonomy_error}")
+                    else:
+                        print("[AdvancedBuddy] ⚠️ DEBUG: Could not activate vocal autonomy")
+                        print(f"[AdvancedBuddy] ⚠️ DEBUG: AUTONOMOUS_CONSCIOUSNESS_AVAILABLE = {AUTONOMOUS_CONSCIOUSNESS_AVAILABLE}")
+                        print(f"[AdvancedBuddy] ⚠️ DEBUG: autonomous_consciousness_system = {autonomous_consciousness_system is not None}")
                     
                     print(f"[AdvancedBuddy] 🔄 Flags set using thread-safe methods")
                     
@@ -2958,8 +2964,15 @@ def main():
             
             # ✅ CRITICAL FIX: Switch from BACKGROUND_ONLY to INTERACTIVE mode after initialization
             if AUTONOMOUS_CONSCIOUSNESS_AVAILABLE and autonomous_consciousness_integrator:
+                print("[AdvancedBuddy] 🔄 DEBUG: About to switch autonomous mode from initialization to INTERACTIVE")
+                print(f"[AdvancedBuddy] 🔄 DEBUG: Current mode before switch: {autonomous_consciousness_integrator.autonomous_mode}")
                 autonomous_consciousness_integrator.set_autonomous_mode(AutonomousMode.INTERACTIVE)
+                print(f"[AdvancedBuddy] 🔄 DEBUG: Current mode after switch: {autonomous_consciousness_integrator.autonomous_mode}")
                 print("[AdvancedBuddy] ✅ Mode switched to INTERACTIVE - LLM will now process user input")
+            else:
+                print("[AdvancedBuddy] ⚠️ DEBUG: Could not switch to INTERACTIVE mode")
+                print(f"[AdvancedBuddy] ⚠️ DEBUG: AUTONOMOUS_CONSCIOUSNESS_AVAILABLE = {AUTONOMOUS_CONSCIOUSNESS_AVAILABLE}")
+                print(f"[AdvancedBuddy] ⚠️ DEBUG: autonomous_consciousness_integrator = {autonomous_consciousness_integrator is not None}")
             
             try:
                 while True:

@@ -207,25 +207,31 @@ class LLMHandler:
         """Initialize and verify Fusion LLM availability"""
         global FUSION_LLM_AVAILABLE
         
+        print("[LLMHandler] 🔍 Initializing Fusion LLM...")
+        
         # Force check for fusion LLM availability
         try:
+            print("[LLMHandler] 🔍 Attempting to import ai.chat_enhanced_smart_with_fusion...")
             from ai.chat_enhanced_smart_with_fusion import generate_response_streaming_with_intelligent_fusion
             if hasattr(generate_response_streaming_with_intelligent_fusion, '__call__'):
                 FUSION_LLM_AVAILABLE = True
                 print("[LLMHandler] ✅ Fusion LLM successfully loaded and verified")
+                print("[LLMHandler] ✅ Fusion LLM initialized successfully")
                 return
-        except ImportError:
-            pass
+        except ImportError as e:
+            print(f"[LLMHandler] 📝 ai.chat_enhanced_smart_with_fusion import failed: {e}")
             
         # Try alternative import path
         try:
+            print("[LLMHandler] 🔍 Attempting to import chat_enhanced_smart_with_fusion...")
             from chat_enhanced_smart_with_fusion import generate_response_streaming_with_intelligent_fusion
             if hasattr(generate_response_streaming_with_intelligent_fusion, '__call__'):
                 FUSION_LLM_AVAILABLE = True
                 print("[LLMHandler] ✅ Fusion LLM successfully loaded and verified")
+                print("[LLMHandler] ✅ Fusion LLM initialized successfully")
                 return
-        except ImportError:
-            pass
+        except ImportError as e:
+            print(f"[LLMHandler] 📝 chat_enhanced_smart_with_fusion import failed: {e}")
         
         # If we get here, fusion LLM is not available
         FUSION_LLM_AVAILABLE = False

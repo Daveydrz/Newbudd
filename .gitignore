@@ -78,4 +78,5 @@ node_modules/
 *.model
 *.pkl
 *.h5
-*.pb
+*.pbtest_fixes.py
+demo_fixes.py

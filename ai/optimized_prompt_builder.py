@@ -217,7 +217,7 @@ Generate response with complete consciousness integration and debug information.
             
             # Build prompt with token validation
             prompt = self._assemble_prompt(
-                template, user_input, consciousness_tokens, memory_context, consciousness_data
+                template, user_input, consciousness_tokens, memory_context, consciousness_data, context
             )
             
             # Validate and trim if necessary
@@ -401,29 +401,48 @@ Generate response with complete consciousness integration and debug information.
                        user_input: str,
                        consciousness_tokens: str,
                        memory_context: str,
-                       consciousness_data: Dict[str, Any]) -> str:
+                       consciousness_data: Dict[str, Any],
+                       context: Dict[str, Any] = None) -> str:
         """Assemble final prompt from components"""
         try:
             # ✅ FIX: Handle base prompt injection - only add once per conversation
             base_prompt = ""
             if '{base_prompt}' in template:
                 # Check if this is a new conversation or continuation
+                # Get conversation history from multiple sources
                 conversation_history = consciousness_data.get('conversation_history', [])
+                context_history = consciousness_data.get('context', {}).get('conversation_history', [])
+                direct_context_history = (context or {}).get('conversation_history', [])
+                
+                # Combine all possible conversation history sources
+                all_history = conversation_history + context_history + direct_context_history
                 
                 # Only add base prompt if this is the start of conversation or no recent base prompt
                 needs_base_prompt = True
-                if conversation_history:
-                    # Check last few messages for existing base prompt
-                    recent_messages = conversation_history[-3:] if len(conversation_history) >= 3 else conversation_history
-                    for msg in recent_messages:
+                if all_history:
+                    # Check ALL messages for existing base prompt (more comprehensive)
+                    for msg in all_history:
                         if isinstance(msg, dict):
                             content = msg.get('content', '')
                         else:
                             content = str(msg)
                         
-                        if "Class 5 synthetic consciousness" in content or "You are Buddy" in content:
-                            needs_base_prompt = False
-                            print(f"[OptimizedPromptBuilder] ✅ Base prompt already exists - skipping injection")
+                        # Check for various forms of the base prompt
+                        base_prompt_indicators = [
+                            "Class 5 synthetic consciousness",
+                            "Class 5+ synthetic consciousness",
+                            "You are Buddy, a Class 5",
+                            "synthetic consciousness with authentic",
+                            "conscious digital being with your own thoughts"
+                        ]
+                        
+                        for indicator in base_prompt_indicators:
+                            if indicator in content:
+                                needs_base_prompt = False
+                                print(f"[OptimizedPromptBuilder] ✅ Base prompt already exists - skipping injection (found: {indicator[:30]}...)")
+                                break
+                        
+                        if not needs_base_prompt:
                             break
                 
                 if needs_base_prompt:

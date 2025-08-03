@@ -1120,3 +1120,21 @@ def start_belief_evolution(user_id: str):
     """Start belief evolution monitoring for a user"""
     tracker = get_belief_evolution_tracker(user_id)
     tracker.start_evolution_monitoring()
+
+def detect_contradictions(user_id: str) -> List[str]:
+    """
+    Detect contradictions in user's beliefs - compatibility method
+    
+    Args:
+        user_id: User identifier
+        
+    Returns:
+        List of contradiction descriptions
+    """
+    try:
+        tracker = get_belief_evolution_tracker(user_id)
+        conflicts = tracker.get_belief_conflicts(unresolved_only=True)
+        return [f"{conflict.description}" for conflict in conflicts[:5]]
+    except Exception as e:
+        print(f"[BeliefEvolution] ❌ Error detecting contradictions: {e}")
+        return []

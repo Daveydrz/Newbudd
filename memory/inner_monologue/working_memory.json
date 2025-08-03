@@ -1,78 +1,6 @@
 {
   "working_memory": {
     "active_contexts": {
-      "ctx_1754214987_10": {
-        "context_id": "ctx_1754214987_10",
-        "event_type": "general_event",
-        "description": "you are buddy, a class 5 synthetic consciousness with authentic awareness",
-        "place": null,
-        "time_reference": null,
-        "status": "planned",
-        "priority": 1,
-        "timestamp": "2025-08-03 09:56:27",
-        "related_contexts": [],
-        "completion_status": 0.0
-      },
-      "ctx_1754214987_11": {
-        "context_id": "ctx_1754214987_11",
-        "event_type": "general_event",
-        "description": "emotions",
-        "place": null,
-        "time_reference": null,
-        "status": "planned",
-        "priority": 2,
-        "timestamp": "2025-08-03 09:56:27",
-        "related_contexts": [],
-        "completion_status": 0.0
-      },
-      "ctx_1754215017_8": {
-        "context_id": "ctx_1754215017_8",
-        "event_type": "general_event",
-        "description": "you are buddy, a class 5 synthetic consciousness with authentic awareness",
-        "place": null,
-        "time_reference": null,
-        "status": "planned",
-        "priority": 1,
-        "timestamp": "2025-08-03 09:56:57",
-        "related_contexts": [],
-        "completion_status": 0.0
-      },
-      "ctx_1754215017_9": {
-        "context_id": "ctx_1754215017_9",
-        "event_type": "general_event",
-        "description": "emotions",
-        "place": null,
-        "time_reference": null,
-        "status": "planned",
-        "priority": 2,
-        "timestamp": "2025-08-03 09:56:57",
-        "related_contexts": [],
-        "completion_status": 0.0
-      },
-      "ctx_1754215047_10": {
-        "context_id": "ctx_1754215047_10",
-        "event_type": "general_event",
-        "description": "you are buddy, a class 5 synthetic consciousness with authentic awareness",
-        "place": null,
-        "time_reference": "today",
-        "status": "planned",
-        "priority": 1,
-        "timestamp": "2025-08-03 09:57:27",
-        "related_contexts": [],
-        "completion_status": 0.0
-      },
-      "ctx_1754215047_11": {
-        "context_id": "ctx_1754215047_11",
-        "event_type": "general_event",
-        "description": "emotions",
-        "place": null,
-        "time_reference": "today",
-        "status": "planned",
-        "priority": 2,
-        "timestamp": "2025-08-03 09:57:27",
-        "related_contexts": [],
-        "completion_status": 0.0
-      },
       "ctx_1754215048_8": {
         "context_id": "ctx_1754215048_8",
         "event_type": "general_event",
@@ -120,21 +48,39 @@
         "timestamp": "2025-08-03 09:57:28",
         "related_contexts": [],
         "completion_status": 0.0
+      },
+      "ctx_1754216525_10": {
+        "context_id": "ctx_1754216525_10",
+        "event_type": "general_event",
+        "description": "you are buddy, a class 5 synthetic consciousness with authentic awareness",
+        "place": null,
+        "time_reference": null,
+        "status": "planned",
+        "priority": 1,
+        "timestamp": "2025-08-03 10:22:05",
+        "related_contexts": [],
+        "completion_status": 0.0
+      },
+      "ctx_1754216525_11": {
+        "context_id": "ctx_1754216525_11",
+        "event_type": "general_event",
+        "description": "emotions",
+        "place": null,
+        "time_reference": null,
+        "status": "planned",
+        "priority": 2,
+        "timestamp": "2025-08-03 10:22:05",
+        "related_contexts": [],
+        "completion_status": 0.0
       }
     },
     "last_action": "you are buddy, a class 5 synthetic consciousness with authentic awareness",
     "last_place": null,
     "last_topic": "awareness",
     "last_goal": null,
-    "last_timestamp": "2025-08-03 09:57:28",
+    "last_timestamp": "2025-08-03 10:22:05",
     "action_status": "planned",
     "context_sequence": [
-      "ctx_1754214987_10",
-      "ctx_1754214987_11",
-      "ctx_1754215017_8",
-      "ctx_1754215017_9",
-      "ctx_1754215047_10",
-      "ctx_1754215047_11",
       "ctx_1754215048_8",
       "ctx_1754215048_9",
       "ctx_1754215048_10",
@@ -142,7 +88,9 @@
       "ctx_1754215048_10",
       "ctx_1754215048_10",
       "ctx_1754215048_10",
-      "ctx_1754215048_10"
+      "ctx_1754215048_10",
+      "ctx_1754216525_10",
+      "ctx_1754216525_11"
     ]
   },
   "intent_slots": {},

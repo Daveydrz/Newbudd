@@ -89,6 +89,7 @@ except ImportError as e:
 try:
     from ai.parallel_processor import (
         get_parallel_processor,
+        get_parallel_processor_with_reactive_integration,
         initialize_parallel_consciousness,
         ParallelConsciousnessProcessor
     )
@@ -97,6 +98,24 @@ try:
 except ImportError as e:
     print(f"[Main] ⚠️ Parallel consciousness processor not available: {e}")
     PARALLEL_CONSCIOUSNESS_AVAILABLE = False
+
+# ✅ NEW: Import reactive neural architecture for advanced consciousness processing
+try:
+    from ai.reactive_neural_architecture import (
+        initialize_reactive_architecture,
+        get_reactive_neural_architecture,
+        shutdown_reactive_architecture
+    )
+    from ai.hybrid_consciousness_integration import (
+        get_reactive_integration_layer,
+        initialize_reactive_integration,
+        ProcessingMode
+    )
+    print("[Main] 🧠 Reactive neural architecture loaded - Advanced hybrid processing")
+    REACTIVE_NEURAL_ARCHITECTURE_AVAILABLE = True
+except ImportError as e:
+    print(f"[Main] ⚠️ Reactive neural architecture not available: {e}")
+    REACTIVE_NEURAL_ARCHITECTURE_AVAILABLE = False
 
 # ✅ NEW: Import latency optimization system for sub-5-second responses
 try:
@@ -728,38 +747,110 @@ def handle_streaming_response(text, current_user):
                 print(f"[AdvancedResponse] 🛡️ LLM LOCKED by voice processing - queuing response")
                 return
         
-        # ✅ PARALLEL CONSCIOUSNESS INTEGRATION: Dramatically faster processing (2min → 20sec)
+        # ✅ REACTIVE NEURAL ARCHITECTURE: Advanced hybrid consciousness processing
         consciousness_state = {}
         cognitive_prompt_injection = {}
         
-        if PARALLEL_CONSCIOUSNESS_AVAILABLE:
-            try:
-                # Use parallel processor for 10x faster consciousness processing
-                parallel_processor = get_parallel_processor()
-                consciousness_state = parallel_processor.process_consciousness_parallel(text, current_user)
+        # Try reactive neural architecture first (most advanced)
+        try:
+            from ai.hybrid_consciousness_integration import get_reactive_integration_layer, ProcessingMode
+            reactive_layer = get_reactive_integration_layer()
+            
+            # Check if reactive layer is initialized
+            if not reactive_layer.initialized:
+                import asyncio
+                # Run async initialization in thread if not in async context
+                if asyncio.iscoroutinefunction(reactive_layer.initialize):
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    loop.run_until_complete(reactive_layer.initialize())
+                    loop.close()
                 
-                print(f"[AdvancedResponse] 🚀 PARALLEL consciousness state: emotion={consciousness_state.get('current_emotion', 'unknown')}, "
-                      f"satisfaction={consciousness_state.get('motivation_satisfaction', 0):.2f}")
-                print(f"[AdvancedResponse] ⚡ Parallel processing: {consciousness_state.get('modules_processed', 0)} modules, "
-                      f"{consciousness_state.get('successful_modules', 0)} successful")
-                      
-            except Exception as parallel_error:
-                print(f"[AdvancedResponse] ⚠️ Parallel consciousness error: {parallel_error}")
-                # Fallback to sequential processing if parallel fails
-                if CONSCIOUSNESS_ARCHITECTURE_AVAILABLE:
-                    try:
-                        consciousness_state = _integrate_consciousness_with_response(text, current_user)
-                        print(f"[AdvancedResponse] 🔄 Fallback to sequential consciousness processing")
-                    except Exception as fallback_error:
-                        print(f"[AdvancedResponse] ❌ Both parallel and sequential consciousness failed: {fallback_error}")
-        elif CONSCIOUSNESS_ARCHITECTURE_AVAILABLE:
-            try:
-                # Sequential processing as fallback
-                consciousness_state = _integrate_consciousness_with_response(text, current_user)
-                print(f"[AdvancedResponse] 🌟 Sequential consciousness state: emotion={consciousness_state.get('current_emotion', 'unknown')}, "
-                      f"satisfaction={consciousness_state.get('motivation_satisfaction', 0):.2f}")
-            except Exception as consciousness_error:
-                print(f"[AdvancedResponse] ⚠️ Sequential consciousness integration error: {consciousness_error}")
+            # Process with reactive architecture
+            if reactive_layer.initialized:
+                # Run reactive processing
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                processing_result = loop.run_until_complete(
+                    reactive_layer.process_user_input(
+                        text, 
+                        current_user, 
+                        ProcessingMode.HYBRID_PERFORMANCE
+                    )
+                )
+                loop.close()
+                
+                if processing_result.success:
+                    consciousness_state = processing_result.result
+                    print(f"[AdvancedResponse] 🚀 REACTIVE consciousness processing: {processing_result.processing_time:.3f}s, "
+                          f"mode={processing_result.mode_used.name}")
+                    print(f"[AdvancedResponse] ⚡ Reactive results: {processing_result.metadata}")
+                else:
+                    raise Exception(f"Reactive processing failed: {processing_result.error}")
+            else:
+                raise Exception("Reactive layer not initialized")
+                
+        except Exception as reactive_error:
+            print(f"[AdvancedResponse] ⚠️ Reactive architecture error: {reactive_error}")
+            
+            # Fallback to enhanced parallel consciousness processing
+            if PARALLEL_CONSCIOUSNESS_AVAILABLE:
+                try:
+                    # Use parallel processor with reactive integration
+                    from ai.parallel_processor import get_parallel_processor_with_reactive_integration
+                    parallel_processor = get_parallel_processor_with_reactive_integration()
+                    
+                    # Try reactive-enhanced processing if available
+                    if hasattr(parallel_processor, 'process_consciousness_reactive'):
+                        # Get reactive components if available
+                        event_bus = None
+                        memory_manager = None
+                        try:
+                            from ai.reactive_neural_architecture import get_reactive_neural_architecture
+                            reactive_components = get_reactive_neural_architecture()
+                            event_bus = reactive_components.get('event_bus')
+                            memory_manager = reactive_components.get('memory_manager')
+                        except ImportError:
+                            pass
+                        
+                        # Run reactive processing in async context
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                        consciousness_state = loop.run_until_complete(
+                            parallel_processor.process_consciousness_reactive(
+                                text, current_user, event_bus, memory_manager
+                            )
+                        )
+                        loop.close()
+                        
+                        print(f"[AdvancedResponse] 🚀 ENHANCED parallel consciousness processing with reactive features")
+                    else:
+                        # Standard parallel processing
+                        consciousness_state = parallel_processor.process_consciousness_parallel(text, current_user)
+                        print(f"[AdvancedResponse] 🚀 STANDARD parallel consciousness processing")
+                    
+                    print(f"[AdvancedResponse] ⚡ Consciousness: emotion={consciousness_state.get('current_emotion', 'unknown')}, "
+                          f"satisfaction={consciousness_state.get('motivation_satisfaction', 0):.2f}")
+                    print(f"[AdvancedResponse] 📊 Processing: {consciousness_state.get('modules_processed', 0)} modules, "
+                          f"{consciousness_state.get('successful_modules', 0)} successful")
+                          
+                except Exception as parallel_error:
+                    print(f"[AdvancedResponse] ⚠️ Enhanced parallel consciousness error: {parallel_error}")
+                    # Final fallback to sequential processing
+                    if CONSCIOUSNESS_ARCHITECTURE_AVAILABLE:
+                        try:
+                            consciousness_state = _integrate_consciousness_with_response(text, current_user)
+                            print(f"[AdvancedResponse] 🔄 Fallback to sequential consciousness processing")
+                        except Exception as fallback_error:
+                            print(f"[AdvancedResponse] ❌ All consciousness processing methods failed: {fallback_error}")
+            elif CONSCIOUSNESS_ARCHITECTURE_AVAILABLE:
+                try:
+                    # Sequential processing as final fallback
+                    consciousness_state = _integrate_consciousness_with_response(text, current_user)
+                    print(f"[AdvancedResponse] 🌟 Sequential consciousness state: emotion={consciousness_state.get('current_emotion', 'unknown')}, "
+                          f"satisfaction={consciousness_state.get('motivation_satisfaction', 0):.2f}")
+                except Exception as consciousness_error:
+                    print(f"[AdvancedResponse] ⚠️ Sequential consciousness integration error: {consciousness_error}")
         
         # ✅ NEW: Process user interaction through autonomous systems
         if AUTONOMOUS_CONSCIOUSNESS_AVAILABLE:
@@ -2565,6 +2656,40 @@ def main():
                     print(f"[AdvancedBuddy] 🎯 Performance boost: ~10x faster consciousness processing")
                 except Exception as parallel_init_error:
                     print(f"[AdvancedBuddy] ⚠️ Parallel processor initialization error: {parallel_init_error}")
+            
+            # ✅ NEW: Initialize reactive neural architecture for advanced hybrid processing
+            if REACTIVE_NEURAL_ARCHITECTURE_AVAILABLE:
+                try:
+                    import asyncio
+                    
+                    # Initialize reactive components
+                    print(f"[AdvancedBuddy] 🧠 Initializing Reactive Neural Architecture...")
+                    
+                    # Run async initialization
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    
+                    # Initialize core reactive architecture
+                    reactive_components = loop.run_until_complete(initialize_reactive_architecture())
+                    
+                    # Initialize integration layer
+                    reactive_integration = loop.run_until_complete(initialize_reactive_integration())
+                    
+                    loop.close()
+                    
+                    # Get system health metrics
+                    health_metrics = reactive_integration.get_system_health()
+                    
+                    print(f"[AdvancedBuddy] 🚀 REACTIVE NEURAL ARCHITECTURE initialized!")
+                    print(f"[AdvancedBuddy] ⚡ Components: Event Bus, Async Pathways, Work-Stealing Pool, Memory Manager")
+                    print(f"[AdvancedBuddy] 🤖 Hybrid Workers: {health_metrics['workers']['count']}")
+                    print(f"[AdvancedBuddy] 🎯 Processing Modes: Reactive, Async, Parallel, Hybrid")
+                    print(f"[AdvancedBuddy] 📊 Backpressure State: {health_metrics['backpressure']['state']}")
+                    
+                except Exception as reactive_init_error:
+                    print(f"[AdvancedBuddy] ⚠️ Reactive neural architecture initialization error: {reactive_init_error}")
+                    import traceback
+                    traceback.print_exc()
             
             # Initial consciousness state setup
             _initialize_consciousness_state(current_user)

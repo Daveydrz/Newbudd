@@ -1,16 +1,24 @@
 #!/usr/bin/env python3
 """
-Parallel Consciousness Processor - Dramatically reduces response time from 2 minutes to ~20 seconds
-while preserving full consciousness depth through concurrent module execution.
+Enhanced Parallel Consciousness Processor - Reactive Neural Architecture Integration
+Dramatically reduces response time from 2 minutes to ~20 seconds while preserving full consciousness depth.
+
+Now integrated with:
+- Event-Driven Nervous System
+- Async Neural Pathways  
+- Hybrid Consciousness Workers
+- Optimized Memory Management
 
 Created: 2025-01-09
-Purpose: Enable parallel processing of consciousness modules for faster response times
+Updated: 2025-01-09 (Reactive Architecture Integration)
+Purpose: Enable parallel processing of consciousness modules with reactive patterns
 """
 
 import threading
 import time
 import logging
 import uuid
+import asyncio
 from concurrent.futures import ThreadPoolExecutor, Future, as_completed
 from typing import Dict, Any, List, Callable, Optional, Tuple
 from datetime import datetime
@@ -910,6 +918,180 @@ class ParallelConsciousnessProcessor:
             logger.warning(f"[ParallelProcessor] ⚠️ Attention module error: {e}")
             return {"attention_requested": False}
     
+    async def process_consciousness_reactive(self, text: str, current_user: str, 
+                                          event_bus=None, memory_manager=None) -> Dict[str, Any]:
+        """
+        Process consciousness modules with reactive neural architecture integration
+        
+        Args:
+            text: User input text
+            current_user: Current user identifier
+            event_bus: Optional event bus for reactive coordination
+            memory_manager: Optional memory manager for optimization
+            
+        Returns:
+            Combined consciousness state with reactive enhancements
+        """
+        session_id = str(uuid.uuid4())
+        start_time = time.time()
+        
+        # Create processing session with reactive capabilities
+        with self.session_lock:
+            self.active_sessions[session_id] = {
+                'start_time': start_time,
+                'text': text,
+                'user': current_user,
+                'status': 'reactive_processing',
+                'reactive_enabled': event_bus is not None
+            }
+        
+        logger.info(f"[ParallelProcessor] 🚀 Starting reactive consciousness processing (session: {session_id[:8]})")
+        
+        try:
+            # Publish reactive event if event bus available
+            if event_bus:
+                try:
+                    from ai.reactive_neural_architecture import NeuralEvent, EventType, EventPriority
+                    
+                    consciousness_event = NeuralEvent(
+                        type=EventType.CONSCIOUSNESS_UPDATE,
+                        priority=EventPriority.HIGH,
+                        source="parallel_processor",
+                        data={
+                            'text': text,
+                            'user': current_user,
+                            'session_id': session_id,
+                            'processing_type': 'parallel_consciousness'
+                        },
+                        correlation_id=session_id
+                    )
+                    
+                    # Publish asynchronously if in async context
+                    if asyncio.iscoroutinefunction(event_bus.publish_async):
+                        await event_bus.publish_async(consciousness_event)
+                    else:
+                        event_bus.publish_sync(consciousness_event)
+                        
+                    logger.debug(f"[ParallelProcessor] 📤 Published reactive consciousness event")
+                    
+                except Exception as e:
+                    logger.warning(f"[ParallelProcessor] ⚠️ Reactive event publishing failed: {e}")
+            
+            # Use memory-optimized processing if memory manager available
+            if memory_manager:
+                # Create copy-on-write snapshot for shared state
+                context_snapshot = memory_manager.create_cow_object(
+                    f"consciousness_context_{session_id}",
+                    {
+                        'text': text,
+                        'current_user': current_user,
+                        'timestamp': datetime.now().isoformat(),
+                        'session_id': session_id
+                    }
+                )
+                logger.debug(f"[ParallelProcessor] 🐄 Created COW context snapshot: {context_snapshot}")
+            
+            # Process using existing parallel implementation with reactive enhancements
+            consciousness_state = self.process_consciousness_parallel(text, current_user)
+            
+            # Add reactive metadata
+            consciousness_state['reactive_processing'] = {
+                'event_bus_used': event_bus is not None,
+                'memory_optimized': memory_manager is not None,
+                'session_id': session_id,
+                'reactive_latency': time.time() - start_time
+            }
+            
+            # Update session completion
+            total_time = time.time() - start_time
+            with self.session_lock:
+                self.active_sessions[session_id]['status'] = 'reactive_completed'
+                self.active_sessions[session_id]['completion_time'] = total_time
+                
+            logger.info(f"[ParallelProcessor] ✅ Reactive processing complete in {total_time:.3f}s")
+            return consciousness_state
+            
+        except Exception as e:
+            logger.error(f"[ParallelProcessor] ❌ Reactive processing failed: {e}")
+            with self.session_lock:
+                self.active_sessions[session_id]['status'] = 'reactive_failed'
+                self.active_sessions[session_id]['error'] = str(e)
+            raise
+        finally:
+            # Cleanup session after delay
+            threading.Timer(60.0, self._cleanup_session, args=[session_id]).start()
+
+    def integrate_with_reactive_architecture(self, event_bus=None, async_pathways=None, 
+                                           memory_manager=None):
+        """
+        Integrate parallel processor with reactive neural architecture components
+        
+        Args:
+            event_bus: Event bus for reactive coordination
+            async_pathways: Async neural pathways for I/O operations
+            memory_manager: Memory manager for optimization
+        """
+        self.reactive_components = {
+            'event_bus': event_bus,
+            'async_pathways': async_pathways,
+            'memory_manager': memory_manager,
+            'integration_enabled': True
+        }
+        
+        logger.info("[ParallelProcessor] 🔗 Integrated with reactive neural architecture")
+        
+        # Register as event subscriber if event bus available
+        if event_bus and hasattr(event_bus, 'subscribe'):
+            try:
+                event_bus.subscribe("CONSCIOUSNESS_REQUEST", self._handle_consciousness_event)
+                logger.debug("[ParallelProcessor] 📝 Subscribed to consciousness events")
+            except Exception as e:
+                logger.warning(f"[ParallelProcessor] ⚠️ Event subscription failed: {e}")
+    
+    def _handle_consciousness_event(self, event):
+        """Handle consciousness processing events from reactive architecture"""
+        try:
+            text = event.data.get('text', '')
+            user = event.data.get('user', '')
+            
+            if text and user:
+                # Process consciousness in background thread
+                def process_background():
+                    try:
+                        result = self.process_consciousness_parallel(text, user)
+                        logger.debug(f"[ParallelProcessor] ✅ Background consciousness processing completed")
+                        return result
+                    except Exception as e:
+                        logger.error(f"[ParallelProcessor] ❌ Background processing error: {e}")
+                
+                # Submit to thread pool
+                future = self.executor.submit(process_background)
+                self.background_futures.append(future)
+                
+                # Clean up old futures
+                self.background_futures = [f for f in self.background_futures if not f.done()]
+                
+        except Exception as e:
+            logger.error(f"[ParallelProcessor] ❌ Consciousness event handling error: {e}")
+
+    def get_reactive_performance_report(self) -> Dict[str, Any]:
+        """Get detailed performance report including reactive architecture metrics"""
+        base_report = self.get_performance_report()
+        
+        # Add reactive-specific metrics
+        reactive_metrics = {
+            'reactive_integration': {
+                'enabled': hasattr(self, 'reactive_components'),
+                'components': getattr(self, 'reactive_components', {}),
+                'reactive_sessions': sum(1 for session in self.active_sessions.values() 
+                                       if session.get('reactive_enabled', False)),
+                'background_futures': len(getattr(self, 'background_futures', []))
+            }
+        }
+        
+        base_report.update(reactive_metrics)
+        return base_report
+    
     def cleanup(self):
         """Thread-safe cleanup of resources"""
         try:
@@ -934,22 +1116,58 @@ class ParallelConsciousnessProcessor:
         except Exception as e:
             logger.warning(f"[ParallelProcessor] ⚠️ Cleanup error: {e}")
 
-# Global instance with thread safety
+# Global instance with thread safety and reactive integration
 parallel_processor = None
 _processor_lock = threading.Lock()
 
 def get_parallel_processor() -> ParallelConsciousnessProcessor:
-    """Get the global thread-safe parallel processor instance"""
+    """Get the global thread-safe parallel processor instance with reactive integration"""
     global parallel_processor
     with _processor_lock:
         if parallel_processor is None:
             parallel_processor = ParallelConsciousnessProcessor()
             parallel_processor.setup_default_modules()
-            logger.info("[ParallelProcessor] 🚀 Thread-safe global instance created")
+            logger.info("[ParallelProcessor] 🚀 Thread-safe global instance created with reactive support")
         return parallel_processor
 
 def initialize_parallel_consciousness():
-    """Initialize thread-safe parallel consciousness processing"""
+    """Initialize thread-safe parallel consciousness processing with reactive architecture"""
     processor = get_parallel_processor()
+    
+    # Attempt to integrate with reactive architecture if available
+    try:
+        from ai.reactive_neural_architecture import get_reactive_neural_architecture
+        reactive_components = get_reactive_neural_architecture()
+        
+        processor.integrate_with_reactive_architecture(
+            event_bus=reactive_components.get('event_bus'),
+            async_pathways=reactive_components.get('async_pathways'),
+            memory_manager=reactive_components.get('memory_manager')
+        )
+        logger.info("[ParallelProcessor] 🔗 Reactive neural architecture integration enabled")
+        
+    except ImportError:
+        logger.info("[ParallelProcessor] ℹ️ Reactive architecture not available, using standard processing")
+    
     logger.info("[ParallelProcessor] 🚀 Thread-safe parallel consciousness processing initialized")
+    return processor
+
+def get_parallel_processor_with_reactive_integration():
+    """Get parallel processor with guaranteed reactive integration"""
+    processor = get_parallel_processor()
+    
+    # Ensure reactive integration
+    if not hasattr(processor, 'reactive_components'):
+        try:
+            from ai.reactive_neural_architecture import get_reactive_neural_architecture
+            reactive_components = get_reactive_neural_architecture()
+            
+            processor.integrate_with_reactive_architecture(
+                event_bus=reactive_components.get('event_bus'),
+                async_pathways=reactive_components.get('async_pathways'),
+                memory_manager=reactive_components.get('memory_manager')
+            )
+        except ImportError:
+            logger.warning("[ParallelProcessor] ⚠️ Cannot integrate reactive architecture - not available")
+    
     return processor

@@ -3,20 +3,22 @@
     "theme": "beliefs",
     "memory_ids": [
       "mem_test_user_4bdf16d507b8",
-      "mem_test_user_a609e830bc2b"
+      "mem_test_user_a609e830bc2b",
+      "mem_test_user_0bae327030fa"
     ],
-    "strength": 0.2,
+    "strength": 0.30000000000000004,
     "creation_time": "2025-08-02T13:40:56.687171",
-    "last_reinforced": "2025-08-02T13:55:47.268723"
+    "last_reinforced": "2025-08-03T00:47:51.604090"
   },
   "worldview": {
     "theme": "worldview",
     "memory_ids": [
       "mem_test_user_4bdf16d507b8",
-      "mem_test_user_a609e830bc2b"
+      "mem_test_user_a609e830bc2b",
+      "mem_test_user_0bae327030fa"
     ],
-    "strength": 0.2,
+    "strength": 0.30000000000000004,
     "creation_time": "2025-08-02T13:40:56.687175",
-    "last_reinforced": "2025-08-02T13:55:47.268726"
+    "last_reinforced": "2025-08-03T00:47:51.604092"
   }
 }

@@ -106,6 +106,11 @@ def full_duplex_vad_listen():
                         silence_frames += 1
                         if has_speech and silence_frames % 30 == 0:
                             print("⏸️", end="", flush=True)
+                        
+                        # ✅ FIXED: Check for speech termination like in full_duplex_manager.py
+                        if has_speech and silence_frames >= 50:  # Proper silence detection
+                            print(f"\n[FullDuplex] 🎤 YOU FINISHED SPEAKING! (silence_frames: {silence_frames})")
+                            break
                             
             except Exception as e:
                 if DEBUG:
@@ -227,6 +232,11 @@ def half_duplex_vad_listen():
                         silence_frames += 1
                         if has_speech and silence_frames % 20 == 0:
                             print("⏸️", end="", flush=True)
+                        
+                        # ✅ FIXED: Check for speech termination like in full_duplex_manager.py
+                        if has_speech and silence_frames >= 40:  # Proper silence detection for half duplex
+                            print(f"\n[HalfDuplex] 🎤 YOU FINISHED SPEAKING! (silence_frames: {silence_frames})")
+                            break
                             
             except Exception as e:
                 if DEBUG:

@@ -14,9 +14,26 @@ def get_smart_memory(username: str) -> SmartHumanLikeMemory:
     return smart_memories[username]
 
 def reset_session_for_user_smart(username: str):
-    """Reset session when conversation starts"""
+    """Reset minimal session context while preserving Class 5 consciousness memory"""
     memory = get_smart_memory(username)
+    
+    # For Class 5 consciousness, we preserve conversation history and only reset
+    # session-specific context tracking to avoid repetitive memory mentions
+    # within the same session
     memory.reset_session_context()
+    
+    # Class 5 consciousness: Memory and conversation context are persistent
+    print(f"[SmartChat] 🧠 Class 5 consciousness session initialized for {username}")
+    print(f"[SmartChat] 💾 Conversation history and memory context preserved")
+    
+    # Load and display current memory status for debugging
+    try:
+        appointments_count = len(memory.appointments)
+        life_events_count = len(memory.life_events)
+        highlights_count = len(memory.conversation_highlights)
+        print(f"[SmartChat] 📅 Preserved: {appointments_count} appointments, {life_events_count} life events, {highlights_count} highlights")
+    except Exception as e:
+        print(f"[SmartChat] ⚠️ Could not display memory stats: {e}")
 
 def generate_response_streaming_with_smart_memory(question, username, lang="en"):
     """Streaming version with smart LLM-based memory"""

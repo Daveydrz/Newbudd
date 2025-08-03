@@ -58,6 +58,7 @@ def full_duplex_vad_listen():
                 break
 
             if has_speech and elapsed > 1.5 and silence_frames > 50:  # More patience
+                print(f"\n[FullDuplex] 🎤 YOU FINISHED SPEAKING! (silence_frames: {silence_frames})")
                 break
 
             try:
@@ -184,6 +185,7 @@ def half_duplex_vad_listen():
                 break
 
             if has_speech and elapsed > 1.0 and silence_frames > 40:
+                print(f"\n[HalfDuplex] 🎤 YOU FINISHED SPEAKING! (silence_frames: {silence_frames})")
                 break
 
             try:

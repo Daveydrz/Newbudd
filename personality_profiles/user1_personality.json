@@ -1,0 +1,92 @@
+{
+  "user_id": "user1",
+  "preferred_style": "adaptive",
+  "learning_enabled": true,
+  "adaptation_speed": 0.1,
+  "created_date": "2025-08-03T04:12:12.856254",
+  "last_updated": "2025-08-03T04:12:12.856254",
+  "traits": {
+    "humor": {
+      "dimension": "humor",
+      "value": 0.6,
+      "confidence": 0.5,
+      "last_updated": "2025-08-03T04:12:12.856232",
+      "update_count": 0,
+      "context_adjustments": {}
+    },
+    "empathy": {
+      "dimension": "empathy",
+      "value": 0.8,
+      "confidence": 0.5,
+      "last_updated": "2025-08-03T04:12:12.856239",
+      "update_count": 0,
+      "context_adjustments": {}
+    },
+    "formality": {
+      "dimension": "formality",
+      "value": 0.4,
+      "confidence": 0.5,
+      "last_updated": "2025-08-03T04:12:12.856242",
+      "update_count": 0,
+      "context_adjustments": {}
+    },
+    "curiosity": {
+      "dimension": "curiosity",
+      "value": 0.7,
+      "confidence": 0.5,
+      "last_updated": "2025-08-03T04:12:12.856243",
+      "update_count": 0,
+      "context_adjustments": {}
+    },
+    "enthusiasm": {
+      "dimension": "enthusiasm",
+      "value": 0.6,
+      "confidence": 0.5,
+      "last_updated": "2025-08-03T04:12:12.856245",
+      "update_count": 0,
+      "context_adjustments": {}
+    },
+    "directness": {
+      "dimension": "directness",
+      "value": 0.5,
+      "confidence": 0.5,
+      "last_updated": "2025-08-03T04:12:12.856246",
+      "update_count": 0,
+      "context_adjustments": {}
+    },
+    "supportiveness": {
+      "dimension": "supportiveness",
+      "value": 0.8,
+      "confidence": 0.5,
+      "last_updated": "2025-08-03T04:12:12.856247",
+      "update_count": 0,
+      "context_adjustments": {}
+    },
+    "playfulness": {
+      "dimension": "playfulness",
+      "value": 0.5,
+      "confidence": 0.5,
+      "last_updated": "2025-08-03T04:12:12.856248",
+      "update_count": 0,
+      "context_adjustments": {}
+    },
+    "intellectuality": {
+      "dimension": "intellectuality",
+      "value": 0.6,
+      "confidence": 0.5,
+      "last_updated": "2025-08-03T04:12:12.856249",
+      "update_count": 0,
+      "context_adjustments": {}
+    },
+    "patience": {
+      "dimension": "patience",
+      "value": 0.8,
+      "confidence": 0.5,
+      "last_updated": "2025-08-03T04:12:12.856250",
+      "update_count": 0,
+      "context_adjustments": {}
+    }
+  },
+  "context_preferences": {},
+  "feedback_history": []
+}

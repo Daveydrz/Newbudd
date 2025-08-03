@@ -183,6 +183,38 @@ class SubjectiveExperienceSystem:
         except Exception as e:
             print(f"[SubjectiveExperience] ⚠️ Could not check LLM generation state: {e}")
         
+        # ✅ CRITICAL FIX: Always prioritize user interactions over autonomous mode restrictions
+        # Check if this is a primary user interaction first
+        try:
+            import inspect
+            frame = inspect.currentframe()
+            is_user_interaction = False
+            
+            try:
+                # Look for user interaction indicators in call stack
+                for i in range(10):  # Check up to 10 frames up
+                    frame = frame.f_back
+                    if frame is None:
+                        break
+                    
+                    # Check for user interaction patterns
+                    frame_info = frame.f_code
+                    if any(pattern in frame_info.co_name for pattern in [
+                        'handle_streaming_response', 'generate_consciousness_integrated_response',
+                        'handle_voice_identification', 'process_user_input', 'handle_full_duplex'
+                    ]):
+                        is_user_interaction = True
+                        break
+            finally:
+                del frame
+            
+            if is_user_interaction:
+                print("[SubjectiveExperience] ✅ PRIMARY USER INTERACTION detected - forcing LLM call")
+                return False
+                
+        except Exception as e:
+            print(f"[SubjectiveExperience] ⚠️ Could not check call stack: {e}")
+        
         # ✅ FIXED: Check if this is autonomous background processing vs user interaction
         try:
             from ai.autonomous_consciousness_integrator import autonomous_consciousness_integrator
@@ -195,16 +227,16 @@ class SubjectiveExperienceSystem:
                     from main import get_conversation_state
                     if get_conversation_state():
                         # User is actively interacting - allow LLM calls for consciousness integration
-                        print("[SubjectiveExperience] ✅ User interaction active - allowing LLM call despite BACKGROUND_ONLY mode")
+                        print("[SubjectiveExperience] ✅ User interaction active - allowing consciousness LLM call")
                         return False
                     else:
                         # No user interaction - skip autonomous LLM calls 
                         print("[SubjectiveExperience] ⚠️ Skipping LLM call - in BACKGROUND_ONLY mode without user interaction")
                         return True
                 except ImportError:
-                    # Can't check conversation state - assume background processing and skip
-                    print("[SubjectiveExperience] ⚠️ Skipping LLM call - BACKGROUND_ONLY mode and can't check conversation state")
-                    return True
+                    # Can't check conversation state - prioritize allowing LLM call for user experience
+                    print("[SubjectiveExperience] ⚠️ Cannot check conversation state - allowing LLM call for user experience")
+                    return False
         except Exception as e:
             print(f"[SubjectiveExperience] ⚠️ Could not check autonomous mode: {e}")
         

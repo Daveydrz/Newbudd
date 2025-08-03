@@ -389,10 +389,13 @@ class ContinuousConsciousnessLoop:
             elif drive.drive_type == DriveType.GOAL_PURSUIT:
                 # Check goal progress via goal engine
                 try:
-                    goal_engine.evaluate_goal_progress()
-                except AttributeError:
-                    # Fallback if method doesn't exist
-                    print(f"[ContinuousConsciousness] ⚠️ Goal engine evaluate_goal_progress not available")
+                    if CONSCIOUSNESS_SYSTEMS_AVAILABLE and 'goal_engine' in globals() and goal_engine:
+                        goal_engine.evaluate_goal_progress()
+                    else:
+                        print(f"[ContinuousConsciousness] ⚠️ Goal engine not available")
+                except (AttributeError, NameError) as e:
+                    # Fallback if method doesn't exist or goal_engine not available
+                    print(f"[ContinuousConsciousness] ⚠️ Goal engine evaluate_goal_progress not available: {e}")
             
             elif drive.drive_type == DriveType.CREATIVE_EXPLORATION:
                 # Trigger creative thought

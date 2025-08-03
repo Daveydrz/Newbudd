@@ -485,10 +485,27 @@ class LazyConsciousnessLoader:
         try:
             from ai.motivation import motivation_system
             motivations_list = motivation_system.get_current_motivations(limit=3)
-            return {
-                'current_motivations': [(str(mt), intensity) for mt, intensity in motivations_list],
-                'motivation_level': motivations_list[0][1] if motivations_list else 0.7
-            }
+            
+            # ✅ FIX: Handle case where motivations_list could be different types
+            if isinstance(motivations_list, list) and len(motivations_list) > 0:
+                if isinstance(motivations_list[0], (list, tuple)) and len(motivations_list[0]) > 1:
+                    # Expected format: [(motivation_type, intensity), ...]
+                    return {
+                        'current_motivations': [(str(mt), intensity) for mt, intensity in motivations_list],
+                        'motivation_level': motivations_list[0][1] if motivations_list else 0.7
+                    }
+                else:
+                    # Handle single values or different format
+                    return {
+                        'current_motivations': [str(item) for item in motivations_list],
+                        'motivation_level': 0.7
+                    }
+            else:
+                # Empty or None
+                return {
+                    'current_motivations': [],
+                    'motivation_level': 0.7
+                }
         except ImportError:
             return None
         except Exception as e:
@@ -499,6 +516,7 @@ class LazyConsciousnessLoader:
         """Load temporal awareness module"""
         try:
             from ai.temporal_awareness import temporal_awareness
+            # ✅ FIX: get_current_time_context() is a method, not a function with user_id
             temporal_state = temporal_awareness.get_current_time_context()
             return {
                 'time_of_day': temporal_state.get('time_period', 'unknown'),
@@ -506,6 +524,9 @@ class LazyConsciousnessLoader:
                 'temporal_patterns': temporal_state.get('patterns', [])
             }
         except ImportError:
+            return None
+        except Exception as e:
+            print(f"[LazyConsciousnessLoader] ❌ Error loading temporal_awareness: {e}")
             return None
     
     def _load_self_model(self, user_id: str) -> Optional[Dict[str, Any]]:

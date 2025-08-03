@@ -1624,10 +1624,14 @@ def extract_name_from_text(text):
                 elif ENHANCED_VOICE_AVAILABLE:
                     # Use enhanced name validation
                     try:
-                        from voice.manager_names import name_manager
-                        if name_manager.is_valid_name_enhanced(name):
-                            return name
-                    except:
+                        # Use the existing ultra_name_manager instance instead of importing class
+                        if (hasattr(voice_manager, 'ultra_name_manager') and 
+                            voice_manager.ultra_name_manager and
+                            hasattr(voice_manager.ultra_name_manager, 'is_valid_name_enhanced')):
+                            if voice_manager.ultra_name_manager.is_valid_name_enhanced(name):
+                                return name
+                    except Exception as validation_error:
+                        print(f"[VoiceIdentity] ⚠️ Enhanced validation error: {validation_error}")
                         pass
                 
                 # Fallback validation

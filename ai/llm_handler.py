@@ -139,7 +139,7 @@ _global_llm_generation_in_progress = False
 def is_llm_generation_in_progress():
     """Check if LLM generation is currently in progress (global state)"""
     global _global_llm_generation_in_progress
-    # ✅ FIX: Add thread safety and reset stuck states
+    # ✅ FIX: Add thread safety and auto-reset stuck states
     if _global_llm_generation_in_progress:
         current_time = time.time()
         # Check if state has been stuck for too long (> 60 seconds indicates stuck state)
@@ -148,7 +148,7 @@ def is_llm_generation_in_progress():
         
         time_stuck = current_time - is_llm_generation_in_progress._last_check_time
         if time_stuck > 60.0:  # Reset if stuck for more than 60 seconds
-            print(f"[LLMHandler] 🔧 STUCK STATE DETECTED: LLM state stuck for {time_stuck:.1f}s - auto-resetting")
+            print(f"[LLMHandler] 🔧 STUCK STATE DETECTED - auto-resetting after {time_stuck:.1f}s")
             _global_llm_generation_in_progress = False
             is_llm_generation_in_progress._last_check_time = current_time
             return False

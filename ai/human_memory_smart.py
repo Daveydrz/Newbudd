@@ -612,6 +612,21 @@ Return only valid JSON array:"""
         return None
     
     def reset_session_context(self):
-        """Reset session context"""
+        """Reset only session-specific context tracking for Class 5 consciousness
+        
+        Class 5 consciousness maintains:
+        - All conversation history 
+        - All memory events (appointments, life events, highlights)
+        - All learned context about the user
+        - All previous conversation references
+        
+        Only resets:
+        - Session-specific context usage tracking to prevent repetitive mentions
+        """
+        # Only clear the context used tracker to avoid repetitive context mentions
+        # All actual memory and conversation history is preserved
         self.context_used_this_session.clear()
-        print(f"[SmartMemory] 🔄 Session context reset for {self.username}")
+        
+        print(f"[SmartMemory] 🧠 Class 5 consciousness session reset for {self.username}")
+        print(f"[SmartMemory] 💾 All memory, context, and conversation history preserved")
+        print(f"[SmartMemory] 🔄 Only session context usage tracking reset")

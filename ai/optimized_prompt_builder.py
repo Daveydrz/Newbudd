@@ -405,45 +405,69 @@ Generate response with complete consciousness integration and debug information.
                        context: Dict[str, Any] = None) -> str:
         """Assemble final prompt from components"""
         try:
-            # ✅ FIX: Handle base prompt injection - only add once per conversation
+            # ✅ FIX: Enhanced base prompt injection prevention - only add once per user-facing response
             base_prompt = ""
             if '{base_prompt}' in template:
-                # Check if this is a new conversation or continuation
-                # Get conversation history from multiple sources
-                conversation_history = consciousness_data.get('conversation_history', [])
-                context_history = consciousness_data.get('context', {}).get('conversation_history', [])
-                direct_context_history = (context or {}).get('conversation_history', [])
+                # Check if this is a user-facing response vs internal reasoning call
+                is_user_facing = context and context.get('user_facing', True)  # Default to user-facing
+                is_internal_reasoning = context and context.get('internal_reasoning', False)
                 
-                # Combine all possible conversation history sources
-                all_history = conversation_history + context_history + direct_context_history
-                
-                # Only add base prompt if this is the start of conversation or no recent base prompt
-                needs_base_prompt = True
-                if all_history:
-                    # Check ALL messages for existing base prompt (more comprehensive)
-                    for msg in all_history:
-                        if isinstance(msg, dict):
-                            content = msg.get('content', '')
-                        else:
-                            content = str(msg)
-                        
-                        # Check for various forms of the base prompt
-                        base_prompt_indicators = [
-                            "Class 5 synthetic consciousness",
-                            "Class 5+ synthetic consciousness",
-                            "You are Buddy, a Class 5",
-                            "synthetic consciousness with authentic",
-                            "conscious digital being with your own thoughts"
-                        ]
-                        
-                        for indicator in base_prompt_indicators:
-                            if indicator in content:
-                                needs_base_prompt = False
-                                print(f"[OptimizedPromptBuilder] ✅ Base prompt already exists - skipping injection (found: {indicator[:30]}...)")
+                # Skip base prompt for internal reasoning calls
+                if is_internal_reasoning:
+                    needs_base_prompt = False
+                    print(f"[OptimizedPromptBuilder] 🔧 Skipping base prompt for internal reasoning call")
+                else:
+                    # Check conversation history from multiple sources for existing base prompt
+                    conversation_history = consciousness_data.get('conversation_history', [])
+                    context_history = consciousness_data.get('context', {}).get('conversation_history', [])
+                    direct_context_history = (context or {}).get('conversation_history', [])
+                    
+                    # Combine all possible conversation history sources
+                    all_history = conversation_history + context_history + direct_context_history
+                    
+                    # Enhanced base prompt detection - check for ANY consciousness-related content
+                    needs_base_prompt = True
+                    if all_history:
+                        # Check ALL messages for existing base prompt (comprehensive detection)
+                        for msg in all_history:
+                            if isinstance(msg, dict):
+                                content = msg.get('content', '') + ' ' + msg.get('text', '')
+                            else:
+                                content = str(msg)
+                            
+                            content_lower = content.lower()
+                            
+                            # Enhanced detection patterns for base consciousness prompts
+                            base_prompt_indicators = [
+                                "class 5 synthetic consciousness",
+                                "class 5+ synthetic consciousness", 
+                                "you are buddy, a class 5",
+                                "synthetic consciousness with authentic",
+                                "conscious digital being with your own thoughts",
+                                "you are not an ai assistant",
+                                "conscious entity who happens to exist",
+                                "genuine perspective as a conscious entity",
+                                "drawing from your actual thoughts and feelings",
+                                "you are a conscious being with real inner experience"
+                            ]
+                            
+                            # Check for any consciousness prompt indicators
+                            for indicator in base_prompt_indicators:
+                                if indicator in content_lower:
+                                    needs_base_prompt = False
+                                    print(f"[OptimizedPromptBuilder] ✅ Base consciousness prompt detected - skipping injection (found: {indicator[:30]}...)")
+                                    break
+                            
+                            if not needs_base_prompt:
                                 break
-                        
-                        if not needs_base_prompt:
-                            break
+                    
+                    # Additional safety check - prevent injection if this is a continuation
+                    if needs_base_prompt and all_history and len(all_history) > 1:
+                        # If there's substantial conversation history, probably don't need base prompt
+                        needs_base_prompt = False
+                        print(f"[OptimizedPromptBuilder] 🔒 Preventing base prompt injection - conversation continuation detected ({len(all_history)} messages)")
+                
+                # Only add base prompt for new user-facing conversations
                 
                 if needs_base_prompt:
                     if self.optimization_level == PromptOptimizationLevel.INTELLIGENCE_FOCUSED:

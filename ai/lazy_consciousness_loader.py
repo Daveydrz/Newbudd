@@ -559,7 +559,7 @@ class LazyConsciousnessLoader:
             
             return {
                 'active_beliefs': [b.content[:60] for b in active_beliefs[:3]],
-                'belief_strength': [b.confidence for b in active_beliefs[:3]],
+                'belief_strength': [b.confidence_score for b in active_beliefs[:3]],
                 'contradictions': contradictions
             }
         except (ImportError, AttributeError) as e:

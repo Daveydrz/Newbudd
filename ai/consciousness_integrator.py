@@ -48,6 +48,152 @@ class ConsciousnessIntegrator:
         
         # Integration parameters
         self.integration_interval = 60.0  # 1 minute between integration cycles
+        
+        # Consciousness state processing
+        self.consciousness_cache = {}
+        self.last_state_update = datetime.now()
+        
+        logging.info("[ConsciousnessIntegrator] 🧠 Consciousness integrator initialized")
+
+    def process_consciousness_state(self, state_marker: str) -> Dict[str, Any]:
+        """Process raw consciousness state markers into usable context"""
+        try:
+            logging.debug(f"[ConsciousnessIntegrator] 🔄 Processing consciousness state: {state_marker}")
+            
+            # Parse state marker into components
+            consciousness_state = self._parse_state_marker(state_marker)
+            
+            # Integrate with current modules
+            integrated_state = self._integrate_module_states(consciousness_state)
+            
+            # Apply temporal context
+            temporal_context = self._get_temporal_context()
+            integrated_state["temporal_context"] = temporal_context
+            
+            # Cache the processed state
+            self.consciousness_cache[state_marker] = {
+                "state": integrated_state,
+                "timestamp": datetime.now(),
+                "validity": timedelta(minutes=10)  # State valid for 10 minutes
+            }
+            
+            logging.debug(f"[ConsciousnessIntegrator] ✅ Processed consciousness state successfully")
+            return integrated_state
+            
+        except Exception as e:
+            logging.error(f"[ConsciousnessIntegrator] ❌ Error processing consciousness state: {e}")
+            return {
+                "error": str(e),
+                "fallback_state": "basic_consciousness",
+                "timestamp": datetime.now().isoformat()
+            }
+
+    def _parse_state_marker(self, marker: str) -> Dict[str, Any]:
+        """Parse a consciousness state marker into structured data"""
+        try:
+            # Handle different marker formats
+            if marker.startswith("[CONSCIOUSNESS:"):
+                # Extract consciousness tokens
+                tokens = marker.strip("[]").replace("CONSCIOUSNESS:", "").split()
+                return {
+                    "type": "tokenized",
+                    "tokens": tokens,
+                    "primary_state": tokens[0] if tokens else "neutral",
+                    "modifiers": tokens[1:] if len(tokens) > 1 else []
+                }
+            elif ":" in marker:
+                # Key-value format
+                parts = marker.split(":")
+                return {
+                    "type": "structured",
+                    "category": parts[0].strip(),
+                    "value": parts[1].strip() if len(parts) > 1 else "",
+                    "attributes": parts[2:] if len(parts) > 2 else []
+                }
+            else:
+                # Raw text format
+                return {
+                    "type": "raw",
+                    "content": marker,
+                    "parsed_words": marker.split(),
+                    "length": len(marker)
+                }
+        except Exception as e:
+            logging.warning(f"[ConsciousnessIntegrator] ⚠️ Error parsing state marker: {e}")
+            return {
+                "type": "error",
+                "original": marker,
+                "error": str(e)
+            }
+
+    def _integrate_module_states(self, consciousness_state: Dict[str, Any]) -> Dict[str, Any]:
+        """Integrate consciousness state with available modules"""
+        integrated = consciousness_state.copy()
+        
+        try:
+            # Add emotion state if available
+            if self.emotion_engine:
+                integrated["emotion"] = {
+                    "current_state": getattr(self.emotion_engine, 'primary_emotion', 'neutral'),
+                    "intensity": getattr(self.emotion_engine, 'intensity', 0.5)
+                }
+            
+            # Add motivation state if available
+            if self.motivation_system:
+                integrated["motivation"] = {
+                    "active_goals": getattr(self.motivation_system, 'active_goals_count', 0),
+                    "motivation_level": getattr(self.motivation_system, 'motivation_level', 0.5)
+                }
+            
+            # Add attention state if available
+            if self.attention_manager:
+                integrated["attention"] = {
+                    "current_focus": getattr(self.attention_manager, 'current_focus', 'general'),
+                    "focus_intensity": getattr(self.attention_manager, 'focus_intensity', 0.5)
+                }
+            
+            # Add self-model state if available
+            if self.self_model:
+                integrated["self_model"] = {
+                    "identity_stability": getattr(self.self_model, 'identity_stability', 0.8),
+                    "self_awareness": getattr(self.self_model, 'self_awareness_level', 0.6)
+                }
+            
+            # Add consciousness health score if available
+            if self.consciousness_health_scorer:
+                integrated["health"] = {
+                    "overall_score": getattr(self.consciousness_health_scorer, 'current_score', 0.7),
+                    "coherence": getattr(self.consciousness_health_scorer, 'coherence_level', 0.6)
+                }
+            
+        except Exception as e:
+            logging.warning(f"[ConsciousnessIntegrator] ⚠️ Error integrating module states: {e}")
+            integrated["integration_error"] = str(e)
+        
+        return integrated
+
+    def _get_temporal_context(self) -> Dict[str, Any]:
+        """Get current temporal context for consciousness processing"""
+        try:
+            # Try to get temporal awareness if available
+            from ai.temporal_awareness import temporal_awareness
+            return temporal_awareness.get_current_time_context()
+        except ImportError:
+            # Fallback temporal context
+            now = datetime.now()
+            return {
+                "current_time": now.strftime("%Y-%m-%d %H:%M:%S"),
+                "time_awareness_level": 0.5,
+                "subjective_time_flow": 1.0,
+                "recent_significant_events": 0,
+                "total_aware_time": 0
+            }
+        except Exception as e:
+            logging.warning(f"[ConsciousnessIntegrator] ⚠️ Error getting temporal context: {e}")
+            return {
+                "error": str(e),
+                "fallback_time": datetime.now().isoformat()
+            }
         self.cross_system_communication = True
         self.consciousness_coherence_threshold = 0.7
         

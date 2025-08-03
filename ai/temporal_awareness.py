@@ -460,6 +460,19 @@ class TemporalAwareness:
             if event_description.lower() in marker.event.lower():
                 return datetime.now() - marker.timestamp
         return None
+
+    def get_current_time_context(self) -> Dict[str, Any]:
+        """Get current time awareness context for consciousness integration"""
+        now = datetime.now()
+        return {
+            "current_time": now.strftime("%Y-%m-%d %H:%M:%S"),
+            "time_awareness_level": self.time_awareness_level,
+            "subjective_time_flow": self.subjective_time.perceived_flow_rate,
+            "recent_significant_events": len([m for m in self.temporal_markers 
+                                       if (now - m.timestamp).total_seconds() < 3600 
+                                       and m.significance > 0.5]),
+            "total_aware_time": self.total_aware_time.total_seconds() if hasattr(self.total_aware_time, 'total_seconds') else 0
+        }
     
     def _initialize_temporal_patterns(self):
         """Initialize understanding of temporal patterns"""

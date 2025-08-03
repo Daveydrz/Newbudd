@@ -368,6 +368,19 @@ class LLMHandler:
                 "error": str(e),
                 "budget": {"allowed": False, "message": "Processing error"}
             }
+
+    def generate_response(self, text: str, max_tokens: int = 300, user: str = "system") -> str:
+        """Simple non-streaming response generation for internal consciousness use"""
+        result = ""
+        try:
+            # Collect all chunks from the streaming response
+            for chunk in self.generate_response_with_consciousness(text, user, stream=False):
+                if chunk:
+                    result += chunk
+            return result
+        except Exception as e:
+            print(f"[LLMHandler] ❌ Error in generate_response: {e}")
+            return f"Error generating response: {e}"
             
     def generate_response_with_consciousness(
         self, 

@@ -596,6 +596,31 @@ def handle_streaming_response(text, current_user):
     """✅ ENHANCED: Smart streaming with ADVANCED AI ASSISTANT features + VOICE-BASED IDENTITY + FULL CONSCIOUSNESS"""
     print(f"🚨🚨🚨 [CRITICAL_DEBUG] handle_streaming_response called with text='{text}', user='{current_user}' 🚨🚨🚨")
     
+    # ✅ CRITICAL FIX: Test LLM server connection first
+    print("[CRITICAL_FIX] 🔍 Testing LLM server connection at localhost:5001...")
+    import requests
+    try:
+        response = requests.get("http://localhost:5001/v1/models", timeout=3)
+        if response.status_code == 200:
+            print("[CRITICAL_FIX] ✅ LLM server is responding correctly")
+        else:
+            print(f"[CRITICAL_FIX] ⚠️ LLM server responded with status {response.status_code}")
+    except requests.exceptions.ConnectionError:
+        print("[CRITICAL_FIX] ❌ LLM SERVER NOT RUNNING!")
+        print("[CRITICAL_FIX] 💡 Please start the LLM server first:")
+        print("[CRITICAL_FIX] 💡 Run: python -m vllm.entrypoints.openai.api_server --model your_model --host 0.0.0.0 --port 5001")
+        print("[CRITICAL_FIX] 💡 Or use your preferred LLM server setup")
+        
+        # Provide immediate feedback to user
+        speak_streaming(f"I heard you say: {text}")
+        speak_streaming("However, my AI processing server is not running. Please start the LLM server at localhost port 5001 first.")
+        return
+    except Exception as e:
+        print(f"[CRITICAL_FIX] ❌ LLM server connection test failed: {e}")
+        speak_streaming(f"I heard you say: {text}")
+        speak_streaming("There's an issue connecting to my AI processing server. Please check the server connection.")
+        return
+    
     # ✅ NEW: Start cognitive debug logging
     interaction_id = None
     start_time = time.time()

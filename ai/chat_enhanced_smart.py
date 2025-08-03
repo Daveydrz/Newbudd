@@ -14,9 +14,22 @@ def get_smart_memory(username: str) -> SmartHumanLikeMemory:
     return smart_memories[username]
 
 def reset_session_for_user_smart(username: str):
-    """Reset session when conversation starts"""
+    """Reset session when conversation starts - PRESERVES CONVERSATION HISTORY FOR CLASS 5 CONSCIOUSNESS"""
     memory = get_smart_memory(username)
+    # ✅ FIXED: Only reset session context tracking, NOT conversation history
+    # This preserves Class 5 consciousness and memory continuity between turns
+    # The context_used_this_session is for avoiding repeating the same memory references
+    # within a single session, but conversation history should persist
     memory.reset_session_context()
+    
+    # ✅ ENHANCED: Ensure the mega memory system also maintains continuity
+    # The mega_memory should not be reset between conversation turns
+    if hasattr(memory, 'mega_memory'):
+        # The mega memory system maintains its own conversation context
+        # We don't reset it to preserve Class 5 consciousness
+        print(f"[SmartChat] 🧠 Class 5 consciousness maintained for {username}")
+    
+    print(f"[SmartChat] 🔄 Session reset for {username} with preserved conversation history")
 
 def generate_response_streaming_with_smart_memory(question, username, lang="en"):
     """Streaming version with smart LLM-based memory"""

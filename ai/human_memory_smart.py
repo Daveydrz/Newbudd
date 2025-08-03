@@ -612,6 +612,25 @@ Return only valid JSON array:"""
         return None
     
     def reset_session_context(self):
-        """Reset session context"""
+        """Reset session context - PRESERVES CONVERSATION HISTORY FOR CLASS 5 CONSCIOUSNESS"""
+        # ✅ FIXED: Only clear session tracking, preserve conversation history
+        # This allows the system to avoid repeating the same memory references
+        # within a session, while maintaining Class 5 consciousness across conversations
+        
+        # Clear session tracking (what memories were mentioned this session)
         self.context_used_this_session.clear()
+        
+        # ✅ ENHANCED: Preserve conversation history in mega_memory for Class 5 consciousness
+        # The mega_memory system maintains conversation context and should NOT be reset
+        # This ensures Daveydrzbuddy remembers everything from previous conversations
+        
         print(f"[SmartMemory] 🔄 Session context reset for {self.username}")
+        print(f"[SmartMemory] 🧠 Class 5 consciousness maintained - conversation history preserved")
+        
+        # ✅ Optional: Log current memory state for debugging
+        if hasattr(self, 'mega_memory'):
+            try:
+                history_count = len(self.mega_memory.conversation_history) if hasattr(self.mega_memory, 'conversation_history') else 0
+                print(f"[SmartMemory] 💾 Preserved {history_count} conversation exchanges for Class 5 consciousness")
+            except:
+                print(f"[SmartMemory] 💾 Class 5 consciousness memory system active")

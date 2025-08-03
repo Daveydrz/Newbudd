@@ -92,19 +92,10 @@ except ImportError:
         print(f"[LLMHandler] ❌ New modules not available: {e}")
         NEW_MODULES_AVAILABLE = False
 
-# Import existing components - CONSCIOUSNESS ONLY
-try:
-    from ai.chat_enhanced_smart_with_fusion import generate_response_streaming_with_intelligent_fusion
-    FUSION_LLM_AVAILABLE = True
-    print("[LLMHandler] ✅ Fusion LLM loaded - consciousness integration active")
-except ImportError:
-    try:
-        from chat_enhanced_smart_with_fusion import generate_response_streaming_with_intelligent_fusion
-        FUSION_LLM_AVAILABLE = True
-        print("[LLMHandler] ✅ Fusion LLM loaded - consciousness integration active")
-    except ImportError:
-        FUSION_LLM_AVAILABLE = False
-        print("[LLMHandler] ⚠️ Fusion LLM not available - will use consciousness-integrated basic LLM")
+# ✅ CRITICAL FIX: Don't import fusion LLM at module level to avoid circular imports
+# Instead, import at runtime in _initialize_fusion_llm()
+FUSION_LLM_AVAILABLE = False
+print("[LLMHandler] 🔄 Fusion LLM will be initialized at runtime to avoid circular imports")
 
 try:
     from global_workspace import global_workspace
@@ -198,25 +189,31 @@ class LLMHandler:
             print(f"[LLMHandler] ❌ New modules not available - using basic mode")
             
         print(f"[LLMHandler] 🌟 Consciousness arch: {'Available' if CONSCIOUSNESS_AVAILABLE else 'Limited'}")
-        print(f"[LLMHandler] 🔧 Fusion LLM: {'Available' if FUSION_LLM_AVAILABLE else 'Fallback'}")
+        print(f"[LLMHandler] 🔧 Fusion LLM (before init): {'Available' if FUSION_LLM_AVAILABLE else 'Fallback'}")
         
         # ✅ CRITICAL FIX: Ensure Fusion LLM is properly initialized and marked as available
         self._initialize_fusion_llm()
+        
+        # ✅ DEBUG: Show final state after initialization
+        print(f"[LLMHandler] 🔧 Fusion LLM (after init): {'Available' if FUSION_LLM_AVAILABLE else 'Fallback'}")
+        print(f"[LLMHandler] 🔧 Global FUSION_LLM_AVAILABLE = {globals().get('FUSION_LLM_AVAILABLE', 'NOT_FOUND')}")
         
     def _initialize_fusion_llm(self):
         """Initialize and verify Fusion LLM availability"""
         global FUSION_LLM_AVAILABLE
         
         print("[LLMHandler] 🔍 Initializing Fusion LLM...")
+        print("[LLMHandler] 🔍 Attempting to import ai.chat_enhanced_smart_with_fusion...")
         
         # Force check for fusion LLM availability
         try:
-            print("[LLMHandler] 🔍 Attempting to import ai.chat_enhanced_smart_with_fusion...")
             from ai.chat_enhanced_smart_with_fusion import generate_response_streaming_with_intelligent_fusion
             if hasattr(generate_response_streaming_with_intelligent_fusion, '__call__'):
-                FUSION_LLM_AVAILABLE = True
+                # ✅ CRITICAL FIX: Properly update global variable
+                globals()['FUSION_LLM_AVAILABLE'] = True
                 print("[LLMHandler] ✅ Fusion LLM successfully loaded and verified")
                 print("[LLMHandler] ✅ Fusion LLM initialized successfully")
+                print(f"[LLMHandler] 🔍 DEBUG: FUSION_LLM_AVAILABLE = {FUSION_LLM_AVAILABLE}")
                 return
         except ImportError as e:
             print(f"[LLMHandler] 📝 ai.chat_enhanced_smart_with_fusion import failed: {e}")
@@ -226,16 +223,19 @@ class LLMHandler:
             print("[LLMHandler] 🔍 Attempting to import chat_enhanced_smart_with_fusion...")
             from chat_enhanced_smart_with_fusion import generate_response_streaming_with_intelligent_fusion
             if hasattr(generate_response_streaming_with_intelligent_fusion, '__call__'):
-                FUSION_LLM_AVAILABLE = True
+                # ✅ CRITICAL FIX: Properly update global variable
+                globals()['FUSION_LLM_AVAILABLE'] = True
                 print("[LLMHandler] ✅ Fusion LLM successfully loaded and verified")
                 print("[LLMHandler] ✅ Fusion LLM initialized successfully")
+                print(f"[LLMHandler] 🔍 DEBUG: FUSION_LLM_AVAILABLE = {FUSION_LLM_AVAILABLE}")
                 return
         except ImportError as e:
             print(f"[LLMHandler] 📝 chat_enhanced_smart_with_fusion import failed: {e}")
         
         # If we get here, fusion LLM is not available
-        FUSION_LLM_AVAILABLE = False
+        globals()['FUSION_LLM_AVAILABLE'] = False
         print("[LLMHandler] ⚠️ Fusion LLM not available - will use consciousness-integrated basic LLM")
+        print(f"[LLMHandler] 🔍 DEBUG: FUSION_LLM_AVAILABLE = {FUSION_LLM_AVAILABLE}")
         
     def process_user_input(self, text: str, user: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """

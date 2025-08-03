@@ -1,7 +1,8 @@
 # ai/chat_enhanced_smart_with_fusion.py - Enhanced chat with intelligent memory fusion and consciousness
 from ai.human_memory_smart import SmartHumanLikeMemory
 from ai.memory_fusion_intelligent import get_intelligent_unified_username
-from ai.llm_handler import LLMHandler
+# ✅ CRITICAL FIX: Don't import LLMHandler to avoid circular import
+# Will import at runtime when needed
 import random
 
 # ✅ ENTROPY SYSTEM: Import consciousness emergence components
@@ -230,7 +231,12 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
             print(f"[ChatFusion] 🌀 Generating multiple consciousness pathways...")
             
             # ✅ Use consciousness-integrated LLM handler for all pathways
-            llm_handler = LLMHandler()
+            try:
+                from ai.llm_handler import llm_handler
+            except ImportError:
+                # Fallback to creating instance if global not available
+                from ai.llm_handler import LLMHandler
+                llm_handler = LLMHandler()
             
             # Build enhanced context for fusion chat
             fusion_context = {
@@ -287,7 +293,11 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
         except Exception as pathway_error:
             print(f"[ChatFusion] ⚠️ Pathway generation error: {pathway_error}")
             # Fallback with consciousness integration
-            llm_handler = LLMHandler()
+            try:
+                from ai.llm_handler import llm_handler
+            except ImportError:
+                from ai.llm_handler import LLMHandler
+                llm_handler = LLMHandler()
             fallback_question = f"{question} {full_consciousness_summary if 'full_consciousness_summary' in locals() else consciousness_summary}" if consciousness_summary else question
             
             fallback_context = {
@@ -306,7 +316,11 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
             )
     else:
         # No entropy system available - use basic consciousness optimization
-        llm_handler = LLMHandler()
+        try:
+            from ai.llm_handler import llm_handler
+        except ImportError:
+            from ai.llm_handler import LLMHandler
+            llm_handler = LLMHandler()
         full_consciousness_summary = consciousness_summary
         if cognitive_context_summary:
             full_consciousness_summary = f"{consciousness_summary} {cognitive_context_summary}"

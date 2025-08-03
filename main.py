@@ -2866,12 +2866,28 @@ def main():
                             autonomous_consciousness_system.set_autonomous_mode(AutonomousMode.INTERACTIVE)
                             print(f"[AdvancedBuddy] 🔄 DEBUG: Current mode after switch: {autonomous_consciousness_system.autonomous_mode}")
                             print("[AdvancedBuddy] ✅ Mode switched to INTERACTIVE - LLM will now process user input")
+                            
+                            # ✅ ENHANCED DEBUG: Verify the mode switch was successful
+                            if autonomous_consciousness_system.autonomous_mode == AutonomousMode.INTERACTIVE:
+                                print("[AdvancedBuddy] ✅ VERIFIED: Mode is now INTERACTIVE - LLM calls should work")
+                            else:
+                                print(f"[AdvancedBuddy] ❌ ERROR: Mode switch failed! Still in {autonomous_consciousness_system.autonomous_mode}")
+                                
                         except Exception as autonomy_error:
                             print(f"[AdvancedBuddy] ⚠️ Vocal autonomy activation error: {autonomy_error}")
                     else:
                         print("[AdvancedBuddy] ⚠️ DEBUG: Could not activate vocal autonomy")
                         print(f"[AdvancedBuddy] ⚠️ DEBUG: AUTONOMOUS_CONSCIOUSNESS_AVAILABLE = {AUTONOMOUS_CONSCIOUSNESS_AVAILABLE}")
                         print(f"[AdvancedBuddy] ⚠️ DEBUG: autonomous_consciousness_system = {autonomous_consciousness_system is not None}")
+                        
+                        # ✅ FALLBACK: If autonomous system is not available, still need to ensure LLM can be called
+                        print("[AdvancedBuddy] 🔄 FALLBACK: Setting manual INTERACTIVE mode for LLM access")
+                        try:
+                            if AUTONOMOUS_CONSCIOUSNESS_AVAILABLE:
+                                autonomous_consciousness_integrator.set_autonomous_mode(AutonomousMode.INTERACTIVE)
+                                print("[AdvancedBuddy] ✅ FALLBACK: Mode set to INTERACTIVE manually")
+                        except Exception as e:
+                            print(f"[AdvancedBuddy] ⚠️ Could not set fallback mode: {e}")
                     
                     print(f"[AdvancedBuddy] 🔄 Flags set using thread-safe methods")
                     
@@ -2969,6 +2985,12 @@ def main():
                 autonomous_consciousness_integrator.set_autonomous_mode(AutonomousMode.INTERACTIVE)
                 print(f"[AdvancedBuddy] 🔄 DEBUG: Current mode after switch: {autonomous_consciousness_integrator.autonomous_mode}")
                 print("[AdvancedBuddy] ✅ Mode switched to INTERACTIVE - LLM will now process user input")
+                
+                # ✅ ENHANCED VERIFICATION: Confirm the mode switch worked
+                if autonomous_consciousness_integrator.autonomous_mode == AutonomousMode.INTERACTIVE:
+                    print("[AdvancedBuddy] ✅ VERIFIED: Successfully in INTERACTIVE mode - LLM calls enabled")
+                else:
+                    print(f"[AdvancedBuddy] ❌ ERROR: Mode switch verification failed! Still in {autonomous_consciousness_integrator.autonomous_mode}")
             else:
                 print("[AdvancedBuddy] ⚠️ DEBUG: Could not switch to INTERACTIVE mode")
                 print(f"[AdvancedBuddy] ⚠️ DEBUG: AUTONOMOUS_CONSCIOUSNESS_AVAILABLE = {AUTONOMOUS_CONSCIOUSNESS_AVAILABLE}")

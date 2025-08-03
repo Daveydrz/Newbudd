@@ -533,10 +533,18 @@ Respond with only the thought itself, no explanations.
                 context={"max_tokens": 120},
                 stream=False,
                 is_primary_call=False,
-                llm_generation_context=True
+                use_optimization=False  # ✅ CRITICAL: Disable optimization to prevent recursion
             )
-            authentic_reflection = next(response_generator, None)
-            return authentic_reflection.strip() if authentic_reflection else None
+            
+            # ✅ FIX: Properly handle generator response
+            try:
+                authentic_reflection = ""
+                for chunk in response_generator:
+                    authentic_reflection += chunk
+                return authentic_reflection.strip() if authentic_reflection else None
+            except Exception as gen_error:
+                logging.error(f"[InnerMonologue] ⚠️ Error processing LLM response: {gen_error}")
+                return None
             
         except Exception as e:
             logging.error(f"[InnerMonologue] ⚠️ Error generating authentic reflection with LLM: {e}")

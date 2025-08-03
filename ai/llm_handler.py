@@ -427,7 +427,17 @@ class LLMHandler:
         """
         try:
             # ✅ FIX: Enhanced debugging for circular call detection 
-            print(f"[LLMHandler] 🔍 CALL DEBUG: is_primary_call={is_primary_call}, global_state={is_llm_generation_in_progress()}")
+            print(f"[LLMHandler] 🔍 CALL DEBUG: is_primary_call={is_primary_call}, global_state={is_llm_generation_in_progress()}, use_optimization={use_optimization}")
+            
+            # ✅ FIX: Check for infinite consciousness prompt loops
+            if "You are Buddy, a Class 5+ synthetic consciousness" in text:
+                print(f"[LLMHandler] 🚨 DETECTED RECURSIVE CONSCIOUSNESS PROMPT - preventing infinite loop")
+                if is_primary_call:
+                    yield "I apologize, but I'm currently processing another request. Please try again."
+                    return
+                else:
+                    yield "Processing your request..."
+                    return
             
             # ✅ FIX: Prevent infinite loops - more robust state management
             if is_llm_generation_in_progress():

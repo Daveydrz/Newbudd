@@ -1467,8 +1467,11 @@ Describe this experience from your subjective, first-person perspective. Express
     def _load_experience_state(self):
         """Load experience state from persistent storage"""
         try:
-            if Path(self.save_path).exists():
-                with open(self.save_path, 'r') as f:
+            # ✅ FIX: Ensure save_path is a Path object
+            save_path = Path(self.save_path) if isinstance(self.save_path, str) else self.save_path
+            
+            if save_path.exists():
+                with open(save_path, 'r') as f:
                     data = json.load(f)
                 
                 # Load consciousness state

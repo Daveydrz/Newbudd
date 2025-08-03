@@ -640,8 +640,12 @@ class IntelligentVoiceManager:
         # 🚨 CRITICAL FIX: ONLY check for name during actual introductions, not every voice interaction
         # First check if this is actually an introduction using LLM analysis
         if hasattr(self, 'ultra_name_manager') and self.ultra_name_manager:
-            # Use the existing instance, not the class
-            is_introduction = self.ultra_name_manager.is_ultra_intelligent_spontaneous_introduction(text)
+            try:
+                # Use the existing instance, not the class
+                is_introduction = self.ultra_name_manager.is_ultra_intelligent_spontaneous_introduction(text)
+            except Exception as intro_error:
+                print(f"[IntelligentVoiceManager] ❌ Introduction check error: {intro_error}")
+                is_introduction = False
             
             if is_introduction:
                 # Only extract name if this is confirmed as an introduction
@@ -861,8 +865,12 @@ class IntelligentVoiceManager:
                 if hasattr(self, 'ultra_name_manager') and self.ultra_name_manager:
                     print(f"[IntelligentVoiceManager] 🧠 LLM analyzing: '{text}'")
                     
-                    # Check if this is actually an introduction using LLM
-                    is_introduction = self.ultra_name_manager.is_ultra_intelligent_spontaneous_introduction(text)
+                    try:
+                        # Check if this is actually an introduction using LLM
+                        is_introduction = self.ultra_name_manager.is_ultra_intelligent_spontaneous_introduction(text)
+                    except Exception as intro_error:
+                        print(f"[IntelligentVoiceManager] ❌ Introduction check error: {intro_error}")
+                        is_introduction = False
                 
                 if is_introduction:
                     print(f"[IntelligentVoiceManager] ✅ LLM detected spontaneous introduction!")

@@ -413,9 +413,12 @@ class LazyConsciousnessLoader:
             return {
                 'recent_memories': [m.content[:100] for m in recent_memories],
                 'memory_count': len(recent_memories),
-                'context_topics': [m.topics[0] if m.topics else 'general' for m in recent_memories]
+                'context_topics': [getattr(m, 'topics', getattr(m, 'tags', ['general']))[0] if getattr(m, 'topics', getattr(m, 'tags', None)) else 'general' for m in recent_memories]
             }
         except ImportError:
+            return None
+        except Exception as e:
+            print(f"[LazyConsciousnessLoader] ❌ Error loading memory_timeline: {e}")
             return None
     
     def _load_goal_manager(self, user_id: str) -> Optional[Dict[str, Any]]:

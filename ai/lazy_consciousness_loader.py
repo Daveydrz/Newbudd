@@ -496,7 +496,7 @@ class LazyConsciousnessLoader:
         """Load temporal awareness module"""
         try:
             from ai.temporal_awareness import temporal_awareness
-            temporal_state = temporal_awareness.get_current_time_context(user_id)
+            temporal_state = temporal_awareness.get_current_time_context()
             return {
                 'time_of_day': temporal_state.get('time_period', 'unknown'),
                 'session_duration': temporal_state.get('session_length', 'short'),

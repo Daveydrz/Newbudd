@@ -757,12 +757,12 @@ def handle_streaming_response(text, current_user):
         
         # Try reactive neural architecture first (most advanced)
         try:
+            import asyncio
             from ai.hybrid_consciousness_integration import get_reactive_integration_layer, ProcessingMode
             reactive_layer = get_reactive_integration_layer()
             
             # Check if reactive layer is initialized
             if not reactive_layer.initialized:
-                import asyncio
                 # Run async initialization in thread if not in async context
                 if asyncio.iscoroutinefunction(reactive_layer.initialize):
                     loop = asyncio.new_event_loop()
@@ -3304,6 +3304,8 @@ def _initialize_consciousness_state(current_user: str):
         
     except Exception as e:
         print(f"[Consciousness] ❌ Error initializing consciousness state: {e}")
+        # Continue with basic operation even if consciousness fails
+        print(f"[Consciousness] 🔄 Continuing with basic mode - consciousness features disabled")
 
 def _consciousness_broadcast_handler(content: Any, source_module: str, tags: List[str]):
     """Handle broadcasts from global workspace"""

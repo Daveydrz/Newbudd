@@ -233,11 +233,28 @@ Return ONLY valid JSON. Extract ALL relevant details."""
     def _process_llm_response(self, prompt: str, original_text: str, is_comprehensive: bool = False) -> ExtractionResult:
         """Process LLM response and create ExtractionResult"""
         try:
-            llm_response = ask_kobold(prompt)
+            # Format prompt as messages array for kobold
+            messages = [{"role": "system", "content": prompt}]
+            llm_response = ask_kobold(messages)
             
             # Clean and parse JSON
             llm_response = self._clean_json_response(llm_response)
-            data = json.loads(llm_response)
+            
+            try:
+                data = json.loads(llm_response)
+            except json.JSONDecodeError as e:
+                print(f"[ComprehensiveExtractor] ❌ JSON parsing failed: {e}")
+                print(f"[ComprehensiveExtractor] 📄 Raw response: {llm_response[:200]}...")
+                # Return fallback extraction result
+                return ExtractionResult(
+                    memory_events=[],
+                    intent_classification='casual_conversation',
+                    emotional_state={'primary_emotion': 'neutral'},
+                    conversation_thread_id=None,
+                    memory_enhancements=[],
+                    context_keywords=[],
+                    follow_up_suggestions=[]
+                )
             
             # Extract data based on tier
             if is_comprehensive:

@@ -12,10 +12,10 @@ from config import *
 try:
     from audio.smart_detection_manager import analyze_speech_detection, get_current_threshold
     SMART_DETECTION_AVAILABLE = True
-    print("[VoiceAnalyzer] ✅ Smart room-scale detection loaded")
+    print("[VA] ✅ Smart room-scale detection loaded")
 except ImportError:
     SMART_DETECTION_AVAILABLE = False
-    print("[VoiceAnalyzer] ⚠️  Smart detection not available, using original thresholds")
+    print("[VA] ⚠️ Smart detection not available, using original thresholds")
 
 class AdvancedVoiceAnalyzer:
     def __init__(self):
@@ -30,9 +30,13 @@ class AdvancedVoiceAnalyzer:
         self.recent_spectral_scores = deque(maxlen=20)
         self.recent_temporal_scores = deque(maxlen=20)
         
-        print("[VoiceAnalyzer] 🧠 Advanced Voice Analyzer initialized")
-        print(f"[VoiceAnalyzer] 🎯 Voice Quality Threshold: {USER_SPEECH_QUALITY_THRESHOLD}")
-        print(f"[VoiceAnalyzer] 📊 Spectral Threshold: {USER_SPEECH_SPECTRAL_THRESHOLD}")
+        # Output throttling to reduce spam
+        self.last_debug_time = 0
+        self.debug_message_interval = 2.0  # Show debug every 2 seconds max
+        self.last_detection_state = None
+        
+        print("[VA] 🧠 Advanced Voice Analyzer initialized")
+        print(f"[VA] 🎯 Quality threshold: {USER_SPEECH_QUALITY_THRESHOLD}, Spectral: {USER_SPEECH_SPECTRAL_THRESHOLD}")
 
     def analyze_audio_chunk(self, audio_chunk, is_buddy_speaking=False):
         """
@@ -262,14 +266,25 @@ class AdvancedVoiceAnalyzer:
                 'analysis_success': True
             }
             
-            # ✅ FIXED: Safe debug output
+            # ✅ FIXED: Safe debug output with throttling
             try:
-                if (DEBUG and 
+                current_time = time.time()
+                should_show_debug = (
+                    DEBUG and 
                     getattr(globals(), 'SHOW_VOICE_QUALITY_SCORES', True) and
-                    (is_voice or combined_score > 0.3)):
-                    print(f"[VoiceAnalyzer] {'✅' if is_voice else '❌'} "
-                          f"Vol:{volume:.0f} Combined:{combined_score:.2f} "
-                          f"Spec:{spectral_score:.2f} Qual:{quality_score:.2f}")
+                    (current_time - self.last_debug_time) > self.debug_message_interval and
+                    (is_voice or combined_score > 0.4)  # Only show if voice detected or moderate score
+                )
+                
+                if should_show_debug:
+                    # Only show if state changed or significant detection
+                    current_state = "VOICE" if is_voice else "NOISE"
+                    if current_state != self.last_detection_state or is_voice:
+                        print(f"[VA] {'✅' if is_voice else '❌'} "
+                              f"V:{volume:.0f} C:{combined_score:.2f} "
+                              f"S:{spectral_score:.2f} Q:{quality_score:.2f}")
+                        self.last_debug_time = current_time
+                        self.last_detection_state = current_state
             except Exception as e:
                 # Silently ignore debug output errors
                 pass
@@ -309,7 +324,7 @@ class AdvancedVoiceAnalyzer:
                 should_trigger, detection_info = analyze_speech_detection(audio_array, volume)
                 
                 if should_trigger:
-                    print(f"🎯 [SmartDetection] Speech detected! {detection_info['reason']}")
+                    print(f"🎯 [SD] Speech detected! {detection_info['tier']} tier")
                     # Combine with advanced analysis results
                     combined_scores = detailed_scores.copy()
                     combined_scores.update({
@@ -321,7 +336,7 @@ class AdvancedVoiceAnalyzer:
                     })
                     return True, quality_score, combined_scores
                 else:
-                    print(f"🔇 [SmartDetection] Rejected: {detection_info['reason']}")
+                    # Smart detection already handles throttled reject messages
                     # Even if smart detection rejects, return the analysis data
                     combined_scores = detailed_scores.copy()
                     combined_scores.update({
@@ -344,7 +359,7 @@ class AdvancedVoiceAnalyzer:
                               is_voice_advanced)
                 
                 if is_interrupt:
-                    print(f"🚨 [Interrupt] User interruption detected! Vol:{volume:.0f} Quality:{quality_score:.2f}")
+                    print(f"🚨 [INT] User interrupt! V:{volume:.0f} Q:{quality_score:.2f}")
                 
                 detailed_scores['interrupt_detection'] = is_interrupt
                 detailed_scores['interrupt_volume_threshold'] = interrupt_volume
@@ -353,10 +368,7 @@ class AdvancedVoiceAnalyzer:
                 return is_interrupt, quality_score, detailed_scores
             
             else:
-                # Fallback to original advanced analysis
-                print(f"📊 [AdvancedAnalysis] {'✅' if is_voice_advanced else '❌'} "
-                      f"Vol:{volume:.0f} Quality:{quality_score:.2f}")
-                
+                # Fallback to original advanced analysis (throttled output handled above)
                 detailed_scores['fallback_mode'] = True
                 return is_voice_advanced, quality_score, detailed_scores
                 
@@ -616,7 +628,7 @@ class AdvancedVoiceAnalyzer:
                     self.environment_calibrated = True
                     if len(self.noise_samples) > 0:
                         self.noise_baseline = np.percentile(self.noise_samples, 70)
-                    print(f"[VoiceAnalyzer] ✅ Environment calibrated: noise baseline {self.noise_baseline:.1f}")
+                    print(f"[VA] ✅ Environment calibrated: noise baseline {self.noise_baseline:.1f}")
             
             # Continuous adaptation
             if ADAPTIVE_NOISE_FLOOR and len(self.noise_samples) > 20:
@@ -651,6 +663,10 @@ class AdvancedVoiceAnalyzer:
             self.recent_spectral_scores.clear() 
             self.recent_temporal_scores.clear()
             
+            # Reset debug throttling state
+            self.last_debug_time = 0
+            self.last_detection_state = None
+            
             # Trim old samples to prevent memory buildup
             if len(self.noise_samples) > 400:
                 # Keep recent 200 samples for environment tracking
@@ -664,10 +680,10 @@ class AdvancedVoiceAnalyzer:
                 self.voice_samples.clear()
                 self.voice_samples.extend(recent_voice)
             
-            print("[VoiceAnalyzer] 🔄 Conversation state reset - ready for next session")
+            print("[VA] 🔄 State reset - ready for next session")
             
         except Exception as e:
-            print(f"[VoiceAnalyzer] ❌ Error resetting state: {e}")
+            print(f"[VA] ❌ Error resetting state: {e}")
     
     def force_recalibrate(self):
         """Force environment recalibration if detection seems stuck"""
@@ -675,14 +691,17 @@ class AdvancedVoiceAnalyzer:
             self.environment_calibrated = False
             self.calibration_start_time = time.time()
             self.noise_samples.clear()
-            print("[VoiceAnalyzer] 🔄 Forced recalibration started")
+            # Reset debug throttling state
+            self.last_debug_time = 0
+            self.last_detection_state = None
+            print("[VA] 🔄 Forced recalibration started")
         except Exception as e:
-            print(f"[VoiceAnalyzer] ❌ Error forcing recalibration: {e}")
+            print(f"[VA] ❌ Error forcing recalibration: {e}")
 
 # Create global instance
 try:
     voice_analyzer = AdvancedVoiceAnalyzer()
-    print("[VoiceAnalyzer] ✅ Global voice analyzer created")
+    print("[VA] ✅ Global voice analyzer created")
 except Exception as e:
-    print(f"[VoiceAnalyzer] ❌ Error creating voice analyzer: {e}")
+    print(f"[VA] ❌ Error creating voice analyzer: {e}")
     voice_analyzer = None

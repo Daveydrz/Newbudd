@@ -26,11 +26,15 @@ class SmartDetectionManager:
         self.detection_history = []
         self.current_tier = "close"
         
+        # Output throttling to reduce spam
+        self.last_reject_time = 0
+        self.reject_message_interval = 3.0  # Show reject message every 3 seconds max
+        self.last_reject_reason = None
+        
         print(f"🧠 Smart Detection Manager initialized")
-        print(f"   Room-scale mode: {'✅ ON' if self.room_scale_enabled else '❌ OFF'}")
-        if self.room_scale_enabled:
-            print(f"   Baseline noise: {self.baseline_noise}")
-            print(f"   Detection tiers: {len(DETECTION_TIERS)}")
+        print(f"   Room-scale: {'✅ ON' if self.room_scale_enabled else '❌ OFF'}, "
+              f"Baseline: {self.baseline_noise}, "
+              f"Tiers: {len(DETECTION_TIERS) if self.room_scale_enabled else 0}")
     
     def analyze_audio_quality(self, audio_data: np.ndarray) -> float:
         """
@@ -129,6 +133,19 @@ class SmartDetectionManager:
                 "tier": "background",
                 "reason": f"Below minimum speech volume: {volume} < {MIN_SPEECH_VOLUME}"
             })
+            
+            # Throttled output for rejection messages
+            current_time = time.time()
+            should_show_reject = (
+                (current_time - self.last_reject_time) > self.reject_message_interval or
+                self.last_reject_reason != "low_volume"
+            )
+            
+            if should_show_reject:
+                print(f"🔇 [SD] Rejected: Vol:{volume:.0f} < {MIN_SPEECH_VOLUME}")
+                self.last_reject_time = current_time
+                self.last_reject_reason = "low_volume"
+            
             return False, detection_info
         
         # Determine distance tier
@@ -138,6 +155,19 @@ class SmartDetectionManager:
         # Check if tier qualifies for detection
         if tier == "background":
             detection_info["reason"] = f"Classified as background noise"
+            
+            # Throttled output for background noise
+            current_time = time.time()
+            should_show_reject = (
+                (current_time - self.last_reject_time) > self.reject_message_interval or
+                self.last_reject_reason != "background"
+            )
+            
+            if should_show_reject:
+                print(f"🔇 [SD] Background noise: V:{volume:.0f}")
+                self.last_reject_time = current_time
+                self.last_reject_reason = "background"
+            
             return False, detection_info
         
         # If we reach here, it's valid speech at some distance
@@ -182,6 +212,11 @@ class SmartDetectionManager:
             stats["tiers"][tier] += 1
         
         return stats
+    
+    def reset_debug_state(self):
+        """Reset debug throttling state"""
+        self.last_reject_time = 0
+        self.last_reject_reason = None
 
 # Global instance
 smart_detector = SmartDetectionManager()

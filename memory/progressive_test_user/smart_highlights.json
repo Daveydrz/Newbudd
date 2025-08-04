@@ -1,0 +1,222 @@
+[
+  {
+    "type": "highlight",
+    "topic": "activity_mention",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T03:34:13.146006",
+    "original_text": "Yesterday, I had dinner at KFC with John.",
+    "detected_by": "high_value_activity_pattern",
+    "confidence": 0.5
+  },
+  {
+    "type": "highlight",
+    "topic": "activity_mention",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T03:34:13.152242",
+    "original_text": "I met Sarah this morning at Starbucks.",
+    "detected_by": "high_value_activity_pattern",
+    "confidence": 0.5
+  },
+  {
+    "type": "highlight",
+    "topic": "activity_mention",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T03:34:13.158483",
+    "original_text": "I bought a new phone yesterday at the mall.",
+    "detected_by": "high_value_activity_pattern",
+    "confidence": 0.5
+  },
+  {
+    "type": "highlight",
+    "topic": "activity_mention",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T03:34:13.172656",
+    "original_text": "My parents visited me yesterday afternoon.",
+    "detected_by": "high_value_activity_pattern",
+    "confidence": 0.5
+  },
+  {
+    "type": "highlight",
+    "topic": "activity_mention",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T03:34:13.192514",
+    "original_text": "I had a job interview earlier today.",
+    "detected_by": "high_value_activity_pattern",
+    "confidence": 0.5
+  },
+  {
+    "type": "highlight",
+    "topic": "activity_mention",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T03:34:13.202063",
+    "original_text": "We had lunch at a sushi restaurant earlier today.",
+    "detected_by": "high_value_activity_pattern",
+    "confidence": 0.5
+  },
+  {
+    "type": "highlight",
+    "topic": "micro_pattern_went_grocery",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T03:34:13.212319",
+    "original_text": "I went grocery shopping last night.",
+    "detected_by": "micro_two_word_pattern",
+    "confidence": 0.5
+  },
+  {
+    "type": "highlight",
+    "topic": "activity_mention",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T03:34:13.222077",
+    "original_text": "I had a doctor's appointment yesterday at 3 pm.",
+    "detected_by": "high_value_activity_pattern",
+    "confidence": 0.5
+  },
+  {
+    "type": "highlight",
+    "topic": "activity_mention",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T03:34:13.228247",
+    "original_text": "I bought a new laptop today.",
+    "detected_by": "high_value_activity_pattern",
+    "confidence": 0.5
+  },
+  {
+    "type": "highlight",
+    "topic": "activity_mention",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T03:34:13.256156",
+    "original_text": "We visited the zoo yesterday afternoon.",
+    "detected_by": "high_value_activity_pattern",
+    "confidence": 0.5
+  },
+  {
+    "type": "highlight",
+    "topic": "activity_mention",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T03:34:13.272169",
+    "original_text": "We had a barbecue at my house yesterday.",
+    "detected_by": "high_value_activity_pattern",
+    "confidence": 0.5
+  },
+  {
+    "type": "highlight",
+    "topic": "activity_mention",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T03:34:13.282624",
+    "original_text": "I saw Emily at the bookstore yesterday.",
+    "detected_by": "high_value_activity_pattern",
+    "confidence": 0.5
+  },
+  {
+    "type": "highlight",
+    "topic": "activity_mention",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T03:34:13.289466",
+    "original_text": "We had a family dinner last night.",
+    "detected_by": "high_value_activity_pattern",
+    "confidence": 0.5
+  },
+  {
+    "type": "highlight",
+    "topic": "activity_mention",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T03:34:13.295658",
+    "original_text": "I booked a flight to New York today.",
+    "detected_by": "high_value_activity_pattern",
+    "confidence": 0.5
+  },
+  {
+    "type": "highlight",
+    "topic": "activity_mention",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T03:34:13.305241",
+    "original_text": "I met my cousin yesterday at the park.",
+    "detected_by": "high_value_activity_pattern",
+    "confidence": 0.5
+  },
+  {
+    "type": "highlight",
+    "topic": "activity_mention",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T03:34:13.324198",
+    "original_text": "dentist appointment tomorrow at 3PM, really nervous about it",
+    "detected_by": "high_value_activity_pattern",
+    "confidence": 0.5
+  },
+  {
+    "type": "highlight",
+    "topic": "activity_mention",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T03:34:13.330591",
+    "original_text": "Grabbed some food at McDonald's with friends earlier.",
+    "detected_by": "high_value_activity_pattern",
+    "confidence": 0.5
+  },
+  {
+    "type": "highlight",
+    "topic": "activity_mention",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T03:34:13.349049",
+    "original_text": "going to see my niece",
+    "detected_by": "high_value_activity_pattern",
+    "confidence": 0.5
+  },
+  {
+    "type": "highlight",
+    "topic": "conversation_reference",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T03:34:13.358529",
+    "original_text": "oh yeah, that restaurant",
+    "detected_by": "high_value_memory_cue",
+    "confidence": 0.8
+  },
+  {
+    "type": "highlight",
+    "topic": "activity_mention",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T03:34:13.374224",
+    "original_text": "excited about the party",
+    "detected_by": "high_value_activity_pattern",
+    "confidence": 0.5
+  }
+]

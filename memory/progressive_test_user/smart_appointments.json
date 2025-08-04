@@ -1,0 +1,42 @@
+[
+  {
+    "type": "appointment",
+    "topic": "dentist appointment",
+    "date": "2025-08-05",
+    "emotion": "stressful",
+    "status": "pending",
+    "created": "2025-08-04T03:30:25.255172",
+    "original_text": "dentist appointment tomorrow at 3PM, really nervous about it",
+    "detected_by": "enhanced_fallback"
+  },
+  {
+    "type": "appointment",
+    "topic": "job_interview",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T03:32:00.390531",
+    "original_text": "I had a job interview earlier today.",
+    "detected_by": "comprehensive_appointment_pattern"
+  },
+  {
+    "type": "appointment",
+    "topic": "doctor_appointment",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T03:32:00.412785",
+    "original_text": "I had a doctor's appointment yesterday at 3 pm.",
+    "detected_by": "comprehensive_appointment_pattern"
+  },
+  {
+    "type": "appointment",
+    "topic": "dentist_appointment",
+    "date": "2025-08-05",
+    "emotion": "stressful",
+    "status": "pending",
+    "created": "2025-08-04T03:32:00.510003",
+    "original_text": "dentist appointment tomorrow at 3PM, really nervous about it",
+    "detected_by": "comprehensive_appointment_pattern"
+  }
+]

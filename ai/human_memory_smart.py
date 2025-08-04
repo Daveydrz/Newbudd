@@ -128,182 +128,211 @@ class SmartHumanLikeMemory:
             return topic.replace('_', ' ')
     
     def _is_casual_conversation(self, text: str) -> bool:
-        """🛡️ BULLETPROOF filter to block casual conversation from LLM"""
+        """🛡️ PROGRESSIVE filter - less restrictive for better extraction rate"""
         text_lower = text.lower().strip()
         
-        # Block ALL questions TO Buddy
-        question_to_buddy_patterns = [
-            r'how.+are.+you',           # "How are you today?"
-            r'how.+you.+doing',         # "How you doing?"
-            r'what.+about.+you',        # "What about you?"
-            r'how.+your.+day',          # "How was your day?"
-            r'what.+your.+plan',        # "What's your plan?"
-            r'what.+you.+think',        # "What do you think?"
-            r'do.+you.+know',           # "Do you know..."
-            r'can.+you.+help',          # "Can you help me?"
-            r'can.+you.+tell',          # "Can you tell me?"
-            r'what.+is.+your',          # "What is your..."
-            r'where.+are.+you',         # "Where are you?"
-            r'what.+time.+is.+it',      # "What time is it?"
-            r'tell.+me.+about',         # "Tell me about..."
-            r'explain.+to.+me',         # "Explain to me..."
-            r'how.+does.+this',         # "How does this work?"
-            r'why.+is.+this',           # "Why is this..."
-            r'what.+does.+this',        # "What does this mean?"
+        # Only block PURE casual conversation (no memory content)
+        pure_casual_patterns = [
+            r'^(hi|hello|hey)\s*$',                    # Pure greetings only
+            r'^(thanks?|thank\s+you)\s*$',            # Pure thanks only
+            r'^(bye|goodbye)\s*$',                    # Pure goodbyes only
+            r'^(yes|yeah|yep|no|nope)\s*$',          # Pure yes/no only
+            r'^(okay|ok|alright)\s*$',               # Pure acknowledgments only
+            r'^i.+m.+(fine|good|okay)\s*$',          # Pure status responses only
+            r'^nothing.+much\s*$',                   # Pure "nothing much" only
+            r'^not.+much\s*$',                       # Pure "not much" only
         ]
         
-        # Block ALL greetings and pleasantries
-        greeting_patterns = [
-            r'^thanks?\s+buddy',        # "Thanks buddy"
-            r'^thank\s+you',            # "Thank you"
-            r'^hello\b',                # "Hello"
-            r'^hi\b',                   # "Hi"
-            r'^hey\b',                  # "Hey"
-            r'^good\s+morning',         # "Good morning"
-            r'^good\s+afternoon',       # "Good afternoon" 
-            r'^good\s+evening',         # "Good evening"
-            r'^good\s+night',           # "Good night"
-            r'nice.+talking',           # "Nice talking to you"
-            r'see.+you.+later',         # "See you later"
-            r'goodbye',                 # "Goodbye"
-            r'bye',                     # "Bye"
-            r'talk.+to.+you.+later',    # "Talk to you later"
-            r'catch.+you.+later',       # "Catch you later"
-        ]
-        
-        # Block ALL casual responses
-        casual_response_patterns = [
-            r'i.+m.+(fine|good|okay|great|alright)',  # "I'm fine/good/okay/great"
-            r'nothing.+much',           # "Nothing much"
-            r'same.+here',              # "Same here"
-            r'just.+(chatting|talking|chilling)',  # "Just chatting"
-            r'not.+much',               # "Not much"
-            r'pretty.+good',            # "Pretty good"
-            r'doing.+(well|fine|good)', # "Doing well/fine/good"
-            r'that.+s.+(cool|nice|great)', # "That's cool/nice/great"
-            r'sounds.+(good|great|nice)', # "Sounds good/great/nice"
-            r'i.+see',                  # "I see"
-            r'oh.+(okay|ok|cool)',      # "Oh okay/ok/cool"
-            r'gotcha',                  # "Gotcha"
-            r'makes.+sense',            # "Makes sense"
-        ]
-        
-        # Check ALL patterns
-        all_patterns = question_to_buddy_patterns + greeting_patterns + casual_response_patterns
-        
-        for pattern in all_patterns:
+        # Check for pure casual patterns
+        for pattern in pure_casual_patterns:
             if re.search(pattern, text_lower):
-                print(f"[SmartMemory] 🛡️ BLOCKED casual pattern '{pattern}' in: '{text}'")
+                print(f"[SmartMemory] 🛡️ BLOCKED pure casual: '{text}'")
                 return True
         
-        # Block if too short (less than 6 words for events)
-        if len(text.split()) < 6:
+        # RELAXED: Allow questions that might contain memory content
+        # Only block questions about Buddy, not about user activities
+        buddy_question_patterns = [
+            r'how.+are.+you',           # "How are you?"
+            r'what.+about.+you',        # "What about you?"
+            r'what.+your.+plan',        # "What's your plan?"
+            r'what.+you.+think',        # "What do you think?"
+            r'where.+are.+you',         # "Where are you?"
+        ]
+        
+        # Check if it's a question about Buddy (still block these)
+        for pattern in buddy_question_patterns:
+            if re.search(pattern, text_lower):
+                print(f"[SmartMemory] 🛡️ BLOCKED Buddy question: '{text}'")
+                return True
+        
+        # RELAXED: Reduce minimum word count from 6 to 4
+        if len(text.split()) < 4:
             print(f"[SmartMemory] 🛡️ BLOCKED too short ({len(text.split())} words): '{text}'")
             return True
         
-        # Block if it's a question (contains ?)
+        # RELAXED: Allow questions that contain memory-worthy information
+        # Check if question contains memory indicators despite having "?"
         if '?' in text:
-            print(f"[SmartMemory] 🛡️ BLOCKED question mark detected: '{text}'")
-            return True
+            memory_question_indicators = [
+                'where did i', 'what did i', 'when did i', 'who did i',
+                'where was i', 'what was i', 'who was i with',
+                'where am i going', 'what do i have', 'when is my',
+                'what am i', 'where are we', 'what are we doing'
+            ]
+            
+            # Allow memory-related questions
+            if any(indicator in text_lower for indicator in memory_question_indicators):
+                print(f"[SmartMemory] ✅ ALLOWED memory question: '{text}'")
+                return False
+            else:
+                print(f"[SmartMemory] 🛡️ BLOCKED non-memory question: '{text}'")
+                return True
         
+        print(f"[SmartMemory] ✅ PASSED casual filter: '{text}'")
         return False
     
-    def _likely_contains_events(self, text: str) -> bool:
-        """🎯 STRICT check - only allow if it DEFINITELY contains events"""
+    def _calculate_memory_score(self, text: str) -> int:
+        """🎯 PROGRESSIVE SCORING: Calculate memory worthiness score for better extraction rate"""
         text_lower = text.lower()
+        score = 0
         
-        # MUST contain time indicators - EXPANDED for casual time references AND FUTURE EVENTS
+        # TIME INDICATORS (3 points) - EXPANDED for casual expressions
         time_indicators = [
-            # Past time references
+            # Explicit time references
             'tomorrow', 'today', 'tonight', 'this week', 'next week', 'this weekend',
             'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday',
             'this morning', 'this afternoon', 'this evening', 'later today',
             'in an hour', 'in a few hours', 'at ', 'o\'clock',
-            'earlier today', 'earlier', 'just now', 'a while ago', 'this morning',
-            'this afternoon', 'this evening', 'last night', 'yesterday', 'last week',
-            'recently', 'just', 'before', 'after lunch', 'after work',
-            # ENHANCED: Future time references for edge cases
-            'next week wednesday', 'next wednesday', 'next friday', 'next monday',
-            'tomorrow afternoon', 'tomorrow morning', 'tomorrow evening',
-            'later this week', 'end of week', 'weekend', 'next month',
-            'in a few days', 'in a week', 'soon', 'upcoming', 'planned',
-            # ENHANCED: Time expressions
-            '3pm', '3 pm', 'at 3', 'morning', 'afternoon', 'evening'
+            'earlier today', 'earlier', 'just now', 'a while ago', 
+            'last night', 'yesterday', 'last week', 'recently', 'just',
+            'before', 'after lunch', 'after work', 'next month',
+            # ENHANCED: Casual time expressions
+            'a bit ago', 'the other day', 'a while back', 'some time ago',
+            'a few days ago', 'couple days ago', 'few weeks ago', 'last time',
+            'when I was', 'during', 'while I was', 'after I', 'before I',
+            'on my way', 'heading', 'going', 'coming back from',
+            # Future references  
+            'next week wednesday', 'next wednesday', 'tomorrow afternoon',
+            'later this week', 'end of week', 'weekend', 'soon', 'upcoming', 'planned',
+            'in a few days', 'in a week', '3pm', '3 pm', 'at 3', 'morning', 'afternoon', 'evening'
         ]
         
-        has_time = any(indicator in text_lower for indicator in time_indicators)
+        if any(indicator in text_lower for indicator in time_indicators):
+            score += 3
+            print(f"[SmartMemory] ⏰ +3 time indicators")
         
-        if not has_time:
-            print(f"[SmartMemory] 🛡️ BLOCKED no time indicators: '{text}'")
-            return False
+        # LOCATION CONTEXT (2 points) - High-value for memory
+        location_keywords = [
+            # Specific places
+            'mcdonalds', 'mcdonald', 'starbucks', 'walmart', 'target', 'costco',
+            'restaurant', 'cafe', 'shop', 'store', 'mall', 'park', 'beach', 'gym',
+            'library', 'bank', 'church', 'supermarket', 'grocery', 'pharmacy',
+            'gas station', 'cinema', 'theater', 'museum', 'zoo', 'hospital',
+            'clinic', 'office', 'school', 'work', 'home', 'house',
+            # Location indicators
+            'at the', 'was at', 'went to', 'been to', 'visited', 'stopped by',
+            'at my', 'to my', 'from the', 'from my'
+        ]
         
-        # MUST contain event keywords - ENHANCED for edge cases and future events
+        if any(keyword in text_lower for keyword in location_keywords):
+            score += 2
+            print(f"[SmartMemory] 📍 +2 location context")
+        
+        # EVENT KEYWORDS (2 points) - Social and personal events
         event_keywords = [
-            # Appointments (specific)
-            'appointment', 'meeting', 'dentist', 'doctor', 'surgery', 'hospital',
-            'interview', 'class', 'lesson', 'session', 'therapy', 'vet',
-            'haircut', 'massage', 'nail', 'beauty', 'spa',
-            
-            # Social events (specific) - ENHANCED for edge cases
+            # Appointments & meetings
+            'appointment', 'meeting', 'dentist', 'doctor', 'surgery', 'interview',
+            'class', 'lesson', 'session', 'therapy', 'vet', 'haircut',
+            # Social events
             'birthday', 'party', 'wedding', 'funeral', 'visit', 'visiting',
-            'going to', 'seeing', 'dinner', 'lunch', 'coffee', 'movie',
-            'concert', 'date', 'sleepover', 'hang out', 'play date',
-            'niece', 'nephew', 'cousin', 'friend', 'family',
-            
-            # Work/school (specific)
-            'work', 'job', 'school', 'exam', 'test', 'presentation', 
-            'conference', 'training', 'orientation', 'review',
-            
-            # Travel (specific)
-            'vacation', 'trip', 'flying', 'traveling', 'flight', 'train',
-            'bus', 'driving to', 'pick up', 'drop off',
-            
-            # Places and activities (ENHANCED for edge cases)
-            'went to', 'been to', 'was at', 'visited', 'stopped by',
-            'mcdonalds', 'mcdonald', 'restaurant', 'cafe', 'shop', 'store',
-            'mall', 'park', 'beach', 'gym', 'library', 'bank', 'church',
-            'supermarket', 'grocery', 'pharmacy', 'gas station', 'cinema',
-            'theater', 'museum', 'zoo', 'hospital', 'clinic', 'office',
-            'coffee shop', 'food court', 'shopping center',
-            
-            # Activities worth remembering - ENHANCED
-            'ate at', 'shopped at', 'bought from', 'had lunch at', 'had dinner at',
-            'grabbed coffee', 'picked up', 'dropped off', 'met at', 'met with',
-            'grabbed some food', 'grabbed food', 'got food', 'food at',
-            'discuss', 'discussed', 'talking about', 'nervous about', 'excited about',
-            
-            # Actions with commitment - ENHANCED for edge cases
-            'have to', 'need to', 'going for', 'scheduled', 'planned',
-            'supposed to', 'meeting with', 'seeing', 'picking up',
-            'off to', 'heading to', 'going to see'
+            'dinner', 'lunch', 'breakfast', 'coffee', 'movie', 'concert',
+            'date', 'hang out', 'play date', 'sleepover',
+            # People
+            'niece', 'nephew', 'cousin', 'friend', 'friends', 'family',
+            'mom', 'dad', 'sister', 'brother', 'girlfriend', 'boyfriend',
+            # Activities  
+            'grabbed food', 'got food', 'ate at', 'had lunch', 'had dinner',
+            'picked up', 'dropped off', 'met with', 'talked to', 'saw',
+            'bought', 'shopping', 'trip', 'vacation', 'flight'
         ]
         
-        has_event = any(keyword in text_lower for keyword in event_keywords)
+        if any(keyword in text_lower for keyword in event_keywords):
+            score += 2
+            print(f"[SmartMemory] 🎯 +2 event keywords")
         
-        if not has_event:
-            print(f"[SmartMemory] 🛡️ BLOCKED no event keywords: '{text}'")
-            return False
-        
-        # Additional validation - check for action verbs - ENHANCED for edge cases
+        # ACTION VERBS (1 point) - Actions and activities
         action_verbs = [
-            'have', 'going', 'seeing', 'visiting', 'meeting', 'picking', 
-            'dropping', 'starting', 'finishing', 'attending', 'scheduled',
-            # ENHANCED: Add movement and activity verbs for edge cases
-            'went', 'go', 'been', 'was', 'visited', 'stopped', 'ate', 'had',
-            'bought', 'shopped', 'got', 'picked', 'dropped', 'met', 'saw',
-            'grabbed', 'discussed', 'talked', 'planning', 'nervous', 'excited',
-            # ENHANCED: Future planning verbs
-            'off', 'heading', 'booked', 'scheduled', 'planned', 'arranging'
+            'went', 'go', 'going', 'been', 'was', 'visited', 'stopped',
+            'ate', 'had', 'bought', 'got', 'picked', 'dropped', 'met', 'saw',
+            'grabbed', 'discussed', 'talked', 'planning', 'scheduled',
+            'have', 'seeing', 'visiting', 'meeting', 'starting', 'finishing',
+            'attending', 'off', 'heading', 'booked', 'arranging'
         ]
         
-        has_action = any(verb in text_lower for verb in action_verbs)
+        if any(verb in text_lower for verb in action_verbs):
+            score += 1
+            print(f"[SmartMemory] ⚡ +1 action verbs")
         
-        if not has_action:
-            print(f"[SmartMemory] 🛡️ BLOCKED no action verbs: '{text}'")
+        # EMOTIONAL CONTEXT (1 point) - Emotional significance
+        emotional_keywords = [
+            'nervous', 'excited', 'worried', 'happy', 'sad', 'stressed',
+            'anxious', 'thrilled', 'disappointed', 'frustrated', 'relieved',
+            'looking forward', 'can\'t wait', 'dreading', 'love', 'hate'
+        ]
+        
+        if any(emotion in text_lower for emotion in emotional_keywords):
+            score += 1
+            print(f"[SmartMemory] 😊 +1 emotional context")
+        
+        # CONVERSATIONAL CUES (1 point) - Memory references
+        conversation_cues = [
+            'remember', 'told you', 'mentioned', 'said', 'like I said',
+            'as I mentioned', 'you know', 'oh yeah', 'by the way',
+            'speaking of', 'that reminds me'
+        ]
+        
+        if any(cue in text_lower for cue in conversation_cues):
+            score += 1
+            print(f"[SmartMemory] 💬 +1 conversation cues")
+        
+        print(f"[SmartMemory] 📊 Total score: {score}/9 for '{text[:50]}...'")
+        return score
+    
+    def _likely_contains_events(self, text: str) -> bool:
+        """🎯 PROGRESSIVE FILTERING: Use scoring system for better extraction rate"""
+        text_lower = text.lower()
+        
+        # Calculate memory score
+        memory_score = self._calculate_memory_score(text)
+        
+        # Progressive thresholds for different pass levels
+        strict_threshold = 6  # Original high standard
+        relaxed_threshold = 4  # Balanced threshold  
+        permissive_threshold = 3  # Catch edge cases
+        
+        # Check which threshold to use based on text characteristics
+        word_count = len(text.split())
+        has_question = '?' in text
+        
+        if word_count >= 6 and not has_question:
+            # Use strict threshold for longer, declarative statements
+            threshold = strict_threshold
+            print(f"[SmartMemory] 🎯 Using STRICT threshold ({threshold}) for formal statement")
+        elif word_count >= 4:
+            # Use relaxed threshold for shorter statements
+            threshold = relaxed_threshold
+            print(f"[SmartMemory] 🔄 Using RELAXED threshold ({threshold}) for shorter text")
+        else:
+            # Use permissive threshold for very short but potentially valuable text
+            threshold = permissive_threshold
+            print(f"[SmartMemory] 💡 Using PERMISSIVE threshold ({threshold}) for edge case")
+        
+        if memory_score >= threshold:
+            print(f"[SmartMemory] ✅ PASSED progressive filter: score {memory_score}/{threshold}")
+            return True
+        else:
+            print(f"[SmartMemory] ❌ FAILED progressive filter: score {memory_score}/{threshold}")
             return False
-        
-        print(f"[SmartMemory] ✅ PASSED all event filters: '{text}'")
-        return True
     
     def _contains_emotional_state(self, text: str) -> bool:
         """🎯 Check for emotional states worth remembering"""
@@ -317,37 +346,302 @@ class SmartHumanLikeMemory:
             'hopeful', 'optimistic', 'confident', 'motivated', 'inspired'
         ]
         
-        return any(emotion in text_lower for emotion in emotion_keywords)
-    
-    def _smart_detect_events(self, text: str) -> List[Dict]:
-        """🧠 Use Hermes 3 Pro Mistral to intelligently detect events - BULLETPROOF FILTERED"""
-        
-        # ✅ TRIPLE FILTERING SYSTEM - BULLETPROOF!
-        
-        # Filter 1: Block casual conversation
-        if self._is_casual_conversation(text):
-            return []
-        
-        # Filter 2: Must contain events OR emotions
-        has_events = self._likely_contains_events(text)
-        has_emotions = self._contains_emotional_state(text)
-        
-        if not has_events and not has_emotions:
-            print(f"[SmartMemory] 🛡️ BLOCKED no events or emotions: '{text}'")
-            return []
-        
-        # Filter 3: Final validation - must be substantial
-        if len(text.split()) < 5:
-            print(f"[SmartMemory] 🛡️ BLOCKED too short for events: '{text}'")
-            return []
-        
-        # If we get here, it's worth LLM processing
-        print(f"[SmartMemory] 🎯 APPROVED for LLM processing: '{text}'")
-        
+    def _extract_high_value_patterns(self, text: str) -> List[Dict]:
+        """🚀 EDGE CASE EXTRACTION: High-value patterns for missed opportunities"""
+        events = []
+        text_lower = text.lower()
         current_date = datetime.now().strftime('%Y-%m-%d')
-        current_time = datetime.now().strftime('%H:%M')
+        current_time = datetime.now().isoformat()
         
-        # Smart prompt for event detection
+        # HIGH-VALUE PATTERN 1: Any mention of specific restaurants/places
+        place_only_patterns = [
+            r'\b(mcdonalds?|mcdonald\'?s?|starbucks|walmart|target|costco)\b',
+            r'\b(restaurant|cafe|shop|store|mall|park|beach|gym|library|bank)\b',
+            r'\b(hospital|clinic|office|school|work|home)\b'
+        ]
+        
+        for pattern in place_only_patterns:
+            match = re.search(pattern, text_lower)
+            if match:
+                place = match.group(1)
+                events.append({
+                    'type': 'life_event',
+                    'topic': f'mentioned_{place.replace("\'", "").lower()}',
+                    'date': current_date,
+                    'emotion': 'casual',
+                    'status': 'pending',
+                    'created': current_time,
+                    'original_text': text,
+                    'detected_by': 'high_value_place_pattern',
+                    'confidence': 0.7
+                })
+                print(f"[SmartMemory] 🏢 High-value place: {place}")
+        
+        # HIGH-VALUE PATTERN 2: People mentions (family, friends)
+        people_patterns = [
+            r'\b(niece|nephew|cousin|sister|brother|mom|dad|mother|father)\b',
+            r'\b(friend|friends|girlfriend|boyfriend|wife|husband)\b',
+            r'\bwith\s+(\w+)\b'  # "with [person]"
+        ]
+        
+        for pattern in people_patterns:
+            match = re.search(pattern, text_lower)
+            if match:
+                person = match.group(1)
+                if person not in ['with']:  # Skip preposition
+                    events.append({
+                        'type': 'life_event',
+                        'topic': f'mentioned_{person.lower()}',
+                        'date': current_date,
+                        'emotion': 'casual',
+                        'status': 'pending',
+                        'created': current_time,
+                        'original_text': text,
+                        'detected_by': 'high_value_people_pattern',
+                        'confidence': 0.6
+                    })
+                    print(f"[SmartMemory] 👥 High-value person: {person}")
+        
+        # HIGH-VALUE PATTERN 3: Activity mentions (even without time)
+        activity_patterns = [
+            r'\b(grabbed|got|had|ate|bought|picked|dropped|met|saw|visited)\b',
+            r'\b(going|planning|scheduled|booked|arranged)\b',
+            r'\b(nervous|excited|worried|happy|stressed)\s+about\b'
+        ]
+        
+        for pattern in activity_patterns:
+            if re.search(pattern, text_lower):
+                # Extract the activity context
+                words = text.split()
+                if len(words) >= 3:  # Has some context
+                    events.append({
+                        'type': 'highlight',
+                        'topic': f'activity_mention',
+                        'date': current_date,
+                        'emotion': 'casual',
+                        'status': 'pending',
+                        'created': current_time,
+                        'original_text': text,
+                        'detected_by': 'high_value_activity_pattern',
+                        'confidence': 0.5
+                    })
+                    print(f"[SmartMemory] ⚡ High-value activity detected")
+                break
+        
+        # HIGH-VALUE PATTERN 4: Conversational memory cues
+        memory_cue_patterns = [
+            r'\b(remember|mentioned|told\s+you|said)\b',
+            r'\b(like\s+i\s+said|as\s+i\s+mentioned)\b',
+            r'\b(oh\s+yeah|by\s+the\s+way|speaking\s+of)\b'
+        ]
+        
+        for pattern in memory_cue_patterns:
+            if re.search(pattern, text_lower):
+                events.append({
+                    'type': 'highlight',
+                    'topic': 'conversation_reference',
+                    'date': current_date,
+                    'emotion': 'casual',
+                    'status': 'pending',
+                    'created': current_time,
+                    'original_text': text,
+                    'detected_by': 'high_value_memory_cue',
+                    'confidence': 0.8
+                })
+                print(f"[SmartMemory] 💭 High-value memory cue")
+                break
+        
+        # HIGH-VALUE PATTERN 5: Location + context combinations
+        location_context_patterns = [
+            r'\bat\s+(the\s+)?(\w+)',                    # "at the store"
+            r'\bfrom\s+(the\s+)?(\w+)',                  # "from the office"  
+            r'\bwent\s+to\s+(\w+)',                      # "went to work"
+            r'\bwas\s+at\s+(\w+)',                       # "was at home"
+        ]
+        
+        for pattern in location_context_patterns:
+            match = re.search(pattern, text_lower)
+            if match:
+                location = match.group(2) if match.group(2) else match.group(1)
+                if location and len(location) > 2:  # Valid location
+                    events.append({
+                        'type': 'life_event',
+                        'topic': f'location_context_{location.lower()}',
+                        'date': current_date,
+                        'emotion': 'casual',
+                        'status': 'pending',
+                        'created': current_time,
+                        'original_text': text,
+                        'detected_by': 'high_value_location_context',
+                        'confidence': 0.6
+                    })
+                    print(f"[SmartMemory] 📍 High-value location context: {location}")
+                    break
+        
+        return events
+    
+    def _contains_emotional_state(self, text: str) -> bool:
+        """🎯 Check for emotional states worth remembering"""
+        text_lower = text.lower()
+        
+        emotion_keywords = [
+            'stressed', 'worried', 'anxious', 'nervous', 'scared', 'upset',
+            'excited', 'thrilled', 'happy', 'glad', 'pleased', 'proud',
+            'sad', 'depressed', 'down', 'frustrated', 'angry', 'annoyed',
+            'tired', 'exhausted', 'overwhelmed', 'confused', 'lost',
+            'hopeful', 'optimistic', 'confident', 'motivated', 'inspired'
+        ]
+        
+        has_emotion = any(emotion in text_lower for emotion in emotion_keywords)
+        if has_emotion:
+            print(f"[SmartMemory] 😊 Emotional content detected")
+        
+        return has_emotion
+    
+    def _micro_pattern_extraction(self, text: str, current_date: str) -> List[Dict]:
+        """🔬 MICRO-PATTERNS: Ultra-sensitive extraction for smallest edge cases"""
+        events = []
+        text_lower = text.lower().strip()
+        current_time = datetime.now().isoformat()
+        
+        print(f"[MicroPatterns] 🔬 Ultra-sensitive analysis: '{text}'")
+        
+        # MICRO 1: Single words with high memory value
+        high_value_single_words = [
+            'mcdonalds', 'mcdonald', 'starbucks', 'walmart', 'target',
+            'dentist', 'doctor', 'hospital', 'appointment',
+            'birthday', 'party', 'wedding', 'funeral',
+            'nervous', 'excited', 'worried', 'stressed'
+        ]
+        
+        for word in high_value_single_words:
+            if word in text_lower:
+                events.append({
+                    'type': 'highlight',
+                    'topic': f'mentioned_{word}',
+                    'date': current_date,
+                    'emotion': 'casual',
+                    'status': 'pending',
+                    'created': current_time,
+                    'original_text': text,
+                    'detected_by': 'micro_single_word',
+                    'confidence': 0.4
+                })
+                print(f"[MicroPatterns] 📍 Single word: {word}")
+                break
+        
+        # MICRO 2: Two-word combinations
+        micro_patterns = [
+            r'\bat\s+mcdonalds?\b',        # "at mcdonalds" 
+            r'\bwith\s+friends?\b',        # "with friends"
+            r'\bmy\s+niece\b',             # "my niece"
+            r'\bnext\s+week\b',            # "next week"
+            r'\byesterday\s+\w+',          # "yesterday [anything]"
+            r'\btoday\s+\w+',              # "today [anything]"
+            r'\btomorrow\s+\w+',           # "tomorrow [anything]"
+            r'\bwent\s+\w+',               # "went [anywhere]"
+            r'\bhad\s+\w+',                # "had [anything]"
+            r'\bmet\s+\w+',                # "met [anyone]"
+            r'\bsaw\s+\w+',                # "saw [anyone]"
+            r'\bbought\s+\w+',             # "bought [anything]"
+            r'\bvisited\s+\w+',            # "visited [anywhere]"
+        ]
+        
+        for pattern in micro_patterns:
+            match = re.search(pattern, text_lower)
+            if match:
+                matched_text = match.group(0)
+                events.append({
+                    'type': 'highlight',
+                    'topic': f'micro_pattern_{matched_text.replace(" ", "_")}',
+                    'date': current_date,
+                    'emotion': 'casual',
+                    'status': 'pending',
+                    'created': current_time,
+                    'original_text': text,
+                    'detected_by': 'micro_two_word_pattern',
+                    'confidence': 0.5
+                })
+                print(f"[MicroPatterns] 🔗 Two-word pattern: {matched_text}")
+                break
+        
+        # MICRO 3: Context-free emotional expressions
+        if not events:  # Only if nothing else found
+            emotion_context_patterns = [
+                r'\b(nervous|excited|worried|happy|sad|stressed)\s+(about|for)\b',
+                r'\b(looking\s+forward|can\'t\s+wait|dreading)\b',
+                r'\b(love|hate|enjoy|dislike)\s+\w+',
+                r'\b(remember|forgot|mentioned)\b'
+            ]
+            
+            for pattern in emotion_context_patterns:
+                if re.search(pattern, text_lower):
+                    events.append({
+                        'type': 'highlight',
+                        'topic': 'emotional_context',
+                        'date': current_date,
+                        'emotion': 'emotional',
+                        'status': 'pending',
+                        'created': current_time,
+                        'original_text': text,
+                        'detected_by': 'micro_emotion_context',
+                        'confidence': 0.6
+                    })
+                    print(f"[MicroPatterns] 😊 Emotional context")
+                    break
+        
+        # MICRO 4: Question-based memory extraction (override question blocking)
+        if '?' in text_lower and not events:
+            memory_question_indicators = [
+                'where did i', 'what did i', 'when did i', 'who did i',
+                'where was i', 'what was i', 'who was i with',
+                'where am i going', 'what do i have', 'when is my',
+                'what am i', 'where are we', 'what are we doing'
+            ]
+            
+            for indicator in memory_question_indicators:
+                if indicator in text_lower:
+                    events.append({
+                        'type': 'highlight',
+                        'topic': 'memory_question',
+                        'date': current_date,
+                        'emotion': 'casual',
+                        'status': 'pending',
+                        'created': current_time,
+                        'original_text': text,
+                        'detected_by': 'micro_memory_question',
+                        'confidence': 0.7
+                    })
+                    print(f"[MicroPatterns] ❓ Memory question: {indicator}")
+                    break
+        
+        # MICRO 5: Any time reference + any noun (last resort)
+        if not events and len(text.split()) >= 3:
+            time_refs = ['today', 'yesterday', 'tomorrow', 'earlier', 'later', 'morning', 'afternoon', 'evening']
+            words = text_lower.split()
+            
+            has_time_ref = any(time_ref in words for time_ref in time_refs)
+            has_noun = len([w for w in words if len(w) > 3 and w.isalpha()]) >= 1
+            
+            if has_time_ref and has_noun:
+                events.append({
+                    'type': 'highlight',
+                    'topic': 'time_plus_context',
+                    'date': current_date,
+                    'emotion': 'casual',
+                    'status': 'pending',
+                    'created': current_time,
+                    'original_text': text,
+                    'detected_by': 'micro_time_plus_noun',
+                    'confidence': 0.3
+                })
+                print(f"[MicroPatterns] ⏰ Time + context detected")
+        
+        print(f"[MicroPatterns] 🔬 Found {len(events)} micro-pattern events")
+        return events
+    
+    def _try_llm_extraction(self, text: str, current_date: str, current_time: str) -> List[Dict]:
+        """Try LLM-based extraction (factored out for multi-pass approach)"""
         detection_prompt = f"""You are a smart memory assistant. Analyze this user message and extract any events, appointments, or life situations that should be remembered.
 
 Current date: {current_date}
@@ -398,16 +692,6 @@ Return only valid JSON array:"""
                     enhanced_event = self._enhance_event(event)
                     validated_events.append(enhanced_event)
             
-            print(f"[SmartMemory] 🧠 Optimized detected {len(validated_events)} events from: '{text}'")
-            
-            # ✅ CRITICAL FIX: If optimized detection returns no events, try fallback
-            if len(validated_events) == 0:
-                print(f"[SmartMemory] 🔄 No events from optimized detection, trying fallback...")
-                fallback_events = self._fallback_detection(current_date, text)
-                if fallback_events:
-                    print(f"[SmartMemory] ✅ Fallback detected {len(fallback_events)} events")
-                    return fallback_events
-            
             return validated_events
             
         except ImportError:
@@ -416,6 +700,67 @@ Return only valid JSON array:"""
         except Exception as e:
             print(f"[SmartMemory] ❌ Optimized detection error: {e}")
             return self._detect_events_fallback(text, current_date)
+    
+    def _smart_detect_events(self, text: str) -> List[Dict]:
+        """🧠 Use Hermes 3 Pro Mistral to intelligently detect events - BULLETPROOF FILTERED"""
+        
+        # ✅ PROGRESSIVE FILTERING SYSTEM - OPTIMIZED FOR 80-90% EXTRACTION!
+        
+        # Filter 1: Block pure casual conversation (more permissive now)
+        if self._is_casual_conversation(text):
+            return []
+        
+        # Filter 2: Progressive scoring system (replaces triple requirement)
+        has_events = self._likely_contains_events(text)
+        has_emotions = self._contains_emotional_state(text)
+        
+        # Use multi-pass approach
+        if not has_events and not has_emotions:
+            # Try high-value pattern extraction as fallback
+            print(f"[SmartMemory] 🔄 Trying high-value pattern extraction for: '{text}'")
+            high_value_events = self._extract_high_value_patterns(text)
+            if high_value_events:
+                print(f"[SmartMemory] ✅ High-value patterns detected {len(high_value_events)} events")
+                return high_value_events
+            else:
+                print(f"[SmartMemory] ❌ No events, emotions, or high-value patterns: '{text}'")
+                return []
+        
+        # If we get here, try the comprehensive multi-pass approach
+        print(f"[SmartMemory] 🔄 Trying multi-pass extraction for: '{text}'")
+        
+        current_date = datetime.now().strftime('%Y-%m-%d')
+        current_time = datetime.now().strftime('%H:%M')
+        
+        # PASS 1: Standard extraction (already tried above)
+        pass1_events = []
+        if has_events or has_emotions:
+            pass1_events = self._try_llm_extraction(text, current_date, current_time)
+            if pass1_events:
+                print(f"[SmartMemory] ✅ Pass 1 (LLM) detected {len(pass1_events)} events")
+                return pass1_events
+        
+        # PASS 2: High-value pattern extraction
+        pass2_events = self._extract_high_value_patterns(text)
+        if pass2_events:
+            print(f"[SmartMemory] ✅ Pass 2 (high-value patterns) detected {len(pass2_events)} events")
+            return pass2_events
+        
+        # PASS 3: Comprehensive fallback patterns
+        pass3_events = self._fallback_detection(current_date, text)
+        if pass3_events:
+            print(f"[SmartMemory] ✅ Pass 3 (comprehensive fallback) detected {len(pass3_events)} events")
+            return pass3_events
+        
+        # PASS 4: Micro-pattern extraction (last resort for edge cases)
+        pass4_events = self._micro_pattern_extraction(text, current_date)
+        if pass4_events:
+            print(f"[SmartMemory] ✅ Pass 4 (micro-patterns) detected {len(pass4_events)} events")
+            return pass4_events
+        
+        # Final fallback: If absolutely nothing found, return empty
+        print(f"[SmartMemory] ❌ All extraction passes failed for: '{text}'")
+        return []
     
     def _detect_events_fallback(self, text: str, current_date: str) -> List[Dict]:
         """Fallback to original LLM event detection"""
@@ -537,139 +882,293 @@ Return only valid JSON array:"""
         return enhanced
     
     def _fallback_detection(self, current_date: str, text: str) -> List[Dict]:
-        """Enhanced fallback detection for critical patterns and edge cases"""
+        """🚀 COMPREHENSIVE FALLBACK: Enhanced pattern detection for 80-90% extraction rate"""
         events = []
         text_lower = text.lower()
         tomorrow_date = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
         next_week_dates = [(datetime.now() + timedelta(days=i)).strftime('%Y-%m-%d') for i in range(7, 14)]
+        current_time = datetime.now().isoformat()
         
-        # ENHANCED: Appointment patterns (with time and emotional context)
-        appointment_pattern = r'(?:dentist|doctor|appointment|meeting).+(?:tomorrow|today|next week|wednesday|monday|tuesday|thursday|friday).+(?:\d{1,2}(?::\d{2})?(?:\s?(?:am|pm|AM|PM))?|\d{1,2}\s?(?:am|pm|AM|PM))'
-        if re.search(appointment_pattern, text_lower):
-            # Determine date
-            if 'tomorrow' in text_lower:
-                event_date = tomorrow_date
-            elif 'next week' in text_lower or any(day in text_lower for day in ['wednesday', 'monday', 'tuesday', 'thursday', 'friday']):
-                event_date = next_week_dates[2] if 'wednesday' in text_lower else next_week_dates[0]  # Default to next week start
-            else:
+        print(f"[FallbackDetection] 🔍 Analyzing: '{text}'")
+        
+        # 1. RESTAURANTS & FOOD (Major category)
+        food_patterns = [
+            # McDonald's specific patterns 
+            r"(i\s+)?went\s+to\s+mcdonald'?s?\s+(earlier|today|yesterday|this\s+morning)",
+            r"(i\s+)?had\s+(dinner|lunch|breakfast|food)\s+at\s+(mcdonald'?s?|kfc|starbucks)",
+            r"grabbed\s+(some\s+)?food\s+at\s+(\w+)",
+            r"(ate|had|got|grabbed)\s+(lunch|dinner|breakfast|food).+at\s+(\w+)",
+            r"went\s+to\s+(\w+)\s+(restaurant|cafe)",
+            r"(dinner|lunch|breakfast)\s+at\s+(\w+)",
+            # With companions
+            r"went\s+to\s+(\w+).+with\s+(\w+)",
+            r"had\s+(lunch|dinner).+with\s+(\w+)\s+at\s+(\w+)",
+            r"(grabbed|got|ate)\s+food.+with\s+(friends|family|\w+)",
+        ]
+        
+        for pattern in food_patterns:
+            match = re.search(pattern, text_lower)
+            if match:
+                # Extract place and companion info
+                groups = match.groups()
+                place = None
+                companion = None
+                
+                if 'mcdonald' in text_lower:
+                    place = 'mcdonalds'
+                elif 'kfc' in text_lower:
+                    place = 'kfc'
+                elif 'starbucks' in text_lower:
+                    place = 'starbucks'
+                else:
+                    # Try to find place in groups
+                    for group in groups:
+                        if group and group not in ['i', 'some', 'dinner', 'lunch', 'breakfast', 'food', 'earlier', 'today', 'yesterday', 'this', 'morning', 'grabbed', 'got', 'ate', 'had']:
+                            if not place:
+                                place = group
+                            elif not companion and group not in ['restaurant', 'cafe']:
+                                companion = group
+                
+                if place:
+                    topic = f'visited_{place.lower()}'
+                    if companion and companion not in ['friends', 'family']:
+                        topic += f'_with_{companion.lower()}'
+                    elif 'friends' in text_lower:
+                        topic += '_with_friends'
+                    elif 'family' in text_lower:
+                        topic += '_with_family'
+                    
+                    event_date = current_date
+                    if 'yesterday' in text_lower:
+                        event_date = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+                    
+                    events.append({
+                        'type': 'life_event',
+                        'topic': topic,
+                        'date': event_date,
+                        'emotion': 'casual',
+                        'status': 'pending',
+                        'created': current_time,
+                        'original_text': text,
+                        'detected_by': 'comprehensive_food_pattern'
+                    })
+                    print(f"[FallbackDetection] 🍽️ Food event: {place}")
+                    break
+        
+        # 2. APPOINTMENTS & MEDICAL  
+        appointment_patterns = [
+            r"(dentist|doctor|vet)\s+appointment.+(tomorrow|today|next\s+week)",
+            r"(appointment|meeting).+(dentist|doctor|vet)",
+            r"(dentist|doctor|vet).+(tomorrow|today|at\s+\d)",
+            r"(nervous|worried|scared).+(dentist|doctor|appointment)",
+            r"(interview|meeting).+(tomorrow|today|next\s+week)",
+        ]
+        
+        for pattern in appointment_patterns:
+            match = re.search(pattern, text_lower)
+            if match:
+                appointment_type = 'appointment'
+                if 'dentist' in text_lower:
+                    appointment_type = 'dentist_appointment'
+                elif 'doctor' in text_lower:
+                    appointment_type = 'doctor_appointment'
+                elif 'interview' in text_lower:
+                    appointment_type = 'job_interview'
+                
                 event_date = current_date
+                if 'tomorrow' in text_lower:
+                    event_date = tomorrow_date
+                elif 'next week' in text_lower:
+                    event_date = next_week_dates[0]
                 
-            # Detect emotional context
-            emotion = 'casual'
-            if any(word in text_lower for word in ['nervous', 'worried', 'scared', 'anxious']):
-                emotion = 'stressful'
-            elif any(word in text_lower for word in ['excited', 'looking forward', 'happy']):
-                emotion = 'happy'
+                emotion = 'casual'
+                if any(word in text_lower for word in ['nervous', 'worried', 'scared', 'anxious']):
+                    emotion = 'stressful'
+                elif any(word in text_lower for word in ['excited', 'looking forward']):
+                    emotion = 'happy'
                 
-            events.append({
-                'type': 'appointment',
-                'topic': 'dentist appointment' if 'dentist' in text_lower else 'appointment',
-                'date': event_date,
-                'emotion': emotion,
-                'status': 'pending',
-                'created': datetime.now().isoformat(),
-                'original_text': text,
-                'detected_by': 'enhanced_fallback'
-            })
+                events.append({
+                    'type': 'appointment',
+                    'topic': appointment_type,
+                    'date': event_date,
+                    'emotion': emotion,
+                    'status': 'pending',
+                    'created': current_time,
+                    'original_text': text,
+                    'detected_by': 'comprehensive_appointment_pattern'
+                })
+                print(f"[FallbackDetection] 📅 Appointment: {appointment_type}")
+                break
         
-        # ENHANCED: Birthday with specific person and date
-        birthday_pattern = r"(?:(?:i'm\s+)?(?:off\s+to|going\s+to)?(?:\s+my\s+)?(\w+)(?:'s)?\s+birthday).+(?:next\s+week\s+)?(?:wednesday|monday|tuesday|thursday|friday|saturday|sunday|tomorrow|today)"
-        birthday_match = re.search(birthday_pattern, text_lower)
-        if birthday_match:
-            person = birthday_match.group(1)
-            # Determine date
-            if 'next week wednesday' in text_lower or 'wednesday' in text_lower:
-                event_date = next_week_dates[2]  # Wednesday of next week
-            elif 'tomorrow' in text_lower:
-                event_date = tomorrow_date
-            else:
+        # 3. SOCIAL EVENTS & PEOPLE
+        social_patterns = [
+            r"(my\s+)?(niece|nephew|cousin|sister|brother|mom|dad)('s)?\s+(birthday|party)",
+            r"(off\s+to|going\s+to).+(birthday|party|wedding)",
+            r"(visited|saw|met)\s+(my\s+)?(\w+).+(yesterday|today|this\s+morning)",
+            r"(met|meeting)\s+(\w+)\s+at\s+(\w+)",
+            r"with\s+(friends|family|my\s+\w+)",
+            r"(parents|family)\s+(visited|came)",
+            r"(birthday|party|wedding|celebration)",
+        ]
+        
+        for pattern in social_patterns:
+            match = re.search(pattern, text_lower)
+            if match:
+                groups = match.groups()
+                event_type = 'social_event'
+                person = None
+                
+                if 'birthday' in text_lower:
+                    event_type = 'birthday_event'
+                    # Try to find person
+                    for group in groups:
+                        if group and group not in ['my', "'s", 'off', 'to', 'going', 'birthday', 'party', 'yesterday', 'today', 'this', 'morning']:
+                            person = group
+                            break
+                
+                elif 'met' in text_lower or 'visited' in text_lower:
+                    event_type = 'meeting_event'
+                    for group in groups:
+                        if group and group not in ['met', 'meeting', 'visited', 'saw', 'my', 'at', 'yesterday', 'today', 'this', 'morning']:
+                            person = group
+                            break
+                
+                topic = event_type
+                if person:
+                    topic = f'{event_type}_{person.lower()}'
+                
                 event_date = current_date
+                if 'yesterday' in text_lower:
+                    event_date = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+                elif 'next week' in text_lower:
+                    event_date = next_week_dates[0]
+                    if 'wednesday' in text_lower:
+                        event_date = next_week_dates[2]
                 
-            events.append({
-                'type': 'life_event',
-                'topic': f'{person}_birthday_visit',
-                'date': event_date,
-                'emotion': 'happy',
-                'status': 'pending',
-                'created': datetime.now().isoformat(),
-                'original_text': text,
-                'detected_by': 'enhanced_fallback'
-            })
+                events.append({
+                    'type': 'life_event',
+                    'topic': topic,
+                    'date': event_date,
+                    'emotion': 'happy',
+                    'status': 'pending',
+                    'created': current_time,
+                    'original_text': text,
+                    'detected_by': 'comprehensive_social_pattern'
+                })
+                print(f"[FallbackDetection] 👥 Social event: {topic}")
+                break
         
-        # ENHANCED: Food/restaurant visits with companions
-        food_pattern = r'(?:grabbed|got|had|ate)\s+(?:some\s+)?food\s+at\s+(\w+)(?:\s+with\s+(\w+))?(?:\s+earlier)?'
-        food_match = re.search(food_pattern, text_lower)
-        if food_match:
-            place = food_match.group(1)
-            companion = food_match.group(2) if food_match.group(2) else None
-            
-            topic = f'visited_{place.lower()}'
-            if companion:
-                topic += f'_with_{companion.lower()}'
+        # 4. ACTIVITIES & HOBBIES
+        activity_patterns = [
+            r"(played|watched|went).+(basketball|football|cinema|movie|concert)",
+            r"(shopping|bought|purchased).+(yesterday|today|earlier)",
+            r"(traveled|flew|drove|trip)\s+to\s+(\w+)",
+            r"(cleaned|organized|repaired|fixed)",
+            r"(jogging|running|exercise|gym)",
+            r"(reading|finished).+(book|novel)",
+            r"(camping|hiking|beach)",
+        ]
+        
+        for pattern in activity_patterns:
+            if re.search(pattern, text_lower):
+                activity = 'general_activity'
                 
-            events.append({
-                'type': 'life_event',
-                'topic': topic,
-                'date': current_date if 'earlier' in text_lower or 'today' in text_lower else current_date,
-                'emotion': 'casual',
-                'status': 'pending',
-                'created': datetime.now().isoformat(),
-                'original_text': text,
-                'detected_by': 'enhanced_fallback'
-            })
-        
-        # ENHANCED: Alternative food patterns for different phrasings
-        food_alt_pattern = r'(?:grabbed|got|had|ate)\s+(?:some\s+)?(?:food|lunch|dinner|breakfast)\s+(?:at\s+)?(?:the\s+)?(\w+\'?\w*)\s+with\s+(\w+)'
-        food_alt_match = re.search(food_alt_pattern, text_lower)
-        if food_alt_match and not food_match:  # Only if first pattern didn't match
-            place = food_alt_match.group(1).replace("'", "")  # Remove apostrophes
-            companion = food_alt_match.group(2)
-            
-            topic = f'visited_{place.lower()}_with_{companion.lower()}'
+                if 'basketball' in text_lower:
+                    activity = 'played_basketball'
+                elif 'cinema' in text_lower or 'movie' in text_lower:
+                    activity = 'watched_movie'
+                elif 'concert' in text_lower:
+                    activity = 'attended_concert'
+                elif 'shopping' in text_lower:
+                    activity = 'went_shopping'
+                elif 'travel' in text_lower or 'trip' in text_lower:
+                    activity = 'traveled'
+                elif 'jogging' in text_lower or 'running' in text_lower:
+                    activity = 'went_jogging'
+                elif 'reading' in text_lower:
+                    activity = 'reading_book'
+                elif 'beach' in text_lower:
+                    activity = 'went_to_beach'
+                elif 'camping' in text_lower:
+                    activity = 'went_camping'
                 
-            events.append({
-                'type': 'life_event',
-                'topic': topic,
-                'date': current_date,
-                'emotion': 'casual',
-                'status': 'pending',
-                'created': datetime.now().isoformat(),
-                'original_text': text,
-                'detected_by': 'enhanced_fallback_alt'
-            })
+                event_date = current_date
+                if 'yesterday' in text_lower:
+                    event_date = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+                elif 'last weekend' in text_lower:
+                    event_date = (datetime.now() - timedelta(days=3)).strftime('%Y-%m-%d')
+                
+                events.append({
+                    'type': 'life_event',
+                    'topic': activity,
+                    'date': event_date,
+                    'emotion': 'casual',
+                    'status': 'pending',
+                    'created': current_time,
+                    'original_text': text,
+                    'detected_by': 'comprehensive_activity_pattern'
+                })
+                print(f"[FallbackDetection] ⚡ Activity: {activity}")
+                break
         
-        # ENHANCED: Meeting patterns with specific people
-        meeting_pattern = r'(?:met|meeting)\s+(\w+)\s+at\s+(?:the\s+)?(\w+(?:\s+\w+)?)\s+(?:this\s+)?(?:morning|afternoon|evening|today|yesterday)'
-        meeting_match = re.search(meeting_pattern, text_lower)
-        if meeting_match:
-            person = meeting_match.group(1)
-            place = meeting_match.group(2)
+        # 5. LOCATION-ONLY PATTERNS (High-value edge cases)
+        location_patterns = [
+            r"\bat\s+(mcdonald'?s?|starbucks|walmart|target|costco|mall|shop|store|office|work|home|hospital|clinic)\b",
+            r"\bwent\s+to\s+(the\s+)?(\w+)",
+            r"\bwas\s+at\s+(the\s+)?(\w+)",
+            r"\bfrom\s+(the\s+)?(\w+)",
+        ]
+        
+        for pattern in location_patterns:
+            match = re.search(pattern, text_lower)
+            if match:
+                groups = match.groups()
+                location = None
+                
+                for group in groups:
+                    if group and group not in ['the', 'at', 'went', 'to', 'was', 'from']:
+                        location = group.replace("'", "").replace("s", "")
+                        break
+                
+                if location and len(location) > 2:
+                    events.append({
+                        'type': 'life_event',
+                        'topic': f'location_mention_{location.lower()}',
+                        'date': current_date,
+                        'emotion': 'casual',
+                        'status': 'pending',
+                        'created': current_time,
+                        'original_text': text,
+                        'detected_by': 'comprehensive_location_pattern',
+                        'confidence': 0.6
+                    })
+                    print(f"[FallbackDetection] 📍 Location: {location}")
+                    break
+        
+        # 6. EMOTIONAL STATES (Even without events)
+        if not events:  # Only if no other events found
+            emotion_patterns = [
+                r"\b(nervous|excited|worried|happy|stressed|anxious|thrilled)\s+about\b",
+                r"\b(looking\s+forward|can't\s+wait|dreading)\b",
+            ]
             
-            events.append({
-                'type': 'life_event',
-                'topic': f'met_{person.lower()}_at_{place.lower().replace(" ", "_")}',
-                'date': current_date,
-                'emotion': 'casual',
-                'status': 'pending',
-                'created': datetime.now().isoformat(),
-                'original_text': text,
-                'detected_by': 'enhanced_fallback'
-            })
+            for pattern in emotion_patterns:
+                if re.search(pattern, text_lower):
+                    events.append({
+                        'type': 'highlight',
+                        'topic': 'emotional_state',
+                        'date': current_date,
+                        'emotion': 'emotional',
+                        'status': 'pending',
+                        'created': current_time,
+                        'original_text': text,
+                        'detected_by': 'comprehensive_emotion_pattern',
+                        'confidence': 0.7
+                    })
+                    print(f"[FallbackDetection] 😊 Emotional state detected")
+                    break
         
-        # ENHANCED: Shop visits with companions
-        shop_pattern = r'(?:we|i)\s+went\s+to\s+(?:the\s+)?shop\s+(?:last\s+night|yesterday|earlier|today)'
-        if re.search(shop_pattern, text_lower):
-            events.append({
-                'type': 'life_event',
-                'topic': 'visited_shop',
-                'date': current_date if any(time_ref in text_lower for time_ref in ['today', 'earlier']) else (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d'),
-                'emotion': 'casual',
-                'status': 'pending',
-                'created': datetime.now().isoformat(),
-                'original_text': text,
-                'detected_by': 'enhanced_fallback'
-            })
-        
+        print(f"[FallbackDetection] ✅ Found {len(events)} events with comprehensive patterns")
         return events
     
     def load_memory(self, filename: str) -> List[Dict]:

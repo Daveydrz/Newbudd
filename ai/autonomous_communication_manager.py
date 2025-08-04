@@ -430,14 +430,19 @@ class AutonomousCommunicationManager:
             # Enhance content if LLM handler available
             enhanced_content = self._enhance_communication_content(comm)
             
-            # Deliver through voice system
-            if self.voice_system:
+            # Deliver through voice system - DISABLED to prevent inner thoughts from being spoken
+            # ✅ FIX: Autonomous communications should not trigger TTS during conversation
+            if self.voice_system and False:  # Disabled autonomous speech
                 if hasattr(self.voice_system, 'speak_streaming'):
                     self.voice_system.speak_streaming(enhanced_content)
                     success = True
                 elif hasattr(self.voice_system, 'speak_async'):
                     self.voice_system.speak_async(enhanced_content)
                     success = True
+            else:
+                # Log autonomous communication without speaking it
+                logging.info(f"[AutonomousComm] 💭 Autonomous thought (silent): {enhanced_content[:100]}...")
+                success = True
             
             # Update state
             with self.lock:

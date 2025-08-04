@@ -455,10 +455,14 @@ class SelfMotivationEngine:
             if not spoken_content:
                 spoken_content = "I feel motivated to connect with you..."
             
-            # Speak the motivation
-            if hasattr(self.voice_system, 'speak_streaming'):
+            # DISABLED: Speak the motivation to prevent inner thoughts from being spoken
+            # ✅ FIX: Self motivation should not trigger TTS during conversation
+            logging.info(f"[SelfMotivation] 💭 Internal motivation (silent): {spoken_content[:100]}...")
+            
+            # DISABLED TTS calls to prevent inner thoughts from being spoken
+            if False and hasattr(self.voice_system, 'speak_streaming'):  # Disabled
                 self.voice_system.speak_streaming(spoken_content)
-            elif hasattr(self.voice_system, 'speak_async'):
+            elif False and hasattr(self.voice_system, 'speak_async'):  # Disabled
                 self.voice_system.speak_async(spoken_content)
             
             # Integrate with consciousness

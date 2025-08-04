@@ -311,21 +311,24 @@ class ProactiveThinkingLoop:
         return should_verbalize, priority
     
     def _verbalize_thought(self, thought: ProactiveThought):
-        """Express thought through voice system"""
+        """Express thought through voice system - DISABLED to prevent inner thoughts from being spoken"""
         try:
+            # ✅ FIX: Proactive thoughts should not trigger TTS during conversation
             if not self.voice_system:
                 return
             
             # Convert internal thought to natural speech
             verbalization = self._convert_thought_to_speech(thought)
             
-            # Use voice system to speak
-            if hasattr(self.voice_system, 'speak_streaming'):
-                self.voice_system.speak_streaming(verbalization)
-            elif hasattr(self.voice_system, 'speak_async'):
-                self.voice_system.speak_async(verbalization)
+            # Log thought without speaking it to prevent TTS interference
+            logging.info(f"[ProactiveThinking] 💭 Internal thought (silent): {verbalization[:100]}...")
             
-            logging.info(f"[ProactiveThinking] 🗣️ Verbalized: {verbalization[:50]}...")
+            # DISABLED: Voice system calls to prevent inner thoughts from being spoken
+            # Use voice system to speak
+            if False and hasattr(self.voice_system, 'speak_streaming'):  # Disabled
+                self.voice_system.speak_streaming(verbalization)
+            elif False and hasattr(self.voice_system, 'speak_async'):  # Disabled
+                self.voice_system.speak_async(verbalization)
             
         except Exception as e:
             logging.error(f"[ProactiveThinking] ❌ Verbalization error: {e}")

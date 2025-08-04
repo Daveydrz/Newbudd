@@ -2,11 +2,18 @@
 import json
 import os
 import shutil
+import time
 from datetime import datetime
 from typing import Dict, List, Tuple, Optional
 from pathlib import Path
 from ai.memory import get_user_memory, UserMemorySystem
 from ai.chat import ask_kobold
+
+# ✅ CRITICAL: Global session cache to prevent infinite loops during memory extraction
+_analysis_cache = {}
+_analysis_timestamp = {}
+CACHE_EXPIRY_SECONDS = 300  # 5 minutes
+MAX_COMPARISONS_PER_SESSION = 3  # Prevent infinite loops
 
 class IntelligentMemoryAnalyzer:
     """🧠 Use Hermes 3 Pro Mistral for smart memory analysis"""
@@ -31,9 +38,39 @@ class IntelligentMemoryAnalyzer:
             json.dump(self.clusters, f, indent=2)
     
     def analyze_user_similarity_intelligent(self, user1: str, user2: str) -> Tuple[float, str]:
-        """🧠 Use Hermes 3 Pro Mistral to analyze user similarity"""
+        """🧠 Use Hermes 3 Pro Mistral to analyze user similarity with infinite loop prevention"""
         
-        print(f"[IntelligentFusion] 🧠 Analyzing {user1} ↔ {user2} with Hermes 3 Pro Mistral...")
+        # ✅ CRITICAL: Create cache key and check for infinite loop prevention
+        cache_key = f"{user1}||{user2}"
+        reverse_cache_key = f"{user2}||{user1}"
+        current_time = time.time()
+        
+        # Check if we've analyzed this pair recently (within 5 minutes)
+        if cache_key in _analysis_cache and cache_key in _analysis_timestamp:
+            if current_time - _analysis_timestamp[cache_key] < CACHE_EXPIRY_SECONDS:
+                cached_result = _analysis_cache[cache_key]
+                print(f"[IntelligentFusion] 🚫 Using cached result for {user1} ↔ {user2}: {cached_result[0]:.2f}")
+                return cached_result
+        
+        # Check reverse key too (user2 vs user1)
+        if reverse_cache_key in _analysis_cache and reverse_cache_key in _analysis_timestamp:
+            if current_time - _analysis_timestamp[reverse_cache_key] < CACHE_EXPIRY_SECONDS:
+                cached_result = _analysis_cache[reverse_cache_key]
+                print(f"[IntelligentFusion] 🚫 Using cached result (reverse) for {user1} ↔ {user2}: {cached_result[0]:.2f}")
+                return cached_result
+        
+        # Count current session analysis calls to prevent infinite loops
+        session_count_key = f"session_count_{current_time // 60}"  # Per minute tracking
+        if session_count_key not in _analysis_cache:
+            _analysis_cache[session_count_key] = 0
+        
+        if _analysis_cache[session_count_key] >= MAX_COMPARISONS_PER_SESSION:
+            print(f"[IntelligentFusion] 🚫 Maximum comparisons reached for this session, preventing infinite loop")
+            return 0.0, "Session limit reached - preventing infinite loop"
+        
+        _analysis_cache[session_count_key] += 1
+        
+        print(f"[IntelligentFusion] 🧠 Analyzing {user1} ↔ {user2} with Hermes 3 Pro Mistral... (call #{_analysis_cache[session_count_key]})")
         
         # Load user data
         user1_data = self._load_user_complete_profile(user1)
@@ -41,7 +78,10 @@ class IntelligentMemoryAnalyzer:
         
         # ✅ CRITICAL FIX: Validate data quality before proceeding
         if not self._has_sufficient_data(user1_data, user2_data):
-            return 0.0, "Insufficient profile data for meaningful comparison"
+            result = (0.0, "Insufficient profile data for meaningful comparison")
+            _analysis_cache[cache_key] = result
+            _analysis_timestamp[cache_key] = current_time
+            return result
         
         # Format profiles for analysis
         user1_profile = self._format_user_profile(user1_data)
@@ -49,7 +89,10 @@ class IntelligentMemoryAnalyzer:
         
         # ✅ CRITICAL FIX: Check if profiles actually have content
         if len(user1_profile) < 50 or len(user2_profile) < 50:
-            return 0.0, "User profiles too minimal for analysis"
+            result = (0.0, "User profiles too minimal for analysis")
+            _analysis_cache[cache_key] = result
+            _analysis_timestamp[cache_key] = current_time
+            return result
         
         # Create intelligent analysis prompt WITHOUT hardcoded examples
         analysis_prompt = f"""You are an expert memory analyst. Analyze if these two user profiles belong to the same person.
@@ -111,15 +154,32 @@ Analyze ONLY the actual data provided. Do not invent details."""
             print(f"  📊 Similarity: {similarity:.2f}")
             print(f"  🧠 Reasoning: {reasoning}")
             
+            # ✅ CRITICAL: Cache the result to prevent infinite loops
+            result = (similarity, reasoning)
+            _analysis_cache[cache_key] = result
+            _analysis_timestamp[cache_key] = current_time
+            
             return similarity, reasoning
             
         except ImportError:
             print(f"[IntelligentFusion] ⚠️ Optimized function not available, using fallback")
             # Fallback to original method
-            return self._analyze_similarity_fallback(user1_profile, user2_profile)
+            result = self._analyze_similarity_fallback(user1_profile, user2_profile)
+            
+            # ✅ CRITICAL: Cache the fallback result too
+            _analysis_cache[cache_key] = result
+            _analysis_timestamp[cache_key] = current_time
+            
+            return result
         except Exception as e:
             print(f"[IntelligentFusion] ❌ Optimized analysis error: {e}")
-            return self._analyze_similarity_fallback(user1_profile, user2_profile)
+            result = self._analyze_similarity_fallback(user1_profile, user2_profile)
+            
+            # ✅ CRITICAL: Cache the fallback result
+            _analysis_cache[cache_key] = result
+            _analysis_timestamp[cache_key] = current_time
+            
+            return result
     
     def _analyze_similarity_fallback(self, user1_profile: str, user2_profile: str) -> Tuple[float, str]:
         """Fallback to original LLM analysis method"""
@@ -478,7 +538,19 @@ class IntelligentMemoryUnifier:
         self.analyzer = IntelligentMemoryAnalyzer()
     
     def find_and_merge_intelligent(self, target_username: str, threshold: float = 0.7) -> str:
-        """🧠 Intelligent detection and merging of similar users"""
+        """🧠 Intelligent detection and merging of similar users with infinite loop prevention"""
+        
+        # ✅ CRITICAL: Check if this is a frequent memory extraction call
+        fusion_cache_key = f"fusion_check_{target_username}"
+        current_time = time.time()
+        
+        # If we checked this user recently (within last 2 minutes), skip fusion to prevent loops
+        if fusion_cache_key in _analysis_timestamp:
+            if current_time - _analysis_timestamp[fusion_cache_key] < 120:  # 2 minutes
+                print(f"[IntelligentFusion] 🚫 Skipping fusion for {target_username} - checked recently (preventing infinite loop)")
+                return target_username
+        
+        _analysis_timestamp[fusion_cache_key] = current_time
         
         print(f"[IntelligentFusion] 🧠 Starting intelligent analysis for {target_username}")
         print(f"[IntelligentFusion] 📅 Current time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -503,6 +575,11 @@ class IntelligentMemoryUnifier:
         if not existing_users:
             print(f"[IntelligentFusion] ℹ️ No other users found for comparison")
             return target_username
+        
+        # ✅ CRITICAL: Limit number of users to compare to prevent infinite loops
+        if len(existing_users) > 5:
+            print(f"[IntelligentFusion] ⚠️ Too many users ({len(existing_users)}) - limiting to 5 most recent to prevent infinite loops")
+            existing_users = sorted(existing_users, key=lambda x: os.path.getmtime(f"memory/{x}"), reverse=True)[:5]
         
         print(f"[IntelligentFusion] 🔍 Found {len(existing_users)} existing users to analyze: {existing_users}")
         
@@ -732,8 +809,14 @@ Respond ONLY in this exact JSON format:
 # Global intelligent fusion engine
 intelligent_fusion = IntelligentMemoryUnifier()
 
-def get_intelligent_unified_username(original_username: str) -> str:
-    """🧠 Get intelligently unified username using Hermes 3 Pro Mistral"""
+def get_intelligent_unified_username(original_username: str, skip_fusion: bool = False) -> str:
+    """🧠 Get intelligently unified username using Hermes 3 Pro Mistral with infinite loop prevention"""
+    
+    # ✅ CRITICAL: Allow bypassing fusion during memory extraction to prevent infinite loops
+    if skip_fusion:
+        print(f"[IntelligentFusion] 🚫 Skipping fusion for {original_username} (skip_fusion=True)")
+        return original_username
+    
     print(f"[IntelligentFusion] 🚀 Starting intelligent memory fusion for {original_username}")
     return intelligent_fusion.find_and_merge_intelligent(original_username, threshold=0.7)
 

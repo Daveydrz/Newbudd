@@ -1,0 +1,13 @@
+[
+  {
+    "type": "highlight",
+    "topic": "activity_mention",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T08:59:50.186222",
+    "original_text": "I just got back from work now chilling",
+    "detected_by": "high_value_activity_pattern",
+    "confidence": 0.5
+  }
+]

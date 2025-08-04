@@ -1,0 +1,14 @@
+{
+  "working_memory": {
+    "active_contexts": {},
+    "last_action": "location_context_work: location context work",
+    "last_place": "work now chilling",
+    "last_topic": null,
+    "last_goal": null,
+    "last_timestamp": null,
+    "action_status": "unknown",
+    "context_sequence": []
+  },
+  "intent_slots": {},
+  "reference_history": []
+}

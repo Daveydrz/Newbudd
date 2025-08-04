@@ -97,10 +97,12 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
             print(f"[ChatFusion] ⚠️ Entropy processing error: {entropy_error}")
             consciousness_summary = "[C:engaged]" if optimization_level in ["high", "ultra"] else "[CONSCIOUSNESS:engaged]"
     
-    # 🔧 FIX: Check for unified username from memory fusion
+    # 🔧 FIX: Check for unified username from memory fusion - BUT SKIP DURING EXTRACTION TO PREVENT LOOPS
     print(f"[ChatFusion] 🔍 Checking memory fusion for user: {username}")
     try:
-        unified_username = get_intelligent_unified_username(username)
+        # ✅ CRITICAL: Skip fusion during this operation to prevent infinite loops during memory extraction
+        # Only do fusion for major conversation turns, not during memory extraction
+        unified_username = get_intelligent_unified_username(username, skip_fusion=True)
         
         if unified_username != username:
             print(f"[ChatFusion] 🎯 MEMORY FUSION: {username} → {unified_username}")

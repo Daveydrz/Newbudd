@@ -1,0 +1,24 @@
+[
+  {
+    "type": "life_event",
+    "topic": "mentioned_work",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "followed_up",
+    "created": "2025-08-04T08:59:50.186222",
+    "original_text": "I just got back from work now chilling",
+    "detected_by": "high_value_place_pattern",
+    "confidence": 0.7
+  },
+  {
+    "type": "life_event",
+    "topic": "location_context_work",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T08:59:50.186222",
+    "original_text": "I just got back from work now chilling",
+    "detected_by": "high_value_location_context",
+    "confidence": 0.6
+  }
+]

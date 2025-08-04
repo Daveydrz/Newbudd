@@ -1,8 +1,7 @@
-# ai/chat_enhanced_smart_with_fusion.py - Enhanced chat with intelligent memory fusion
-from ai.human_memory_smart import SmartHumanLikeMemory
+# ai/chat_enhanced_smart_with_fusion.py - Enhanced chat with intelligent memory fusion and unified extraction
 from ai.chat import generate_response_streaming
 from ai.memory_fusion_intelligent import get_intelligent_unified_username
-from ai.unified_memory_manager import get_unified_smart_memory
+from ai.unified_memory_manager import extract_all_from_text, get_cached_extraction_result
 import random
 
 # ✅ ENTROPY SYSTEM: Import consciousness emergence components
@@ -15,12 +14,8 @@ except ImportError as e:
     print(f"[ChatFusion] ⚠️ Entropy system not available: {e}")
     ENTROPY_AVAILABLE = False
 
-def get_smart_memory(username: str) -> SmartHumanLikeMemory:
-    """Get or create smart memory for user - uses unified memory manager"""
-    return get_unified_smart_memory(username)
-
 def generate_response_streaming_with_intelligent_fusion(question: str, username: str, lang="en", context=None):
-    """🧠 Generate response with intelligent memory fusion, smart memory + CONSCIOUSNESS ENTROPY + TOKEN OPTIMIZATION"""
+    """🧠 Generate response with intelligent memory fusion, unified extraction + CONSCIOUSNESS ENTROPY + TOKEN OPTIMIZATION"""
     
     # ✅ NEW: Use cognitive context if provided
     cognitive_context_summary = ""
@@ -151,14 +146,25 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
     except ImportError:
         print(f"[ChatFusion] ⚠️ Context window manager not available - using standard processing")
     
-    # Step 3: Use unified username for all memory operations
-    smart_memory = get_smart_memory(username)
+    # ✅ UNIFIED MEMORY EXTRACTION - Single LLM call for all extraction types
+    conversation_context = context.get("current_context", "") if context else ""
+    extraction_result = extract_all_from_text(username, question, conversation_context)
     
-    # Step 4: Extract and store memories from current message
-    smart_memory.extract_and_store_human_memories(question)
+    print(f"[ChatFusion] 🧠 Unified extraction complete: {len(extraction_result.memory_events)} events, intent={extraction_result.intent_classification}")
     
-    # Step 4: Check for natural context responses (reminders, follow-ups)
-    context_response = smart_memory.check_for_natural_context_response()
+    # Check if this is a conversation threading scenario
+    if extraction_result.memory_enhancements or extraction_result.conversation_thread_id:
+        print(f"[ChatFusion] 🔗 Conversation threading detected: {extraction_result.conversation_thread_id}")
+    
+    # Check for natural context responses (reminders, follow-ups) based on extraction
+    context_response = None
+    if extraction_result.memory_events:
+        # Generate natural context based on recent memory events or threading
+        recent_events = extraction_result.memory_events[-3:]  # Last 3 events  
+        if recent_events:
+            event_topics = [event.get('topic', '') for event in recent_events]
+            if any(topic for topic in event_topics):
+                context_response = f"Speaking of {', '.join([t for t in event_topics if t])}, "
     
     if context_response:
         print(f"[ChatFusion] 🎯 Context response triggered: {context_response}")
@@ -328,6 +334,52 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
                 print(f"[ChatFusion] 🏷️ Ultra-optimized chunk {chunk_count}: {total_chars} chars")
             
         yield chunk
+    
+    # ✅ Store Buddy's response for retrospective memory
+    full_response = ""
+    try:
+        # Collect all chunks into full response for storage
+        response_chunks = []
+        for chunk in chosen_generator:
+            # ✅ ENTROPY SYSTEM: Inject consciousness into each chunk
+            if ENTROPY_AVAILABLE:
+                try:
+                    chunk = inject_consciousness_entropy("response", chunk, EntropyLevel.MEDIUM)
+                except Exception as chunk_error:
+                    print(f"[ChatFusion] ⚠️ Chunk entropy error: {chunk_error}")
+            
+            # ✅ TOKEN OPTIMIZATION: Track optimization metrics
+            if chunk:
+                chunk_count += 1
+                total_chars += len(chunk)
+                response_chunks.append(chunk)
+                
+                # For ultra optimization, log every 5th chunk
+                if optimization_level == "ultra" and chunk_count % 5 == 0:
+                    print(f"[ChatFusion] 🏷️ Ultra-optimized chunk {chunk_count}: {total_chars} chars")
+                
+            yield chunk
+        
+        # Store complete response for retrospective memory
+        full_response = ''.join(response_chunks)
+        if full_response.strip():
+            from ai.retrospective_memory import RetrospectiveMemoryManager
+            retro_manager = RetrospectiveMemoryManager(username)
+            retro_manager.store_buddy_response(question, full_response.strip())
+        
+    except Exception as retro_store_error:
+        print(f"[ChatFusion] ⚠️ Retrospective storage error: {retro_store_error}")
+        # Fallback: still yield chunks even if storage fails
+        for chunk in chosen_generator:
+            if ENTROPY_AVAILABLE:
+                try:
+                    chunk = inject_consciousness_entropy("response", chunk, EntropyLevel.MEDIUM)
+                except:
+                    pass
+            if chunk:
+                chunk_count += 1
+                total_chars += len(chunk)
+            yield chunk
     
     # ✅ TOKEN OPTIMIZATION: Final optimization metrics
     if chunk_count > 0:

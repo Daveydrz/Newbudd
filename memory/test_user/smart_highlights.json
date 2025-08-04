@@ -1,0 +1,30 @@
+[
+  {
+    "type": "highlight",
+    "topic": "activity_mention (with mcflurry)",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T12:42:50.335149",
+    "original_text": "I went to McDonald's today and had a McFlurry",
+    "detected_by": "high_value_activity_pattern",
+    "confidence": 0.5,
+    "enhanced_details": [
+      {
+        "detail": "mcflurry",
+        "from_text": "I went to McDonald's today and had a McFlurry",
+        "timestamp": "2025-08-04T12:42:50.338160"
+      },
+      {
+        "detail": "mcflurry",
+        "from_text": "I went to McDonald's today and had a McFlurry",
+        "timestamp": "2025-08-04T12:45:10.814942"
+      },
+      {
+        "detail": "mcflurry",
+        "from_text": "I went to McDonald's today and had a McFlurry",
+        "timestamp": "2025-08-04T12:46:28.070284"
+      }
+    ]
+  }
+]

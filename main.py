@@ -671,24 +671,9 @@ def handle_streaming_response(text, current_user):
     try:
         print(f"[AdvancedResponse] 🎭 Starting ADVANCED AI streaming for: '{text}'")
         
-        # ✅ CRITICAL FIX: Extract and store memory from user input FIRST
-        print(f"[AdvancedResponse] 🧠 Extracting memories from user input...")
-        try:
-            from ai.memory import get_user_memory
-            user_memory = get_user_memory(current_user)
-            user_memory.extract_memories_from_text(text)
-            print(f"[AdvancedResponse] ✅ Memory extraction completed for user: {current_user}")
-            
-            # Also extract with smart memory system if available
-            try:
-                from ai.human_memory_smart import SmartHumanLikeMemory
-                smart_memory = SmartHumanLikeMemory(current_user)
-                smart_memory.extract_and_store_human_memories(text)
-                print(f"[AdvancedResponse] ✅ Smart memory extraction completed")
-            except ImportError:
-                print(f"[AdvancedResponse] ⚠️ Smart memory system not available")
-        except Exception as memory_error:
-            print(f"[AdvancedResponse] ⚠️ Memory extraction error: {memory_error}")
+        # ✅ MEMORY EXTRACTION: Handled by advanced chat systems (chat_enhanced_smart.py and chat_enhanced_smart_with_fusion.py)
+        # No memory extraction here to prevent duplicates - advanced systems handle this automatically
+        print(f"[AdvancedResponse] 🧠 Memory extraction will be handled by advanced chat systems")
         
         # ✅ NEW: Get voice-based identity FIRST (overrides system login)
         voice_identified_user = None
@@ -1290,6 +1275,14 @@ def handle_streaming_response(text, current_user):
                         print(f"[AdvancedResponse] 📊 Debug logged: {total_time:.3f}s, {chunk_count} chunks")
                     except Exception as debug_final_error:
                         print(f"[AdvancedResponse] ⚠️ Debug finalization error: {debug_final_error}")
+                
+                # ✅ CRITICAL: Reset VAD state after successful response completion
+                try:
+                    if full_duplex_manager:
+                        full_duplex_manager.force_reset_to_waiting()
+                        print(f"[AdvancedResponse] ✅ VAD state reset after response completion - ready for next input")
+                except Exception as vad_reset_error:
+                    print(f"[AdvancedResponse] ⚠️ VAD reset error: {vad_reset_error}")
                 
             else:
                 print("[AdvancedResponse] ❌ No response generated")

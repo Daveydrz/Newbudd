@@ -751,7 +751,7 @@ class UserMemorySystem:
             ]
             
             person_keywords = [
-                'who', 'person', 'people', 'friend', 'family', 'see', 'saw', 'meet', 'met'
+                'who', 'person', 'people', 'friend', 'friends', 'family', 'see', 'saw', 'meet', 'met', 'with'
             ]
             
             # Step 3: Search through all memory types for semantic matches
@@ -1256,7 +1256,21 @@ class UserMemorySystem:
             (r"i'm allergic to (\w+)", "medical", "allergy_{0}", EntityStatus.CURRENT),
             (r"i have (\w+) condition", "medical", "condition_{0}", EntityStatus.CURRENT),
             
-            # CRITICAL FIX: Place visits and activities
+            # CRITICAL FIX: Place visits and activities - SPECIFIC PATTERNS FIRST WITH COMPANIONS
+            # Patterns with companions (who they went with)
+            (r"went to mcdonalds? with (\w+)", "activities", "visited_mcdonalds_with_{0}", EntityStatus.CURRENT),
+            (r"went to mcdonald'?s? with (\w+)", "activities", "visited_mcdonalds_with_{0}", EntityStatus.CURRENT),
+            (r"been to mcdonalds? with (\w+)", "activities", "been_to_mcdonalds_with_{0}", EntityStatus.CURRENT),
+            (r"been to mcdonald'?s? with (\w+)", "activities", "been_to_mcdonalds_with_{0}", EntityStatus.CURRENT),
+            (r"(\w+ to \w+) with (\w+)", "activities", "{0}_with_{1}", EntityStatus.CURRENT),
+            # Special patterns for common places MUST come first to match before generic patterns
+            (r"went to mcdonalds", "activities", "visited_mcdonalds", EntityStatus.CURRENT),
+            (r"went to mcdonald's", "activities", "visited_mcdonalds", EntityStatus.CURRENT), 
+            (r"went to mcdonald", "activities", "visited_mcdonalds", EntityStatus.CURRENT),
+            (r"been to mcdonalds", "activities", "visited_mcdonalds", EntityStatus.CURRENT),
+            (r"been to mcdonald's", "activities", "visited_mcdonalds", EntityStatus.CURRENT),
+            (r"been to mcdonald", "activities", "visited_mcdonalds", EntityStatus.CURRENT),
+            # Generic patterns after specific ones
             (r"i went to (\w+)", "activities", "visited_{0}", EntityStatus.CURRENT),
             (r"went to (\w+)", "activities", "visited_{0}", EntityStatus.CURRENT),
             (r"i was at (\w+)", "activities", "was_at_{0}", EntityStatus.CURRENT),
@@ -1264,17 +1278,27 @@ class UserMemorySystem:
             (r"been to (\w+)", "activities", "been_to_{0}", EntityStatus.CURRENT),
             (r"ate at (\w+)", "activities", "ate_at_{0}", EntityStatus.CURRENT),
             (r"had (\w+) at (\w+)", "activities", "had_{0}_at_{1}", EntityStatus.CURRENT),
-            # Special patterns for common places
-            (r"went to mcdonalds", "activities", "visited_mcdonalds", EntityStatus.CURRENT),
-            (r"went to mcdonald", "activities", "visited_mcdonalds", EntityStatus.CURRENT),
-            (r"been to mcdonalds", "activities", "visited_mcdonalds", EntityStatus.CURRENT),
         ]
         
         for pattern, category, key_template, status in enhanced_patterns:
             match = re.search(pattern, text_lower)
             if match:
                 key = key_template.format(*match.groups()) if "{0}" in key_template else key_template
-                value = match.group(1)
+                
+                # CRITICAL FIX: Handle specific patterns vs generic patterns for value
+                if "mcdonalds" in key_template and not match.groups():
+                    value = "mcdonalds"  # Fixed value for McDonald's patterns without capture groups
+                elif "mcdonalds_with_" in key_template:
+                    value = f"mcdonalds with {match.group(1)}"  # McDonald's with companion
+                elif match.groups():
+                    if len(match.groups()) == 1:
+                        value = match.group(1)  # Single capture group
+                    elif len(match.groups()) == 2:
+                        value = f"{match.group(1)} with {match.group(2)}"  # Activity with companion
+                    else:
+                        value = " ".join(match.groups())  # Multiple capture groups
+                else:
+                    value = "activity"  # Fallback for patterns without capture groups
                 
                 fact = PersonalFact(
                     category=category,

@@ -196,7 +196,8 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
     try:
         from ai.memory import get_user_memory
         user_memory = get_user_memory(username)
-        conversation_context = user_memory.get_conversation_context_for_llm(question)
+        # 🎯 CRITICAL FIX: Use semantic retrieval method instead of conversation context
+        conversation_context = user_memory.get_contextual_memory_for_response(question)
         
         if conversation_context:
             print(f"[ChatFusion] 💬 Adding conversation context: {len(conversation_context)} chars")

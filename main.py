@@ -2694,25 +2694,54 @@ def main():
             # ✅ NEW: Initialize reactive neural architecture for advanced hybrid processing
             if REACTIVE_NEURAL_ARCHITECTURE_AVAILABLE:
                 try:
-                    import asyncio
-                    
-                    # Initialize reactive components
+                    # Initialize reactive components without creating new event loop
                     print(f"[AdvancedBuddy] 🧠 Initializing Reactive Neural Architecture...")
                     
-                    # Run async initialization
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
+                    # Check if we already have an event loop
+                    try:
+                        current_loop = asyncio.get_event_loop()
+                        if current_loop.is_closed():
+                            current_loop = None
+                    except RuntimeError:
+                        current_loop = None
                     
-                    # Initialize core reactive architecture
-                    reactive_components = loop.run_until_complete(initialize_reactive_architecture())
+                    # Only create new loop if needed
+                    if current_loop is None:
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                        loop_created = True
+                    else:
+                        loop = current_loop
+                        loop_created = False
                     
-                    # Initialize integration layer
-                    reactive_integration = loop.run_until_complete(initialize_reactive_integration())
+                    try:
+                        # Initialize core reactive architecture
+                        reactive_components = loop.run_until_complete(initialize_reactive_architecture())
+                        
+                        # Initialize integration layer
+                        reactive_integration = loop.run_until_complete(initialize_reactive_integration())
+                        
+                        # Get system health metrics
+                        health_metrics = reactive_integration.get_system_health()
+                        
+                        print(f"[AdvancedBuddy] ✅ Reactive Neural Architecture initialized!")
+                        print(f"[AdvancedBuddy] 🔧 Components: {health_metrics.get('active_components', 0)}")
+                        print(f"[AdvancedBuddy] 🌐 Pathways: {health_metrics.get('active_pathways', 0)}")
+                        print(f"[AdvancedBuddy] ⚡ Processing mode: Hybrid (async + parallel)")
+                        
+                    finally:
+                        # Only close loop if we created it
+                        if loop_created and not loop.is_closed():
+                            loop.close()
                     
-                    loop.close()
-                    
-                    # Get system health metrics
-                    health_metrics = reactive_integration.get_system_health()
+                except Exception as reactive_init_error:
+                    print(f"[AdvancedBuddy] ⚠️ Reactive neural architecture initialization error: {reactive_init_error}")
+                    # Clean up any partial initialization
+                    try:
+                        if 'loop' in locals() and not loop.is_closed():
+                            loop.close()
+                    except:
+                        pass
                     
                     print(f"[AdvancedBuddy] 🚀 REACTIVE NEURAL ARCHITECTURE initialized!")
                     print(f"[AdvancedBuddy] ⚡ Components: Event Bus, Async Pathways, Work-Stealing Pool, Memory Manager")

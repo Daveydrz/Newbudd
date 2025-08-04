@@ -237,24 +237,25 @@ Return ONLY valid JSON. Extract ALL relevant details."""
             messages = [{"role": "system", "content": prompt}]
             llm_response = ask_kobold(messages)
             
+            # Check if response is empty or None
+            if not llm_response or len(llm_response.strip()) < 10:
+                print(f"[ComprehensiveExtractor] ⚠️ Empty or short LLM response: '{llm_response}'")
+                return self._create_fallback_result()
+            
             # Clean and parse JSON
             llm_response = self._clean_json_response(llm_response)
+            
+            # Check again after cleaning
+            if not llm_response or len(llm_response.strip()) < 5:
+                print(f"[ComprehensiveExtractor] ⚠️ Empty response after cleaning")
+                return self._create_fallback_result()
             
             try:
                 data = json.loads(llm_response)
             except json.JSONDecodeError as e:
                 print(f"[ComprehensiveExtractor] ❌ JSON parsing failed: {e}")
                 print(f"[ComprehensiveExtractor] 📄 Raw response: {llm_response[:200]}...")
-                # Return fallback extraction result
-                return ExtractionResult(
-                    memory_events=[],
-                    intent_classification='casual_conversation',
-                    emotional_state={'primary_emotion': 'neutral'},
-                    conversation_thread_id=None,
-                    memory_enhancements=[],
-                    context_keywords=[],
-                    follow_up_suggestions=[]
-                )
+                return self._create_fallback_result()
             
             # Extract data based on tier
             if is_comprehensive:
@@ -280,7 +281,19 @@ Return ONLY valid JSON. Extract ALL relevant details."""
                 
         except Exception as e:
             print(f"[ComprehensiveExtractor] ❌ LLM processing error: {e}")
-            return ExtractionResult([], "error", {"primary_emotion": "neutral"}, None, [], [], [])
+            return self._create_fallback_result()
+    
+    def _create_fallback_result(self) -> ExtractionResult:
+        """Create fallback extraction result when LLM fails"""
+        return ExtractionResult(
+            memory_events=[],
+            intent_classification='casual_conversation',
+            emotional_state={'primary_emotion': 'neutral'},
+            conversation_thread_id=None,
+            memory_enhancements=[],
+            context_keywords=[],
+            follow_up_suggestions=[]
+        )
     
     def _check_memory_enhancement(self, text: str) -> Optional[Dict[str, Any]]:
         """Check if text enhances existing memory (McDonald's → McFlurry example)"""

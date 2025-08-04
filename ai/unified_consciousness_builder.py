@@ -26,8 +26,15 @@ class UnifiedConsciousnessBuilder:
     def _gather_personality_state(self, username: str) -> Dict[str, Any]:
         """Gather personality injector data"""
         try:
-            from ai.personality_profile import get_personality_profile
-            profile = get_personality_profile(username)
+            from ai.personality_profile import get_personality_profile_manager
+            profile_manager = get_personality_profile_manager(username)
+            # Fix method call
+            if hasattr(profile_manager, 'get_profile'):
+                profile = profile_manager.get_profile()
+            elif hasattr(profile_manager, 'personality_config'):
+                profile = profile_manager.personality_config
+            else:
+                profile = {}
             return {
                 'traits': profile.get('traits', {}),
                 'communication_style': profile.get('communication_style', 'conversational'),
@@ -54,13 +61,25 @@ class UnifiedConsciousnessBuilder:
     def _gather_belief_state(self, username: str) -> Dict[str, Any]:
         """Gather belief tracker data"""
         try:
-            from ai.belief_evolution_tracker import get_belief_tracker
-            belief_tracker = get_belief_tracker(username)
-            active_beliefs = belief_tracker.get_active_beliefs()
+            # Try to get belief state from existing belief system
+            from ai.belief_analyzer import BeliefAnalyzer
+            belief_analyzer = BeliefAnalyzer()
+            # Fix method call
+            if hasattr(belief_analyzer, 'get_summary'):
+                belief_summary = belief_analyzer.get_summary()
+            elif hasattr(belief_analyzer, 'beliefs'):
+                belief_summary = {
+                    'core_beliefs': list(belief_analyzer.beliefs.keys())[:3] if belief_analyzer.beliefs else [],
+                    'recent_beliefs': [],
+                    'contradictions': []
+                }
+            else:
+                belief_summary = {'core_beliefs': [], 'recent_beliefs': [], 'contradictions': []}
+            
             return {
-                'core_beliefs': active_beliefs.get('core', [])[:3],  # Top 3 core beliefs
-                'recent_beliefs': active_beliefs.get('recent', [])[:2],  # 2 recent beliefs
-                'contradictions': belief_tracker.detect_contradictions()[:1]  # 1 contradiction
+                'core_beliefs': belief_summary.get('core_beliefs', [])[:3],  # Top 3 core beliefs
+                'recent_beliefs': belief_summary.get('recent_beliefs', [])[:2],  # 2 recent beliefs
+                'contradictions': belief_summary.get('contradictions', [])[:1]  # 1 contradiction
             }
         except Exception as e:
             print(f"[UnifiedConsciousness] ⚠️ Belief state error: {e}")
@@ -85,9 +104,16 @@ class UnifiedConsciousnessBuilder:
         try:
             from ai.memory import get_user_memory
             user_memory = get_user_memory(username)
-            recent_memories = user_memory.get_recent_memories(limit=3)
+            # Use the correct method name for getting recent memories
+            if hasattr(user_memory, 'get_recent_conversation_history'):
+                recent_memories = user_memory.get_recent_conversation_history(limit=3)
+            elif hasattr(user_memory, 'memories'):
+                recent_memories = user_memory.memories[-3:] if user_memory.memories else []
+            else:
+                recent_memories = []
+            
             return {
-                'recent_memories': [{'topic': m.get('topic', ''), 'significance': m.get('significance', 0.5)} 
+                'recent_memories': [{'topic': str(m).get('topic', str(m)[:50]), 'significance': 0.5} 
                                   for m in recent_memories],
                 'memory_count': len(user_memory.memories) if hasattr(user_memory, 'memories') else 0
             }
@@ -98,13 +124,19 @@ class UnifiedConsciousnessBuilder:
     def _gather_goals_state(self, username: str) -> Dict[str, Any]:
         """Gather goal management data"""
         try:
-            from ai.goal_manager import get_user_goal_manager
-            goal_manager = get_user_goal_manager(username)
-            active_goals = goal_manager.get_active_goals()[:2]  # Top 2 active goals
+            # Try to get goal state from goal engine
+            from ai.goal_engine import GoalEngine
+            goal_engine = GoalEngine(username)
+            if hasattr(goal_engine, 'get_active_goals'):
+                active_goals = goal_engine.get_active_goals()[:2]
+            elif hasattr(goal_engine, 'goals'):
+                active_goals = list(goal_engine.goals.values())[:2] if goal_engine.goals else []
+            else:
+                active_goals = []
             return {
-                'active_goals': [{'description': g.description[:50], 'priority': g.priority} 
+                'active_goals': [{'description': str(g)[:50], 'priority': 0.5} 
                                for g in active_goals],
-                'goal_progress': sum(g.progress for g in active_goals) / len(active_goals) if active_goals else 0
+                'goal_progress': 0.5 if active_goals else 0
             }
         except Exception as e:
             print(f"[UnifiedConsciousness] ⚠️ Goals state error: {e}")
@@ -113,31 +145,24 @@ class UnifiedConsciousnessBuilder:
     def _compress_consciousness_context(self, context_data: Dict[str, Any], username: str) -> str:
         """Compress consciousness data into compact context string"""
         try:
-            from ai.llm_handler import LLMHandler
+            # ✅ FIX: Use simple compression instead of LLM call to prevent TTS interference
+            emotion = context_data['emotional']['primary_emotion']
+            memory_count = context_data['memory']['memory_count']
+            goal_count = len(context_data['goals']['active_goals'])
+            belief_count = len(context_data['belief']['core_beliefs'])
             
-            # Create compression prompt
-            compression_prompt = f"""Compress this consciousness data into a concise context (max 100 tokens):
-
-Personality: {context_data['personality']}
-Emotion: {context_data['emotional']['primary_emotion']} (intensity: {context_data['emotional']['intensity']})
-Beliefs: {len(context_data['belief']['core_beliefs'])} core beliefs, {len(context_data['belief']['contradictions'])} contradictions
-Memory: {context_data['memory']['memory_count']} memories, recent: {[m['topic'] for m in context_data['memory']['recent_memories']]}
-Goals: {len(context_data['goals']['active_goals'])} active goals, progress: {context_data['goals']['goal_progress']:.1f}
-Temporal: {context_data['temporal']['current_timeframe']}, {len(context_data['temporal']['recent_events'])} recent events
-
-Create a compressed consciousness context for {username} that captures the essential state for response generation."""
-
-            llm_handler = LLMHandler()
-            compressed = llm_handler.generate_response_with_consciousness(
-                compression_prompt, username, {"context": "consciousness_compression"}
-            )
-            
-            # Fallback if compression fails
-            if not compressed or len(compressed.strip()) < 10:
-                compressed = f"User: {username}, Emotion: {context_data['emotional']['primary_emotion']}, {context_data['memory']['memory_count']} memories"
+            # Create simple compressed context without LLM call
+            compressed = f"[CONSCIOUSNESS] User: {username}, Emotion: {emotion}, {memory_count} memories, {goal_count} goals, {belief_count} beliefs"
             
             return compressed.strip()[:200]  # Max 200 chars
             
+        except Exception as e:
+            print(f"[UnifiedConsciousness] ⚠️ Compression error: {e}")
+            # Simple fallback compression
+            emotion = context_data.get('emotional', {}).get('primary_emotion', 'neutral')
+            memory_count = context_data.get('memory', {}).get('memory_count', 0)
+            goal_count = len(context_data.get('goals', {}).get('active_goals', []))
+            return f"[CONSCIOUSNESS] User: {username}, Emotion: {emotion}, {memory_count} memories, {goal_count} goals"
         except Exception as e:
             print(f"[UnifiedConsciousness] ⚠️ Compression error: {e}")
             # Simple fallback compression

@@ -1,0 +1,12 @@
+[
+  {
+    "type": "life_event",
+    "topic": "niece_birthday_visit",
+    "date": "2025-08-13",
+    "emotion": "happy",
+    "status": "pending",
+    "created": "2025-08-04T03:17:51.998001",
+    "original_text": "I'm off to my niece's birthday next week Wednesday.",
+    "detected_by": "enhanced_fallback"
+  }
+]

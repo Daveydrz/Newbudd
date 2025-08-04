@@ -1,0 +1,86 @@
+{
+  "activities_visited_mcdonalds": {
+    "category": "activities",
+    "key": "visited_mcdonalds",
+    "value": "mcdonalds",
+    "confidence": 0.8,
+    "date_learned": "2025-08-04 03:13:50",
+    "last_mentioned": "2025-08-04 03:13:50",
+    "source_context": "I went to McDonald's earlier today with my friends.",
+    "emotional_weight": 0.3,
+    "current_status": "current",
+    "related_entities": []
+  },
+  "activities_visited_mcdonald": {
+    "category": "activities",
+    "key": "visited_mcdonald",
+    "value": "mcdonald",
+    "confidence": 0.8,
+    "date_learned": "2025-08-04 03:13:50",
+    "last_mentioned": "2025-08-04 03:13:50",
+    "source_context": "I went to McDonald's earlier today with my friends.",
+    "emotional_weight": 0.3,
+    "current_status": "current",
+    "related_entities": []
+  },
+  "activities_had_dinner_at_kfc": {
+    "category": "activities",
+    "key": "had_dinner_at_kfc",
+    "value": "dinner with kfc",
+    "confidence": 0.8,
+    "date_learned": "2025-08-04 03:13:50",
+    "last_mentioned": "2025-08-04 03:13:50",
+    "source_context": "Yesterday, I had dinner at KFC with John.",
+    "emotional_weight": 0.3,
+    "current_status": "current",
+    "related_entities": []
+  },
+  "activities_visited_me": {
+    "category": "activities",
+    "key": "visited_me",
+    "value": "me",
+    "confidence": 0.8,
+    "date_learned": "2025-08-04 03:13:50",
+    "last_mentioned": "2025-08-04 03:13:50",
+    "source_context": "My parents visited me yesterday afternoon.",
+    "emotional_weight": 0.3,
+    "current_status": "current",
+    "related_entities": []
+  },
+  "activities_had_lunch_at_a": {
+    "category": "activities",
+    "key": "had_lunch_at_a",
+    "value": "lunch with a",
+    "confidence": 0.8,
+    "date_learned": "2025-08-04 03:13:50",
+    "last_mentioned": "2025-08-04 03:13:50",
+    "source_context": "We had lunch at a sushi restaurant earlier today.",
+    "emotional_weight": 0.3,
+    "current_status": "current",
+    "related_entities": []
+  },
+  "activities_visited_the": {
+    "category": "activities",
+    "key": "visited_the",
+    "value": "the",
+    "confidence": 0.8,
+    "date_learned": "2025-08-04 03:13:50",
+    "last_mentioned": "2025-08-04 03:13:50",
+    "source_context": "We visited the zoo yesterday afternoon.",
+    "emotional_weight": 0.3,
+    "current_status": "current",
+    "related_entities": []
+  },
+  "activities_visited_shop": {
+    "category": "activities",
+    "key": "visited_shop",
+    "value": "shop",
+    "confidence": 0.8,
+    "date_learned": "2025-08-04 03:13:50",
+    "last_mentioned": "2025-08-04 03:13:50",
+    "source_context": "we went to shop last night",
+    "emotional_weight": 0.3,
+    "current_status": "current",
+    "related_entities": []
+  }
+}

@@ -1,0 +1,90 @@
+[
+  {
+    "type": "life_event",
+    "topic": "mentioned_mcdonald",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T11:28:39.074436",
+    "original_text": "I went to McDonald's earlier today with my friends",
+    "detected_by": "high_value_place_pattern",
+    "confidence": 0.7
+  },
+  {
+    "type": "life_event",
+    "topic": "mentioned_friends",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T11:28:39.074436",
+    "original_text": "I went to McDonald's earlier today with my friends",
+    "detected_by": "high_value_people_pattern",
+    "confidence": 0.6
+  },
+  {
+    "type": "life_event",
+    "topic": "mentioned_my",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T11:28:39.074436",
+    "original_text": "I went to McDonald's earlier today with my friends",
+    "detected_by": "high_value_people_pattern",
+    "confidence": 0.6
+  },
+  {
+    "type": "life_event",
+    "topic": "location_context_mcdonald",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T11:28:39.074436",
+    "original_text": "I went to McDonald's earlier today with my friends",
+    "detected_by": "high_value_location_context",
+    "confidence": 0.6
+  },
+  {
+    "type": "life_event",
+    "topic": "mentioned_mcdonald",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T11:28:39.080418",
+    "original_text": "I went to McDonald's earlier today with my friends.",
+    "detected_by": "high_value_place_pattern",
+    "confidence": 0.7
+  },
+  {
+    "type": "life_event",
+    "topic": "mentioned_friends",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T11:28:39.080418",
+    "original_text": "I went to McDonald's earlier today with my friends.",
+    "detected_by": "high_value_people_pattern",
+    "confidence": 0.6
+  },
+  {
+    "type": "life_event",
+    "topic": "mentioned_my",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T11:28:39.080418",
+    "original_text": "I went to McDonald's earlier today with my friends.",
+    "detected_by": "high_value_people_pattern",
+    "confidence": 0.6
+  },
+  {
+    "type": "life_event",
+    "topic": "location_context_mcdonald",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T11:28:39.080418",
+    "original_text": "I went to McDonald's earlier today with my friends.",
+    "detected_by": "high_value_location_context",
+    "confidence": 0.6
+  }
+]

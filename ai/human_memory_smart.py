@@ -27,10 +27,33 @@ class SmartHumanLikeMemory:
         # Session tracking
         self.context_used_this_session = set()
         
+        # ✅ FIX: Deduplication cache to prevent duplicate extractions
+        self.extraction_cache = {}  # text_hash -> timestamp
+        self.cache_timeout = 30  # seconds - prevent same text extraction within 30 seconds
+        
         print(f"[SmartMemory] 🧠 Smart LLM-based memory initialized for {username}")
     
     def extract_and_store_human_memories(self, text: str):
         """🎯 Smart LLM-based memory extraction with BULLETPROOF filtering"""
+        
+        # ✅ FIX: Check for duplicate extraction within cache timeout
+        text_hash = hash(text.lower().strip())
+        current_time = datetime.now().timestamp()
+        
+        # Clean old cache entries
+        self._clean_extraction_cache(current_time)
+        
+        # Check if we've recently processed this exact text
+        if text_hash in self.extraction_cache:
+            last_extraction_time = self.extraction_cache[text_hash]
+            time_since_last = current_time - last_extraction_time
+            if time_since_last < self.cache_timeout:
+                print(f"[SmartMemory] 🔄 SKIPPING duplicate extraction for: '{text[:50]}...' (processed {time_since_last:.1f}s ago)")
+                return
+        
+        # Mark this text as being processed
+        self.extraction_cache[text_hash] = current_time
+        print(f"[SmartMemory] 🧠 Starting memory extraction for: '{text[:50]}...'")
         
         # Also use the existing MEGA-INTELLIGENT extraction
         self.mega_memory.extract_memories_from_text(text)
@@ -61,6 +84,19 @@ class SmartHumanLikeMemory:
             self.save_memory(self.appointments, 'smart_appointments.json')
             self.save_memory(self.life_events, 'smart_life_events.json')
             self.save_memory(self.conversation_highlights, 'smart_highlights.json')
+    
+    def _clean_extraction_cache(self, current_time: float):
+        """Clean old entries from extraction cache"""
+        expired_hashes = []
+        for text_hash, timestamp in self.extraction_cache.items():
+            if current_time - timestamp > self.cache_timeout:
+                expired_hashes.append(text_hash)
+        
+        for text_hash in expired_hashes:
+            del self.extraction_cache[text_hash]
+        
+        if expired_hashes:
+            print(f"[SmartMemory] 🧹 Cleaned {len(expired_hashes)} expired cache entries")
     
     def _add_to_regular_memory(self, event: Dict):
         """Add detected event to regular memory system for retrieval"""
@@ -463,7 +499,8 @@ class SmartHumanLikeMemory:
         for pattern in location_context_patterns:
             match = re.search(pattern, text_lower)
             if match:
-                location = match.group(2) if match.group(2) else match.group(1)
+                # Safely get the first captured group
+                location = match.group(1) if len(match.groups()) >= 1 else match.group(0)
                 if location and len(location) > 2:  # Valid location
                     events.append({
                         'type': 'life_event',

@@ -1,0 +1,13 @@
+[
+  {
+    "type": "highlight",
+    "topic": "activity_mention",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T11:28:39.085482",
+    "original_text": "I'm going to the dentist tomorrow at 3PM",
+    "detected_by": "high_value_activity_pattern",
+    "confidence": 0.5
+  }
+]

@@ -364,9 +364,10 @@ class SmartHumanLikeMemory:
             match = re.search(pattern, text_lower)
             if match:
                 place = match.group(1)
+                place_clean = place.replace("'", "").lower()
                 events.append({
                     'type': 'life_event',
-                    'topic': f'mentioned_{place.replace("\'", "").lower()}',
+                    'topic': f'mentioned_{place_clean}',
                     'date': current_date,
                     'emotion': 'casual',
                     'status': 'pending',

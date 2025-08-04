@@ -2827,7 +2827,7 @@ def get_user_memory(username: str) -> UserMemorySystem:
 
 # Enhanced conversation functions
 def add_to_conversation_history(username, user_message, ai_response):
-    """🧠 Enhanced conversation history with mega-intelligent memory extraction"""
+    """🧠 Enhanced conversation history with mega-intelligent memory extraction + retrospective memory"""
     try:
         if username not in conversation_history:
             conversation_history[username] = []
@@ -2847,6 +2847,14 @@ def add_to_conversation_history(username, user_message, ai_response):
         
         # Extract memories from both user message and AI response
         memory.extract_memories_from_text(user_message)
+        
+        # 🧠 NEW: Retrospective Memory - Store Buddy's advice for future recall
+        try:
+            from ai.retrospective_memory import store_buddy_advice
+            store_buddy_advice(username, user_message, ai_response)
+        except Exception as retro_error:
+            if DEBUG:
+                print(f"[RetrospectiveMemory] ⚠️ Error storing advice: {retro_error}")
         
         # Extract topic with entity awareness
         if TOPIC_TRACKING_ENABLED:

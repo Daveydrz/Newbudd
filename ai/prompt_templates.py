@@ -33,6 +33,9 @@ PROMPT_TEMPLATES = {
     # Working memory context template (COMPRESSED) - 🧠 NEW
     "WORKING_MEMORY_CONTEXT": """{natural_context}""",
 
+    # Retrospective memory context template (COMPRESSED) - 🧠 NEW
+    "RETROSPECTIVE_CONTEXT": """{retrospective_context}""",
+
     # Analysis logic template (MINIMAL)
     "ANALYZER_NAME_V1": """Extract names from speech. Handle anonymous users.""",
 
@@ -139,6 +142,7 @@ TOKEN_MAPPING = {
     "[IDENTITY:RULES_V1]": "IDENTITY_RULES_V1",
     "[EMOTIONAL:CTX_{id}]": "EMOTIONAL_CONTEXT",
     "[WORKING_MEMORY:V1]": "WORKING_MEMORY_CONTEXT",  # 🧠 NEW: Working memory context
+    "[RETROSPECTIVE:V1]": "RETROSPECTIVE_CONTEXT",  # 🧠 NEW: Retrospective memory context
     "[ANALYZER:NAME_V1]": "ANALYZER_NAME_V1",
     "[PROFILE:ANALYSIS_V1]": "PROFILE_ANALYSIS_V1",
     "[THOUGHT:PROCESS_V1]": "THOUGHT_PROCESS_V1",

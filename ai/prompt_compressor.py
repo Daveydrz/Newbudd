@@ -52,6 +52,10 @@ class PromptCompressor:
         if context_data.get('natural_context') and len(context_data['natural_context'].strip()) > 5:
             compressed_parts.append("[WORKING_MEMORY:V1]")
             
+        # 🧠 NEW: Add retrospective memory context if available
+        if context_data.get('retrospective_context') and len(context_data['retrospective_context'].strip()) > 5:
+            compressed_parts.append("[RETROSPECTIVE:V1]")
+            
         # Skip location and consciousness for ultra-compression unless specifically needed
         location_context = context_data.get('current_location', '')
         if location_context and any(keyword in full_prompt.lower() for keyword in ['location', 'where', 'time', 'date']):

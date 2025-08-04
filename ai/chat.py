@@ -469,6 +469,16 @@ def generate_response_streaming(question, username, lang=DEFAULT_LANG):
         natural_context = memory.get_natural_language_context_for_llm(question)
         print(f"[ChatStream] 🔗 Working memory context: {natural_context[:100]}..." if natural_context else "[ChatStream] 🔗 No working memory context")
         
+        # 🧠 NEW: Get retrospective memory context (past advice)
+        retrospective_context = ""
+        try:
+            from ai.retrospective_memory import get_past_advice_context
+            retrospective_context = get_past_advice_context(username, question)
+            if retrospective_context:
+                print(f"[ChatStream] 🧠 Retrospective context: {retrospective_context[:100]}...")
+        except Exception as retro_error:
+            print(f"[ChatStream] ⚠️ Retrospective memory error: {retro_error}")
+        
         # Build reminder text (optimized)
         reminder_text = ""
         if reminders:
@@ -497,6 +507,7 @@ def generate_response_streaming(question, username, lang=DEFAULT_LANG):
             'follow_up_text': follow_up_text,
             'natural_context': natural_context,  # 🧠 WORKING MEMORY: Natural context injection
             'emotion': 'neutral',
+            'retrospective_context': retrospective_context,  # 🧠 NEW: Past advice context
             'goal': 'assist_user'
         }
         
@@ -653,6 +664,16 @@ def generate_response(question, username, lang=DEFAULT_LANG):
         
         # 🧠 WORKING MEMORY: Get natural language context for LLM
         natural_context = memory.get_natural_language_context_for_llm(question)
+
+        # 🧠 NEW: Get retrospective memory context (past advice)
+        retrospective_context = ""
+        try:
+            from ai.retrospective_memory import get_past_advice_context
+            retrospective_context = get_past_advice_context(username, question)
+            if retrospective_context:
+                print(f"[Chat] 🧠 Retrospective context: {retrospective_context[:100]}...")
+        except Exception as retro_error:
+            print(f"[Chat] ⚠️ Retrospective memory error: {retro_error}")
         
         # ✅ NEW: Enhanced memory integration with conversation threading
         try:
@@ -711,7 +732,8 @@ def generate_response(question, username, lang=DEFAULT_LANG):
             'follow_up_text': follow_up_text,
             'natural_context': natural_context,  # 🧠 WORKING MEMORY: Natural context injection
             'emotion': 'neutral',
-            'goal': 'assist_user'
+            'goal': 'assist_user',
+            'retrospective_context': retrospective_context,  # 🧠 NEW: Past advice context
         }
         
         # Create compressed system message

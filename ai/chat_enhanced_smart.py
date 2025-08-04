@@ -62,6 +62,37 @@ def generate_response_streaming_with_smart_memory(question, username, lang="en",
         # Smart LLM-based memory extraction
         smart_memory.extract_and_store_human_memories(question)
         
+        # 🧠 NEW: Check for retrospective memory (Buddy's past advice)
+        past_advice_context = None
+        try:
+            from ai.retrospective_memory import get_past_advice_context, search_buddy_past_advice
+            
+            # Check if user is asking about something Buddy said before
+            retrospective_keywords = [
+                'what did you say', 'you mentioned', 'you told me', 'you said',
+                'earlier you', 'before you', 'repeat what', 'you advised',
+                'your advice', 'remember when you', 'recall what'
+            ]
+            
+            is_retrospective_query = any(keyword in question.lower() for keyword in retrospective_keywords)
+            
+            if is_retrospective_query:
+                # Direct search for past advice
+                past_advice_results = search_buddy_past_advice(username, question)
+                if past_advice_results:
+                    print(f"[SmartChat] 🧠 Found {len(past_advice_results)} past advice matches")
+                    # Return the past advice directly
+                    for advice in past_advice_results:
+                        yield advice + " "
+                    return
+            else:
+                # Get context for similar topics
+                past_advice_context = get_past_advice_context(username, question)
+                if past_advice_context:
+                    print(f"[SmartChat] 🧠 Injecting past advice context for similar topic")
+        except Exception as retro_error:
+            print(f"[SmartChat] ⚠️ Retrospective memory error: {retro_error}")
+        
         # Check for natural context response
         context_response = smart_memory.check_for_natural_context_response()
         

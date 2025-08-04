@@ -54,5 +54,12 @@
         "timestamp": "2025-08-04T12:46:28.069740"
       }
     ]
+  },
+  {
+    "topic": "mentioned_mcdonald",
+    "date": "2025-08-04",
+    "type": "life_event",
+    "details": "went earlier today",
+    "original_text": "I went to McDonald's earlier today"
   }
 ]

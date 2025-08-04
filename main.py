@@ -1954,6 +1954,12 @@ def handle_full_duplex_conversation():
                                     if pending_question:
                                         print(f"[AdvancedAI] ✅ Processing queued question: '{pending_question}'")
                                         handle_streaming_response(pending_question, current_user)
+                                        
+                                        # ✅ CRITICAL FIX: Reset VAD state after pending question response
+                                        if full_duplex_manager:
+                                            full_duplex_manager.force_reset_to_waiting()
+                                            print(f"[AdvancedAI] ✅ VAD state reset after pending question")
+                                        
                                         pending_question = None
                                         continue
                         
@@ -2004,6 +2010,12 @@ def handle_full_duplex_conversation():
                                 print(f"[Enhanced] ✅ Processing pending: '{pending_question}'")
                                 time.sleep(1)
                                 handle_streaming_response(pending_question, current_user)
+                                
+                                # ✅ CRITICAL FIX: Reset VAD state after pending question response  
+                                if full_duplex_manager:
+                                    full_duplex_manager.force_reset_to_waiting()
+                                    print(f"[Enhanced] ✅ VAD state reset after pending question")
+                                
                                 pending_question = None
                             continue
                         
@@ -2248,9 +2260,19 @@ def handle_full_duplex_conversation():
                     print(f"[FullDuplex] 🎵 ✅ ADVANCED AI STREAMING response for: '{text}' (User: {current_user})")
                     handle_streaming_response(text, current_user)
                     
+                    # ✅ CRITICAL FIX: Reset VAD state after response completion
+                    if full_duplex_manager:
+                        full_duplex_manager.force_reset_to_waiting()
+                        print(f"[FullDuplex] ✅ VAD state reset - ready for next user input")
+                    
                 except Exception as e:
                     print(f"[FullDuplex] ADVANCED AI streaming response error: {e}")
                     speak_streaming("Sorry, I had a problem generating a response.")
+                    
+                    # ✅ CRITICAL FIX: Reset VAD state even after errors
+                    if full_duplex_manager:
+                        full_duplex_manager.force_reset_to_waiting()
+                        print(f"[FullDuplex] ✅ VAD state reset after error - ready for next user input")
             
             # Print advanced stats periodically
             if DEBUG and time.time() - last_stats_time > 10:

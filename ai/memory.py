@@ -725,11 +725,23 @@ class UserMemorySystem:
             question_lower = question.lower()
             relevant_memories = []
             
-            # Step 1: Check for time-based keywords that indicate looking for past events
+            # Step 1: ENHANCED temporal keyword detection for edge cases
             time_keywords = [
-                'yesterday', 'earlier', 'before', 'last week', 'last month',
+                # Past events
+                'yesterday', 'earlier', 'before', 'last week', 'last month', 'last night',
+                'this morning', 'this afternoon', 'this evening', 'recently', 'just now',
+                # Future events
+                'tomorrow', 'next week', 'next month', 'later', 'tonight', 'upcoming',
+                'tomorrow afternoon', 'tomorrow morning', 'next wednesday', 'next friday',
+                # Questions about time - ENHANCED for food/location questions
                 'where did i go', 'what did i do', 'when did i', 'who did i see',
-                'where was i', 'what happened', 'where did we go'
+                'where was i', 'what happened', 'where did we go', 'who did i meet',
+                'what do i have', 'when is my', 'where am i going', 'what have i booked',
+                'what am i nervous about', 'what am i excited about', 'who am i seeing',
+                'where did i eat', 'what did i eat', 'who did i eat with', 'where did we eat',
+                'what did we do', 'where did we go', 'who was i with', 'today',
+                # Appointment/event questions
+                'appointment', 'meeting', 'plans', 'scheduled', 'booked', 'event'
             ]
             
             is_temporal_question = any(keyword in question_lower for keyword in time_keywords)
@@ -740,18 +752,33 @@ class UserMemorySystem:
             
             print(f"[Memory] 🎯 Temporal question detected: '{question}'")
             
-            # Step 2: Extract semantic keywords from question
+            # Step 2: ENHANCED semantic keywords for edge cases
             place_keywords = [
-                'where', 'place', 'restaurant', 'shop', 'store', 'go', 'went',
-                'visit', 'been', 'location', 'mcdonalds', 'mcdonald'
+                'where', 'place', 'restaurant', 'shop', 'store', 'go', 'went', 'going',
+                'visit', 'been', 'location', 'mcdonalds', 'mcdonald', 'coffee shop', 'cafe',
+                'mall', 'supermarket', 'pharmacy', 'dentist', 'office', 'hospital'
             ]
             
             activity_keywords = [
-                'what', 'do', 'did', 'activity', 'eat', 'ate', 'buy', 'bought'
+                'what', 'do', 'did', 'activity', 'eat', 'ate', 'buy', 'bought',
+                'grabbed', 'met', 'meeting', 'appointment', 'plans', 'booked', 'scheduled',
+                'discuss', 'talking', 'nervous', 'excited', 'worried', 'food', 'grabbed'
             ]
             
             person_keywords = [
-                'who', 'person', 'people', 'friend', 'friends', 'family', 'see', 'saw', 'meet', 'met', 'with'
+                'who', 'person', 'people', 'friend', 'friends', 'family', 'see', 'saw', 
+                'meet', 'met', 'with', 'sarah', 'niece', 'nephew', 'cousin', 'colleague'
+            ]
+            
+            # Step 2.5: ENHANCED question type detection
+            appointment_keywords = [
+                'appointment', 'dentist', 'doctor', 'meeting', 'scheduled', 'booked',
+                'plans', 'event', 'birthday', 'wedding', 'nervous', 'excited'
+            ]
+            
+            future_keywords = [
+                'tomorrow', 'next week', 'next month', 'later', 'upcoming', 'going to',
+                'will', 'planning', 'scheduled for', 'booked for'
             ]
             
             # Step 3: Search through all memory types for semantic matches

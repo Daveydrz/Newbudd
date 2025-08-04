@@ -1,0 +1,12 @@
+[
+  {
+    "type": "life_event",
+    "topic": "visited_mcdonald",
+    "date": "2025-08-04",
+    "emotion": "casual",
+    "status": "pending",
+    "created": "2025-08-04T03:05:25.904997",
+    "original_text": "Grabbed some food at McDonald's with friends earlier.",
+    "detected_by": "enhanced_fallback"
+  }
+]

@@ -653,6 +653,34 @@ def generate_response(question, username, lang=DEFAULT_LANG):
         
         # 🧠 WORKING MEMORY: Get natural language context for LLM
         natural_context = memory.get_natural_language_context_for_llm(question)
+        
+        # ✅ NEW: Enhanced memory integration with conversation threading
+        try:
+            from ai.human_memory_smart import SmartHumanLikeMemory
+            smart_memory = SmartHumanLikeMemory(username)
+            enhanced_memories = smart_memory.get_enhanced_memories_for_query(question)
+            
+            if enhanced_memories:
+                enhanced_context_parts = []
+                for memory in enhanced_memories[:3]:  # Top 3 most relevant
+                    topic = memory['topic']
+                    date = memory['date']
+                    
+                    # Include enhanced details if available
+                    if 'enhanced_details' in memory and memory['enhanced_details']:
+                        details = [detail['detail'] for detail in memory['enhanced_details']]
+                        enhanced_context_parts.append(f"On {date}: {topic} (details: {', '.join(details)})")
+                    else:
+                        enhanced_context_parts.append(f"On {date}: {topic}")
+                
+                if enhanced_context_parts:
+                    enhanced_context = "Recent enhanced memories: " + "; ".join(enhanced_context_parts)
+                    natural_context = (natural_context + "\n" + enhanced_context) if natural_context else enhanced_context
+                    print(f"[Chat] 🔗 Enhanced memory context added: {len(enhanced_memories)} memories")
+        
+        except Exception as e:
+            print(f"[Chat] ⚠️ Enhanced memory integration error: {e}")
+        
         print(f"[Chat] 🔗 Working memory context: {natural_context[:100]}..." if natural_context else "[Chat] 🔗 No working memory context")
         
         # Build reminder text with personality

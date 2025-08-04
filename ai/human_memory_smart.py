@@ -24,6 +24,10 @@ class SmartHumanLikeMemory:
         self.life_events = self.load_memory('smart_life_events.json') 
         self.conversation_highlights = self.load_memory('smart_highlights.json')
         
+        # ✅ NEW: Conversation threading for memory integration
+        self.conversation_threads = self.load_memory('conversation_threads.json')
+        self.memory_enhancements = self.load_memory('memory_enhancements.json')
+        
         # Session tracking
         self.context_used_this_session = set()
         
@@ -55,6 +59,11 @@ class SmartHumanLikeMemory:
         self.extraction_cache[text_hash] = current_time
         print(f"[SmartMemory] 🧠 Starting memory extraction for: '{text[:50]}...'")
         
+        # ✅ NEW: Check for memory enhancements before extraction
+        enhancement_result = self._check_for_memory_enhancement(text)
+        if enhancement_result:
+            print(f"[SmartMemory] 🔗 Enhanced existing memory: {enhancement_result}")
+            return
         # Also use the existing MEGA-INTELLIGENT extraction
         self.mega_memory.extract_memories_from_text(text)
         
@@ -844,13 +853,16 @@ Examples:
 Return only valid JSON array:"""
 
         try:
-            # Get LLM response
+            # ✅ TOKEN OPTIMIZATION: Use tiered extraction based on complexity
+            token_limit, optimized_prompt = self._get_optimized_extraction_prompt(text, detection_prompt)
+            
+            # Get LLM response with optimized token usage
             messages = [
-                {"role": "system", "content": "You are a precise JSON extraction assistant. Return only valid JSON arrays. Extract ONLY real events, appointments, or emotional states worth remembering."},
-                {"role": "user", "content": detection_prompt}
+                {"role": "system", "content": "Extract events as JSON array. Simple events need brief descriptions."},
+                {"role": "user", "content": optimized_prompt}
             ]
             
-            llm_response = ask_kobold(messages, max_tokens=300)
+            llm_response = ask_kobold(messages, max_tokens=token_limit)
             
             # Clean and parse JSON response
             json_text = self._extract_json_from_response(llm_response)
@@ -1365,3 +1377,258 @@ Return only valid JSON array:"""
         """Reset session context"""
         self.context_used_this_session.clear()
         print(f"[SmartMemory] 🔄 Session context reset for {self.username}")
+    
+    def _check_for_memory_enhancement(self, text: str) -> Optional[str]:
+        """🔗 Check if this text enhances existing memories (e.g., McDonald's -> McFlurry details)"""
+        text_lower = text.lower().strip()
+        
+        # Look for food/drink details that could enhance restaurant visits
+        food_enhancement_patterns = [
+            (r'(mcflurry|big mac|quarter pounder|fries|nuggets|shake)', r'mcdonalds?|mcdonald'),
+            (r'(whopper|chicken fries|onion rings)', r'burger king'),
+            (r'(frappuccino|latte|coffee|tea)', r'starbucks'),
+            (r'(pizza|pepperoni|margherita)', r'pizza|dominos|papa johns'),
+            (r'(sushi|salmon|tuna|rolls)', r'sushi|japanese'),
+            (r'(burger|cheese|bacon)', r'restaurant|cafe|diner')
+        ]
+        
+        today = datetime.now().strftime('%Y-%m-%d')
+        yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+        
+        for food_pattern, location_pattern in food_enhancement_patterns:
+            food_match = re.search(food_pattern, text_lower)
+            if food_match:
+                food_item = food_match.group(1)
+                
+                # Search for recent memories that could be enhanced
+                recent_memories = self._find_recent_location_memories(location_pattern, [today, yesterday])
+                
+                if recent_memories:
+                    # Enhance the memory with food details
+                    for memory in recent_memories:
+                        self._enhance_memory_with_details(memory, text, food_item)
+                    
+                    return f"Added {food_item} details to {len(recent_memories)} recent memory(ies)"
+        
+        # Look for activity details that could enhance previous events
+        activity_enhancement_patterns = [
+            (r'(bought|purchased|got|picked up) (.+)', r'shopping|store|mall'),
+            (r'(watched|saw) (.+)', r'cinema|theater|movie|netflix'),
+            (r'(played|game of) (.+)', r'park|friends|family')
+        ]
+        
+        for activity_pattern, context_pattern in activity_enhancement_patterns:
+            activity_match = re.search(activity_pattern, text_lower)
+            if activity_match:
+                activity_detail = activity_match.group(2)
+                
+                recent_memories = self._find_recent_context_memories(context_pattern, [today, yesterday])
+                
+                if recent_memories:
+                    for memory in recent_memories:
+                        self._enhance_memory_with_details(memory, text, activity_detail)
+                    
+                    return f"Added {activity_detail} details to {len(recent_memories)} recent memory(ies)"
+        
+        return None
+    
+    def _find_recent_location_memories(self, location_pattern: str, dates: List[str]) -> List[Dict]:
+        """Find recent memories matching location pattern"""
+        matching_memories = []
+        
+        # Search life events
+        for event in self.life_events:
+            if event['date'] in dates:
+                topic_lower = event['topic'].lower()
+                original_lower = event.get('original_text', '').lower()
+                
+                if re.search(location_pattern, topic_lower) or re.search(location_pattern, original_lower):
+                    matching_memories.append(event)
+        
+        # Search highlights
+        for highlight in self.conversation_highlights:
+            if highlight['date'] in dates:
+                topic_lower = highlight['topic'].lower()
+                original_lower = highlight.get('original_text', '').lower()
+                
+                if re.search(location_pattern, topic_lower) or re.search(location_pattern, original_lower):
+                    matching_memories.append(highlight)
+        
+        return matching_memories
+    
+    def _find_recent_context_memories(self, context_pattern: str, dates: List[str]) -> List[Dict]:
+        """Find recent memories matching context pattern"""
+        matching_memories = []
+        
+        # Search life events
+        for event in self.life_events:
+            if event['date'] in dates:
+                topic_lower = event['topic'].lower()
+                original_lower = event.get('original_text', '').lower()
+                
+                if re.search(context_pattern, topic_lower) or re.search(context_pattern, original_lower):
+                    matching_memories.append(event)
+        
+        return matching_memories
+    
+    def _enhance_memory_with_details(self, memory: Dict, enhancement_text: str, detail: str):
+        """🔗 Enhance existing memory with additional details"""
+        # Create enhancement record
+        enhancement = {
+            'original_memory_id': id(memory),
+            'enhancement_text': enhancement_text,
+            'detail_added': detail,
+            'timestamp': datetime.now().isoformat(),
+            'date': memory['date']
+        }
+        
+        # Add to enhancements
+        self.memory_enhancements.append(enhancement)
+        
+        # Update memory topic to include detail
+        if 'enhanced_details' not in memory:
+            memory['enhanced_details'] = []
+        
+        memory['enhanced_details'].append({
+            'detail': detail,
+            'from_text': enhancement_text,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+        # Update topic to be more descriptive
+        current_topic = memory['topic']
+        if detail not in current_topic.lower():
+            memory['topic'] = f"{current_topic} (with {detail})"
+        
+        # Save updated memories
+        if memory in self.life_events:
+            self.save_memory(self.life_events, 'smart_life_events.json')
+        elif memory in self.conversation_highlights:
+            self.save_memory(self.conversation_highlights, 'smart_highlights.json')
+        
+        self.save_memory(self.memory_enhancements, 'memory_enhancements.json')
+        
+        # Also update the regular memory system
+        self._add_to_regular_memory(memory)
+        
+        print(f"[SmartMemory] 🔗 Enhanced memory '{current_topic}' with detail: {detail}")
+    
+    def get_enhanced_memories_for_query(self, query: str) -> List[Dict]:
+        """🎯 Get memories with all enhancements for better context retrieval"""
+        query_lower = query.lower()
+        relevant_memories = []
+        
+        # Search all memory types with enhancements
+        all_memories = self.life_events + self.conversation_highlights + self.appointments
+        
+        for memory in all_memories:
+            # Check base memory
+            topic_lower = memory['topic'].lower()
+            original_lower = memory.get('original_text', '').lower()
+            
+            relevance_score = 0
+            
+            # Direct topic match
+            if any(word in topic_lower for word in query_lower.split()):
+                relevance_score += 0.8
+            
+            # Original text match
+            if any(word in original_lower for word in query_lower.split()):
+                relevance_score += 0.6
+            
+            # Enhanced details match
+            if 'enhanced_details' in memory:
+                for detail in memory['enhanced_details']:
+                    detail_text = detail['detail'].lower()
+                    if any(word in detail_text for word in query_lower.split()):
+                        relevance_score += 0.9  # Enhanced details are highly relevant
+            
+            if relevance_score > 0.5:
+                memory_copy = memory.copy()
+                memory_copy['relevance_score'] = relevance_score
+                relevant_memories.append(memory_copy)
+        
+        # Sort by relevance score
+        relevant_memories.sort(key=lambda x: x['relevance_score'], reverse=True)
+        
+        return relevant_memories[:5]  # Return top 5 most relevant
+    
+    def _get_optimized_extraction_prompt(self, text: str, full_prompt: str) -> tuple[int, str]:
+        """🚀 Get optimized prompt and token limit based on text complexity"""
+        text_lower = text.lower().strip()
+        word_count = len(text.split())
+        
+        # Determine complexity level
+        complexity_score = 0
+        
+        # Simple location mentions (low complexity)
+        simple_patterns = [
+            r'went to \w+', r'at \w+', r'visited \w+', r'from \w+',
+            r'mcdonalds?', r'starbucks', r'walmart', r'target'
+        ]
+        
+        # Complex patterns (high complexity)
+        complex_patterns = [
+            r'(nervous|worried|excited|stressed)', r'appointment', r'meeting',
+            r'birthday', r'family', r'friends', r'tomorrow', r'next week'
+        ]
+        
+        # Emotional patterns (medium complexity)  
+        emotional_patterns = [
+            r'(happy|sad|frustrated|relieved|anxious)', r'feeling', r'about'
+        ]
+        
+        # Score complexity
+        for pattern in simple_patterns:
+            if re.search(pattern, text_lower):
+                complexity_score += 1
+        
+        for pattern in emotional_patterns:
+            if re.search(pattern, text_lower):
+                complexity_score += 2
+                
+        for pattern in complex_patterns:
+            if re.search(pattern, text_lower):
+                complexity_score += 3
+        
+        # Determine tier based on complexity and word count
+        if complexity_score <= 2 and word_count <= 8:
+            # TIER 1: Simple extraction (50 tokens)
+            token_limit = 50
+            prompt = f"""Extract events from: "{text}"
+Current date: {datetime.now().strftime('%Y-%m-%d')}
+
+Return JSON: [{{"type": "highlight|life_event", "topic": "brief", "date": "YYYY-MM-DD", "emotion": "casual"}}]"""
+            
+            print(f"[SmartMemory] ⚡ TIER 1 extraction (50 tokens) for: '{text}'")
+            
+        elif complexity_score <= 5 and word_count <= 15:
+            # TIER 2: Medium extraction (100 tokens)
+            token_limit = 100
+            prompt = f"""Smart event extractor. Extract appointments, life events, highlights from user message.
+
+TYPES:
+- appointment: Time-specific events (dentist, meeting)
+- life_event: Emotional/social events (birthdays, visits) 
+- highlight: General feelings/thoughts
+
+JSON format:
+[{{"type": "appointment|life_event|highlight", "topic": "brief_description", "date": "YYYY-MM-DD", "emotion": "happy|stressed|casual|etc", "priority": "high|medium|low"}}]
+
+Extract ONLY real events worth remembering. Skip casual conversation.
+
+Current date: {datetime.now().strftime('%Y-%m-%d')}
+User message: "{text}"
+
+Detect any events worth remembering:"""
+            
+            print(f"[SmartMemory] ⚡ TIER 2 extraction (100 tokens) for: '{text}'")
+            
+        else:
+            # TIER 3: Complex extraction (200 tokens - reduced from 300)
+            token_limit = 200
+            prompt = full_prompt
+            
+            print(f"[SmartMemory] ⚡ TIER 3 extraction (200 tokens) for: '{text}'")
+        
+        return token_limit, prompt

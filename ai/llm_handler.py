@@ -300,8 +300,8 @@ class LLMHandler:
                 from ai.memory import get_user_memory, get_conversation_context
                 user_memory = get_user_memory(user)
                 
-                # Get contextual memory for the response
-                memory_context = user_memory.get_contextual_memory_for_response()
+                # Get contextual memory for the response - NOW WITH SEMANTIC RETRIEVAL
+                memory_context = user_memory.get_contextual_memory_for_response(sanitized_text)
                 if memory_context:
                     significant_memories = memory_context[:300]  # Limit to 300 chars
                     print(f"[LLMHandler] ✅ Retrieved contextual memory: {len(memory_context)} chars")

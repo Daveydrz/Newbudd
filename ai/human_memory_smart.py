@@ -141,12 +141,16 @@ class SmartHumanLikeMemory:
         """🎯 STRICT check - only allow if it DEFINITELY contains events"""
         text_lower = text.lower()
         
-        # MUST contain time indicators
+        # MUST contain time indicators - EXPANDED for casual time references
         time_indicators = [
             'tomorrow', 'today', 'tonight', 'this week', 'next week', 'this weekend',
             'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday',
             'this morning', 'this afternoon', 'this evening', 'later today',
-            'in an hour', 'in a few hours', 'at ', 'o\'clock'
+            'in an hour', 'in a few hours', 'at ', 'o\'clock',
+            # CRITICAL FIX: Add casual time references
+            'earlier today', 'earlier', 'just now', 'a while ago', 'this morning',
+            'this afternoon', 'this evening', 'last night', 'yesterday', 'last week',
+            'recently', 'just', 'before', 'after lunch', 'after work'
         ]
         
         has_time = any(indicator in text_lower for indicator in time_indicators)
@@ -155,7 +159,7 @@ class SmartHumanLikeMemory:
             print(f"[SmartMemory] 🛡️ BLOCKED no time indicators: '{text}'")
             return False
         
-        # MUST contain event keywords
+        # MUST contain event keywords - EXPANDED for places and activities
         event_keywords = [
             # Appointments (specific)
             'appointment', 'meeting', 'dentist', 'doctor', 'surgery', 'hospital',
@@ -175,6 +179,17 @@ class SmartHumanLikeMemory:
             'vacation', 'trip', 'flying', 'traveling', 'flight', 'train',
             'bus', 'driving to', 'pick up', 'drop off',
             
+            # Places and activities (CRITICAL FIX for McDonald's type memories)
+            'went to', 'been to', 'was at', 'visited', 'stopped by',
+            'mcdonalds', 'mcdonald', 'restaurant', 'cafe', 'shop', 'store',
+            'mall', 'park', 'beach', 'gym', 'library', 'bank', 'church',
+            'supermarket', 'grocery', 'pharmacy', 'gas station', 'cinema',
+            'theater', 'museum', 'zoo', 'hospital', 'clinic', 'office',
+            
+            # Activities worth remembering
+            'ate at', 'shopped at', 'bought from', 'had lunch at', 'had dinner at',
+            'grabbed coffee', 'picked up', 'dropped off', 'met at',
+            
             # Actions with commitment
             'have to', 'need to', 'going for', 'scheduled', 'planned',
             'supposed to', 'meeting with', 'seeing', 'picking up'
@@ -186,10 +201,13 @@ class SmartHumanLikeMemory:
             print(f"[SmartMemory] 🛡️ BLOCKED no event keywords: '{text}'")
             return False
         
-        # Additional validation - check for action verbs
+        # Additional validation - check for action verbs - EXPANDED for places and activities  
         action_verbs = [
             'have', 'going', 'seeing', 'visiting', 'meeting', 'picking', 
-            'dropping', 'starting', 'finishing', 'attending', 'scheduled'
+            'dropping', 'starting', 'finishing', 'attending', 'scheduled',
+            # CRITICAL FIX: Add movement and activity verbs
+            'went', 'go', 'been', 'was', 'visited', 'stopped', 'ate', 'had',
+            'bought', 'shopped', 'got', 'picked', 'dropped', 'met', 'saw'
         ]
         
         has_action = any(verb in text_lower for verb in action_verbs)

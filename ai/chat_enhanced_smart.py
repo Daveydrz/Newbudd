@@ -139,9 +139,24 @@ def generate_response_streaming_with_smart_memory(question, username, lang="en",
             enhanced_question = f"[User emotion: {emotion}] {question}"
             print(f"[SmartChat] 😊 Enhanced question with emotion: {emotion}")
         
-        # Use existing streaming generation with enhanced context
+        # ✅ UNIFIED CONSCIOUSNESS INJECTION - Single batched operation
+        consciousness_context = ""
+        try:
+            from ai.context_injector import get_consciousness_for_system_message
+            consciousness_context = get_consciousness_for_system_message(username)
+            print(f"[SmartChat] 🧠 Unified consciousness context: {len(consciousness_context)} chars")
+        except Exception as consciousness_error:
+            print(f"[SmartChat] ⚠️ Consciousness injection error: {consciousness_error}")
+        
+        # Inject consciousness context into the question for LLM
+        if consciousness_context:
+            enhanced_question_with_consciousness = f"{consciousness_context}\n\nUser: {enhanced_question}"
+        else:
+            enhanced_question_with_consciousness = enhanced_question
+        
+        # Use existing streaming generation with consciousness-enhanced context
         full_response = ""
-        for chunk in generate_response_streaming(enhanced_question, username, lang):
+        for chunk in generate_response_streaming(enhanced_question_with_consciousness, username, lang):
             if chunk and chunk.strip():
                 full_response += chunk.strip() + " "
                 yield chunk.strip()

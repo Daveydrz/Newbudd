@@ -887,55 +887,56 @@ def handle_streaming_response(text, current_user):
             except Exception as autonomous_error:
                 print(f"[AdvancedResponse] ⚠️ Autonomous processing error: {autonomous_error}")
         
-        # ✅ NEW: Cognitive integration for real-time state injection
-        if SELF_AWARENESS_COMPONENTS_AVAILABLE:
-            try:
-                cognitive_start_time = time.time()
-                cognitive_prompt_injection = cognitive_integrator.process_user_input(text, current_user)
-                cognitive_processing_time = time.time() - cognitive_start_time
+        # ✅ UNIFIED CONSCIOUSNESS INJECTION - Replace separate cognitive integrator calls  
+        consciousness_context = {}
+        try:
+            from ai.context_injector import build_consciousness_context
+            cognitive_start_time = time.time()
+            
+            # Build unified consciousness context (replaces separate injector calls)
+            unified_context = build_consciousness_context(current_user)
+            
+            # Convert to cognitive_prompt_injection format for compatibility
+            consciousness_context = {
+                "cognitive_state": {
+                    "emotion": unified_context.emotional_state.split(':')[1].split('(')[0] if ':' in unified_context.emotional_state else 'neutral',
+                    "mood": "balanced",  # Default 
+                    "arousal": 0.5,  # Default
+                    "memory_context": unified_context.memory_context,
+                    "consciousness_summary": unified_context.consciousness_summary
+                },
+                "unified_consciousness": unified_context
+            }
+            
+            cognitive_processing_time = time.time() - cognitive_start_time
+            print(f"[AdvancedResponse] 🧠 Unified consciousness context: {unified_context.token_count} tokens in {cognitive_processing_time:.3f}s")
+            
+            # Log consciousness module usage
+            if interaction_id:
+                cognitive_debug_logger.log_cognitive_module_usage(
+                    "unified_context_injector",
+                    {"text": text, "user": current_user},
+                    consciousness_context,
+                    cognitive_processing_time
+                )
                 
-                print(f"[AdvancedResponse] 🧠 Cognitive state integrated: {len(cognitive_prompt_injection)} keys")
-                
-                # Log cognitive module usage
-                if interaction_id:
-                    cognitive_debug_logger.log_cognitive_module_usage(
-                        "cognitive_integrator",
-                        {"text": text, "user": current_user},
-                        cognitive_prompt_injection,
-                        cognitive_processing_time
+                # Log prompt modifications with unified context
+                if consciousness_context and "cognitive_state" in consciousness_context:
+                    cognitive_debug_logger.log_prompt_modification(
+                        "unified_consciousness_injection",
+                        len(text),
+                        len(text) + len(unified_context.consciousness_summary),
+                        consciousness_context.get("cognitive_state", {})
                     )
                     
-                    # Log prompt modifications if cognitive data was injected
-                    if cognitive_prompt_injection and "cognitive_state" in cognitive_prompt_injection:
-                        cognitive_debug_logger.log_prompt_modification(
-                            "consciousness_injection",
-                            len(text),
-                            len(text) + len(str(cognitive_prompt_injection)),
-                            cognitive_prompt_injection.get("cognitive_state", {})
-                        )
-                
-                # Check if Buddy should express internal state
-                should_express, expression = cognitive_integrator.should_express_internal_state()
-                if should_express and expression:
-                    print(f"[AdvancedResponse] 💭 Internal state expression: {expression[:50]}...")
-                    
-                    # Log internal state expression
-                    if interaction_id:
-                        cognitive_debug_logger.log_consciousness_event(
-                            "internal_state_expression",
-                            "Buddy expressing internal thoughts/feelings",
-                            {"expression": expression[:100], "trigger": "cognitive_state_check"}
-                        )
-                        cognitive_debug_logger.finish_interaction(expression, time.time() - start_time)
-                    
-                    speak_streaming(expression)
-                    return  # Express internal state instead of regular response
-                    
-            except Exception as cognitive_error:
-                print(f"[AdvancedResponse] ⚠️ Cognitive integration error: {cognitive_error}")
-                if interaction_id:
-                    cognitive_debug_logger.log_error("cognitive_integration", str(cognitive_error))
-                cognitive_prompt_injection = {}
+        except Exception as consciousness_error:
+            print(f"[AdvancedResponse] ⚠️ Unified consciousness injection error: {consciousness_error}")
+            if interaction_id:
+                cognitive_debug_logger.log_error("unified_consciousness_injection", str(consciousness_error))
+            consciousness_context = {}
+        
+        # Set the variable name for backward compatibility
+        cognitive_prompt_injection = consciousness_context
         
         # ✅ ENTROPY INTEGRATION: Process emotional context
         emotional_context = {}

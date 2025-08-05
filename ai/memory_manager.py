@@ -10,7 +10,7 @@ from typing import Dict, Optional, Any
 from dataclasses import dataclass, asdict
 
 # Import the existing comprehensive extraction system
-from ai.unified_memory_manager import extract_all_from_text, ExtractionResult
+from ai.comprehensive_memory_extractor import extract_all_from_text, ExtractionResult
 
 @dataclass 
 class MemoryExtractionMetadata:

@@ -2,7 +2,7 @@
 from ai.chat import generate_response_streaming
 from ai.memory_fusion_intelligent import get_intelligent_unified_username
 from ai.memory_manager import extract_once
-from ai.unified_memory_manager import get_cached_extraction_result
+from ai.comprehensive_memory_extractor import get_cached_extraction_result
 import random
 
 # ✅ ENTROPY SYSTEM: Import consciousness emergence components

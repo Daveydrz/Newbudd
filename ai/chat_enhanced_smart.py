@@ -3,7 +3,7 @@ import random
 from ai.chat import generate_response_streaming, ask_kobold_streaming, get_current_brisbane_time
 from ai.memory import add_to_conversation_history
 from ai.memory_manager import extract_once
-from ai.unified_memory_manager import get_cached_extraction_result, check_conversation_threading
+from ai.comprehensive_memory_extractor import get_cached_extraction_result, check_conversation_threading
 
 def reset_session_for_user_smart(username: str):
     """Reset session when conversation starts"""

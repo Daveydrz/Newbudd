@@ -1,1 +1,26 @@
-{}
+{
+  "activities_visited_mcdonalds": {
+    "category": "activities",
+    "key": "visited_mcdonalds",
+    "value": "mcdonalds",
+    "confidence": 0.8,
+    "date_learned": "2025-08-05 02:17:02",
+    "last_mentioned": "2025-08-05 02:17:02",
+    "source_context": "I went to McDonald's earlier",
+    "emotional_weight": 0.3,
+    "current_status": "current",
+    "related_entities": []
+  },
+  "activities_visited_mcdonald": {
+    "category": "activities",
+    "key": "visited_mcdonald",
+    "value": "mcdonald",
+    "confidence": 0.8,
+    "date_learned": "2025-08-05 02:17:02",
+    "last_mentioned": "2025-08-05 02:17:02",
+    "source_context": "I went to McDonald's earlier",
+    "emotional_weight": 0.3,
+    "current_status": "current",
+    "related_entities": []
+  }
+}

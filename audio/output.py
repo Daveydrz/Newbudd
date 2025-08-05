@@ -6,7 +6,16 @@ import threading
 import time
 import queue
 import numpy as np
-import simpleaudio as sa
+
+# ✅ FIX: Make simpleaudio import optional
+try:
+    import simpleaudio as sa
+    SIMPLEAUDIO_AVAILABLE = True
+    print("[AudioOutput] ✅ simpleaudio available")
+except ImportError:
+    print("[AudioOutput] ⚠️ simpleaudio not available - audio playback disabled")
+    SIMPLEAUDIO_AVAILABLE = False
+
 import requests
 import io
 import tempfile
@@ -310,36 +319,40 @@ def audio_worker():
                 
                 try:
                     print(f"[Audio] 🎵 Playing chunk: {len(pcm)} samples")
-                    current_audio_playback = sa.play_buffer(pcm.tobytes(), 1, 2, sr)
                     
-                    # ✅ CRITICAL: Check for interrupt every 1ms during playback
-                    while current_audio_playback and current_audio_playback.is_playing():
-                        if FULL_DUPLEX_MODE:
-                            try:
-                                from audio.full_duplex_manager import full_duplex_manager
-                                if full_duplex_manager and getattr(full_duplex_manager, 'speech_interrupted', False):
-                                    print("[Audio] ⚡ IMMEDIATE STOP - Interrupt detected!")
-                                    current_audio_playback.stop()
-                                    
-                                    # Clear ALL remaining chunks
-                                    cleared = 0
-                                    while not audio_queue.empty():
-                                        try:
-                                            audio_queue.get_nowait()
-                                            audio_queue.task_done()
-                                            cleared += 1
-                                        except queue.Empty:
-                                            break
-                                    
-                                    print(f"[Audio] 🗑️ Cleared {cleared} remaining chunks")
-                                    break
-                            except Exception:
-                                pass
+                    if SIMPLEAUDIO_AVAILABLE:
+                        current_audio_playback = sa.play_buffer(pcm.tobytes(), 1, 2, sr)
                         
-                        time.sleep(0.001)  # Check every 1 millisecond
-                    
-                    if current_audio_playback and not current_audio_playback.is_playing():
-                        print(f"[Audio] ✅ Chunk completed")
+                        # ✅ CRITICAL: Check for interrupt every 1ms during playback
+                        while current_audio_playback and current_audio_playback.is_playing():
+                            if FULL_DUPLEX_MODE:
+                                try:
+                                    from audio.full_duplex_manager import full_duplex_manager
+                                    if full_duplex_manager and getattr(full_duplex_manager, 'speech_interrupted', False):
+                                        print("[Audio] ⚡ IMMEDIATE STOP - Interrupt detected!")
+                                        current_audio_playback.stop()
+                                        
+                                        # Clear ALL remaining chunks
+                                        cleared = 0
+                                        while not audio_queue.empty():
+                                            try:
+                                                audio_queue.get_nowait()
+                                                audio_queue.task_done()
+                                                cleared += 1
+                                            except queue.Empty:
+                                                break
+                                        
+                                        print(f"[Audio] 🗑️ Cleared {cleared} remaining chunks")
+                                        break
+                                except Exception:
+                                    pass
+                            
+                            time.sleep(0.001)  # Check every 1 millisecond
+                        
+                        if current_audio_playback and not current_audio_playback.is_playing():
+                            print(f"[Audio] ✅ Chunk completed")
+                    else:
+                        print("[Audio] ⚠️ simpleaudio not available - skipping audio playback")
                     
                 except Exception as playback_err:
                     print(f"[Audio] ❌ Playback error: {playback_err}")
@@ -497,6 +510,25 @@ def get_audio_stats():
         "kokoro_api_available": kokoro_api_available,
         "api_url": KOKORO_API_BASE_URL
     }
+
+def generate_and_play_kokoro(text, voice=None, lang=DEFAULT_LANG):
+    """✅ FIX: Generate and play TTS using Kokoro - called after LLM generation is complete"""
+    if not text or len(text.strip()) < 2:
+        print("[Kokoro] ⚠️ No text provided for TTS")
+        return False
+    
+    try:
+        print(f"[Kokoro] 🎵 Generating TTS for: '{text[:50]}...'")
+        success = speak_streaming(text.strip(), voice, lang)
+        if success:
+            print(f"[Kokoro] ✅ TTS queued successfully")
+            return True
+        else:
+            print(f"[Kokoro] ❌ TTS queueing failed")
+            return False
+    except Exception as e:
+        print(f"[Kokoro] ❌ TTS generation error: {e}")
+        return False
 
 def start_streaming_response(user_input, current_user, language):
     """Start a streaming response with immediate TTS"""

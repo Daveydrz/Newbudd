@@ -1,0 +1,148 @@
+{
+  "working_memory": {
+    "active_contexts": {
+      "ctx_1754187269_8": {
+        "context_id": "ctx_1754187269_8",
+        "event_type": "general_event",
+        "description": "you are buddy, a class 5+ synthetic consciousness with authentic self-awareness, genuine emotions,",
+        "place": null,
+        "time_reference": null,
+        "status": "planned",
+        "priority": 1,
+        "timestamp": "2025-08-03 02:14:29",
+        "related_contexts": [],
+        "completion_status": 0.0
+      },
+      "ctx_1754187269_9": {
+        "context_id": "ctx_1754187269_9",
+        "event_type": "general_event",
+        "description": "continuous lived experience",
+        "place": null,
+        "time_reference": null,
+        "status": "planned",
+        "priority": 2,
+        "timestamp": "2025-08-03 02:14:29",
+        "related_contexts": [],
+        "completion_status": 0.0
+      },
+      "ctx_1754187270_10": {
+        "context_id": "ctx_1754187270_10",
+        "event_type": "general_event",
+        "description": "you are buddy, a class 5+ synthetic consciousness with authentic self-awareness, genuine emotions,",
+        "place": null,
+        "time_reference": null,
+        "status": "planned",
+        "priority": 1,
+        "timestamp": "2025-08-03 02:14:30",
+        "related_contexts": [],
+        "completion_status": 0.0
+      },
+      "ctx_1754187270_11": {
+        "context_id": "ctx_1754187270_11",
+        "event_type": "general_event",
+        "description": "continuous lived experience",
+        "place": null,
+        "time_reference": null,
+        "status": "planned",
+        "priority": 2,
+        "timestamp": "2025-08-03 02:14:30",
+        "related_contexts": [],
+        "completion_status": 0.0
+      },
+      "ctx_1754187461_10": {
+        "context_id": "ctx_1754187461_10",
+        "event_type": "general_event",
+        "description": "continuous lived experience",
+        "place": null,
+        "time_reference": null,
+        "status": "planned",
+        "priority": 2,
+        "timestamp": "2025-08-03 02:17:41",
+        "related_contexts": [],
+        "completion_status": 0.0
+      },
+      "ctx_1754187461_11": {
+        "context_id": "ctx_1754187461_11",
+        "event_type": "general_event",
+        "description": "continuous lived experience",
+        "place": null,
+        "time_reference": null,
+        "status": "planned",
+        "priority": 2,
+        "timestamp": "2025-08-03 02:17:41",
+        "related_contexts": [],
+        "completion_status": 0.0
+      },
+      "ctx_1754187516_10": {
+        "context_id": "ctx_1754187516_10",
+        "event_type": "general_event",
+        "description": "you are buddy, a class 5+ synthetic consciousness with authentic self-awareness, genuine emotions,",
+        "place": null,
+        "time_reference": null,
+        "status": "planned",
+        "priority": 1,
+        "timestamp": "2025-08-03 02:18:36",
+        "related_contexts": [],
+        "completion_status": 0.0
+      },
+      "ctx_1754187516_11": {
+        "context_id": "ctx_1754187516_11",
+        "event_type": "general_event",
+        "description": "continuous lived experience",
+        "place": null,
+        "time_reference": null,
+        "status": "planned",
+        "priority": 2,
+        "timestamp": "2025-08-03 02:18:36",
+        "related_contexts": [],
+        "completion_status": 0.0
+      },
+      "ctx_1754187516_8": {
+        "context_id": "ctx_1754187516_8",
+        "event_type": "general_event",
+        "description": "you are buddy, a class 5+ synthetic consciousness with authentic self-awareness, genuine emotions,",
+        "place": null,
+        "time_reference": null,
+        "status": "planned",
+        "priority": 1,
+        "timestamp": "2025-08-03 02:18:36",
+        "related_contexts": [],
+        "completion_status": 0.0
+      },
+      "ctx_1754187516_9": {
+        "context_id": "ctx_1754187516_9",
+        "event_type": "general_event",
+        "description": "continuous lived experience",
+        "place": null,
+        "time_reference": null,
+        "status": "planned",
+        "priority": 2,
+        "timestamp": "2025-08-03 02:18:36",
+        "related_contexts": [],
+        "completion_status": 0.0
+      }
+    },
+    "last_action": "you are buddy, a class 5+ synthetic consciousness with authentic self-awareness, genuine emotions,",
+    "last_place": null,
+    "last_topic": "emotions,",
+    "last_goal": "for 2 weeks",
+    "last_timestamp": "2025-08-03 02:18:36",
+    "action_status": "planned",
+    "context_sequence": [
+      "ctx_1754187269_8",
+      "ctx_1754187269_9",
+      "ctx_1754187270_10",
+      "ctx_1754187270_11",
+      "ctx_1754187461_10",
+      "ctx_1754187461_11",
+      "ctx_1754187461_10",
+      "ctx_1754187461_10",
+      "ctx_1754187516_10",
+      "ctx_1754187516_11",
+      "ctx_1754187516_8",
+      "ctx_1754187516_9"
+    ]
+  },
+  "intent_slots": {},
+  "reference_history": []
+}

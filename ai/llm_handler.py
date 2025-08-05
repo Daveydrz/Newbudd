@@ -290,7 +290,55 @@ class LLMHandler:
                     consciousness_context = "[CONSCIOUSNESS:engaged_helpful_focused]"
                     consciousness_summary = "[CONSCIOUSNESS:engaged helpful focused]"
             
-            # 5. Enhanced Budget Check with usage tracking
+            # 5. Memory Analysis and Context Retrieval (CRITICAL FIX)
+            memory_context = ""
+            recent_interactions = []
+            significant_memories = ""
+            
+            try:
+                print(f"[LLMHandler] 🧠 Retrieving memory context for user: {user}")
+                from ai.memory import get_user_memory, get_conversation_context
+                user_memory = get_user_memory(user)
+                
+                # Get contextual memory for the response - NOW WITH SEMANTIC RETRIEVAL
+                memory_context = user_memory.get_contextual_memory_for_response(sanitized_text)
+                if memory_context:
+                    significant_memories = memory_context[:300]  # Limit to 300 chars
+                    print(f"[LLMHandler] ✅ Retrieved contextual memory: {len(memory_context)} chars")
+                
+                # Get conversation context for LLM
+                conversation_context = user_memory.get_conversation_context_for_llm(sanitized_text)
+                if conversation_context:
+                    conversation_parts = conversation_context.split('\n')[-3:]  # Last 3 lines
+                    recent_interactions = [part.strip() for part in conversation_parts if part.strip()]
+                    print(f"[LLMHandler] ✅ Retrieved conversation context: {len(recent_interactions)} interactions")
+                
+                # Get working memory context
+                working_memory_context = user_memory.get_working_memory_context_for_llm()
+                if working_memory_context and not significant_memories:
+                    significant_memories = working_memory_context[:200]  # Use working memory if no other context
+                    print(f"[LLMHandler] ✅ Retrieved working memory context")
+                
+                # Fallback: get general memory context
+                if not significant_memories and not recent_interactions:
+                    general_context = user_memory.get_memory_context()
+                    if general_context:
+                        significant_memories = general_context[:200]
+                        print(f"[LLMHandler] ✅ Retrieved general memory context")
+                
+            except Exception as memory_error:
+                print(f"[LLMHandler] ⚠️ Memory retrieval error: {memory_error}")
+                # Try alternative approach with conversation context
+                try:
+                    from ai.memory import get_conversation_context
+                    alt_context = get_conversation_context(user)
+                    if alt_context:
+                        recent_interactions = [str(alt_context)[-100:]]  # Last 100 chars as fallback
+                        print(f"[LLMHandler] ✅ Retrieved alternative conversation context")
+                except Exception as alt_error:
+                    print(f"[LLMHandler] ⚠️ Alternative memory retrieval failed: {alt_error}")
+            
+            # 6. Enhanced Budget Check with usage tracking
             estimated_tokens = estimate_tokens_from_text(sanitized_text) + 500  # Estimate response tokens
             budget_allowed, budget_message = check_llm_budget_before_request(
                 estimated_tokens, self.default_model, user
@@ -341,9 +389,10 @@ class LLMHandler:
                     "optimization_target": "aggressive" if budget_status.get("daily_usage_percentage", 0.0) > 0.5 else "moderate"
                 },
                 "memory": {
-                    "significant_context": "",  # Will be filled by memory systems if available
-                    "recent_interactions": [],
-                    "compressed": True
+                    "significant_context": significant_memories,  # Actually filled with retrieved memories
+                    "recent_interactions": recent_interactions,   # Filled with conversation history
+                    "compressed": True,
+                    "retrieval_successful": bool(significant_memories or recent_interactions)
                 },
                 "meta": {
                     "processing_time": processing_time,
@@ -368,6 +417,19 @@ class LLMHandler:
                 "error": str(e),
                 "budget": {"allowed": False, "message": "Processing error"}
             }
+
+    def generate_response(self, text: str, max_tokens: int = 300, user: str = "system") -> str:
+        """Simple non-streaming response generation for internal consciousness use"""
+        result = ""
+        try:
+            # Collect all chunks from the streaming response
+            for chunk in self.generate_response_with_consciousness(text, user, stream=False):
+                if chunk:
+                    result += chunk
+            return result
+        except Exception as e:
+            print(f"[LLMHandler] ❌ Error in generate_response: {e}")
+            return f"Error generating response: {e}"
             
     def generate_response_with_consciousness(
         self, 
@@ -800,22 +862,40 @@ class LLMHandler:
                     available_budget -= len(ultra_semantic.split())
                     print(f"[LLMHandler] 🏷️ Semantic tokens: {len(ultra_semantic)} chars")
             
-            # ✅ COMPRESSED memory context (only if critical)
+            # ✅ MEMORY context integration (critical for recall)
             memory_analysis = analysis.get("memory", {})
-            if memory_analysis and available_budget > 5:
+            if memory_analysis and available_budget > 10:
                 significant_memories = memory_analysis.get("significant_context", "")
+                recent_interactions = memory_analysis.get("recent_interactions", [])
+                
+                memory_parts = []
                 if significant_memories:
+                    memory_parts.append(f"Memories: {significant_memories}")
+                if recent_interactions and len(recent_interactions) > 0:
+                    recent_context = " | ".join(recent_interactions[-2:])  # Last 2 interactions
+                    memory_parts.append(f"Recent: {recent_context}")
+                
+                if memory_parts:
+                    memory_context = " | ".join(memory_parts)
+                    # Use larger budget for memory (up to 15% of remaining budget)
+                    memory_budget = min(int(available_budget * 0.15), 50)
+                    
                     if NEW_MODULES_AVAILABLE:
                         from ai.consciousness_tokenizer import compress_memory_entry
-                        # Ultra-compressed memory (maximum 5% of remaining budget)
-                        memory_budget = min(int(available_budget * 0.05), 10)
                         compressed_memory = compress_memory_entry(
-                            {"content": significant_memories, "significance": 0.8}, 
+                            {"content": memory_context, "significance": 0.9}, 
                             memory_budget
                         )
                         if compressed_memory and compressed_memory != "<mem_error>":
-                            prompt_parts.append(f"Memory: {compressed_memory}")
-                            print(f"[LLMHandler] 💭 Memory tokens: {len(compressed_memory)} chars")
+                            prompt_parts.append(f"Context: {compressed_memory}")
+                            available_budget -= len(compressed_memory.split())
+                            print(f"[LLMHandler] 💭 Memory context: {len(compressed_memory)} chars")
+                    else:
+                        # Fallback: use raw memory context with length limit
+                        limited_memory = memory_context[:memory_budget * 4]  # Rough char-to-token ratio
+                        prompt_parts.append(f"Context: {limited_memory}")
+                        available_budget -= len(limited_memory.split())
+                        print(f"[LLMHandler] 💭 Memory context (fallback): {len(limited_memory)} chars")
             
             # Join all parts efficiently
             final_prompt = "\n".join(prompt_parts)

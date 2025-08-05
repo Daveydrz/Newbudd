@@ -1,0 +1,28 @@
+{
+  "beliefs": {
+    "theme": "beliefs",
+    "memory_ids": [
+      "mem_optimized_llm_system_6f6c12696c45",
+      "mem_optimized_llm_system_7b9cd36d61be",
+      "mem_optimized_llm_system_aec5cfe077f5",
+      "mem_optimized_llm_system_d84e7dd4b82f",
+      "mem_optimized_llm_system_873d7c23db97"
+    ],
+    "strength": 0.5,
+    "creation_time": "2025-08-02T23:43:25.388273",
+    "last_reinforced": "2025-08-02T23:43:28.662121"
+  },
+  "worldview": {
+    "theme": "worldview",
+    "memory_ids": [
+      "mem_optimized_llm_system_6f6c12696c45",
+      "mem_optimized_llm_system_7b9cd36d61be",
+      "mem_optimized_llm_system_aec5cfe077f5",
+      "mem_optimized_llm_system_d84e7dd4b82f",
+      "mem_optimized_llm_system_873d7c23db97"
+    ],
+    "strength": 0.5,
+    "creation_time": "2025-08-02T23:43:25.388278",
+    "last_reinforced": "2025-08-02T23:43:28.662123"
+  }
+}

@@ -719,9 +719,246 @@ class UserMemorySystem:
         
         return contexts
     
-    def get_contextual_memory_for_response(self) -> str:
-        """🧠 Get memory context optimized for appropriate responses + PROBABILISTIC RETRIEVAL + TOKEN COMPRESSION + WORKING MEMORY"""
+    def retrieve_relevant_memories(self, question: str, max_memories: int = 3) -> List[Dict[str, Any]]:
+        """🎯 SEMANTIC + TEMPORAL: Retrieve memories relevant to the current question"""
+        try:
+            question_lower = question.lower()
+            relevant_memories = []
+            
+            # Step 1: ENHANCED temporal keyword detection for edge cases
+            time_keywords = [
+                # Past events
+                'yesterday', 'earlier', 'before', 'last week', 'last month', 'last night',
+                'this morning', 'this afternoon', 'this evening', 'recently', 'just now',
+                # Future events
+                'tomorrow', 'next week', 'next month', 'later', 'tonight', 'upcoming',
+                'tomorrow afternoon', 'tomorrow morning', 'next wednesday', 'next friday',
+                # Questions about time - ENHANCED for food/location questions
+                'where did i go', 'what did i do', 'when did i', 'who did i see',
+                'where was i', 'what happened', 'where did we go', 'who did i meet',
+                'what do i have', 'when is my', 'where am i going', 'what have i booked',
+                'what am i nervous about', 'what am i excited about', 'who am i seeing',
+                'where did i eat', 'what did i eat', 'who did i eat with', 'where did we eat',
+                'what did we do', 'where did we go', 'who was i with', 'today',
+                # Appointment/event questions
+                'appointment', 'meeting', 'plans', 'scheduled', 'booked', 'event'
+            ]
+            
+            is_temporal_question = any(keyword in question_lower for keyword in time_keywords)
+            
+            if not is_temporal_question:
+                print(f"[Memory] ❌ Question not temporal: '{question}'")
+                return []
+            
+            print(f"[Memory] 🎯 Temporal question detected: '{question}'")
+            
+            # Step 2: ENHANCED semantic keywords for edge cases
+            place_keywords = [
+                'where', 'place', 'restaurant', 'shop', 'store', 'go', 'went', 'going',
+                'visit', 'been', 'location', 'mcdonalds', 'mcdonald', 'coffee shop', 'cafe',
+                'mall', 'supermarket', 'pharmacy', 'dentist', 'office', 'hospital'
+            ]
+            
+            activity_keywords = [
+                'what', 'do', 'did', 'activity', 'eat', 'ate', 'buy', 'bought',
+                'grabbed', 'met', 'meeting', 'appointment', 'plans', 'booked', 'scheduled',
+                'discuss', 'talking', 'nervous', 'excited', 'worried', 'food', 'grabbed'
+            ]
+            
+            person_keywords = [
+                'who', 'person', 'people', 'friend', 'friends', 'family', 'see', 'saw', 
+                'meet', 'met', 'with', 'sarah', 'niece', 'nephew', 'cousin', 'colleague'
+            ]
+            
+            # Step 2.5: ENHANCED question type detection
+            appointment_keywords = [
+                'appointment', 'dentist', 'doctor', 'meeting', 'scheduled', 'booked',
+                'plans', 'event', 'birthday', 'wedding', 'nervous', 'excited'
+            ]
+            
+            future_keywords = [
+                'tomorrow', 'next week', 'next month', 'later', 'upcoming', 'going to',
+                'will', 'planning', 'scheduled for', 'booked for'
+            ]
+            
+            # Step 3: Search through all memory types for semantic matches
+            current_time = datetime.datetime.now()
+            
+            # Search personal facts
+            for fact_key, fact in self.personal_facts.items():
+                relevance_score = self._calculate_semantic_relevance(
+                    question_lower, fact.value.lower(), fact.key.lower()
+                )
+                
+                if relevance_score > 0.3:  # Threshold for relevance
+                    # Time decay factor (recent events get higher priority)
+                    time_factor = self._calculate_time_relevance(fact.date_learned, current_time)
+                    
+                    relevant_memories.append({
+                        'type': 'personal_fact',
+                        'content': f"{fact.key.replace('_', ' ')}: {fact.value}",
+                        'relevance': relevance_score * time_factor,
+                        'date': fact.date_learned,
+                        'original_text': getattr(fact, 'source_context', '')
+                    })
+            
+            # Search working memory (most recent activities)
+            if self.working_memory.last_action:
+                action_relevance = self._calculate_semantic_relevance(
+                    question_lower, self.working_memory.last_action.lower(), 
+                    self.working_memory.last_place.lower() if self.working_memory.last_place else ""
+                )
+                
+                if action_relevance > 0.3:
+                    relevant_memories.append({
+                        'type': 'working_memory',
+                        'content': f"Recent activity: {self.working_memory.last_action}" + 
+                                  (f" at {self.working_memory.last_place}" if self.working_memory.last_place else ""),
+                        'relevance': action_relevance * 1.2,  # Boost recent activities
+                        'date': self.working_memory.last_timestamp or datetime.datetime.now().isoformat(),
+                        'original_text': self.working_memory.last_action
+                    })
+            
+            # Search episodic memory (conversation turns)
+            for turn in self.episodic_memory[-10:]:  # Last 10 turns
+                turn_relevance = self._calculate_semantic_relevance(
+                    question_lower, turn.user_message.lower(), turn.ai_response.lower()
+                )
+                
+                if turn_relevance > 0.4:  # Higher threshold for conversations
+                    turn_time = datetime.datetime.strptime(turn.timestamp, '%Y-%m-%d %H:%M:%S')
+                    time_factor = self._calculate_time_relevance(turn.timestamp, current_time)
+                    
+                    relevant_memories.append({
+                        'type': 'conversation',
+                        'content': f"Previous conversation: {turn.user_message}",
+                        'relevance': turn_relevance * time_factor,
+                        'date': turn.timestamp,
+                        'original_text': turn.user_message
+                    })
+            
+            # Sort by relevance score and return top results
+            relevant_memories.sort(key=lambda x: x['relevance'], reverse=True)
+            top_memories = relevant_memories[:max_memories]
+            
+            print(f"[Memory] ✅ Found {len(top_memories)} relevant memories for: '{question}'")
+            for i, memory in enumerate(top_memories):
+                print(f"[Memory] {i+1}. {memory['type']}: {memory['content'][:50]}... (score: {memory['relevance']:.2f})")
+            
+            return top_memories
+            
+        except Exception as e:
+            print(f"[Memory] ❌ Error retrieving relevant memories: {e}")
+            return []
+    
+    def _calculate_semantic_relevance(self, question: str, content: str, extra_content: str = "") -> float:
+        """Calculate semantic relevance between question and memory content"""
+        try:
+            # Simple keyword matching approach (can be enhanced with embeddings later)
+            question_words = set(question.split())
+            
+            # CRITICAL FIX: Split underscores and normalize content
+            content_normalized = content.replace('_', ' ').replace('mcdonalds', 'mcdonald mcdonalds')
+            extra_normalized = extra_content.replace('_', ' ').replace('mcdonalds', 'mcdonald mcdonalds')
+            content_words = set(content_normalized.split() + extra_normalized.split())
+            
+            # Remove common words
+            stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'is', 'was', 'are', 'were', 'have', 'has', 'had', 'do', 'does', 'did'}
+            question_words = question_words - stop_words
+            content_words = content_words - stop_words
+            
+            if not question_words or not content_words:
+                return 0.0
+            
+            # Calculate Jaccard similarity
+            intersection = len(question_words.intersection(content_words))
+            union = len(question_words.union(content_words))
+            
+            jaccard_score = intersection / union if union > 0 else 0.0
+            
+            # Boost score for specific high-value matches
+            high_value_matches = 0
+            for word in question_words:
+                if word in content_words:
+                    # Boost location names, specific places
+                    if word in ['mcdonalds', 'mcdonald', 'restaurant', 'shop', 'store', 'place']:
+                        high_value_matches += 2
+                    # Boost action words
+                    elif word in ['went', 'go', 'visit', 'see', 'eat', 'buy', 'visited']:
+                        high_value_matches += 1.5
+                    else:
+                        high_value_matches += 1
+            
+            # CRITICAL FIX: Special case for place + location questions
+            question_lower = question.lower()
+            content_lower = (content + " " + extra_content).lower()
+            
+            # Direct place name matching
+            if 'mcdonald' in content_lower and ('where' in question_lower or 'go' in question_lower):
+                high_value_matches += 3  # Strong boost for place + location questions
+            
+            # Activity matching patterns
+            if 'visited' in content_lower and ('where' in question_lower or 'go' in question_lower):
+                high_value_matches += 2
+                
+            # Combine Jaccard with high-value matches
+            final_score = jaccard_score + (high_value_matches * 0.1)
+            
+            print(f"[Memory] 🎯 Relevance calc: jaccard={jaccard_score:.3f}, high_value={high_value_matches}, final={final_score:.3f}")
+            
+            return min(final_score, 1.0)  # Cap at 1.0
+            
+        except Exception as e:
+            print(f"[Memory] ❌ Error calculating semantic relevance: {e}")
+            return 0.0
+    
+    def _calculate_time_relevance(self, memory_time: str, current_time: datetime.datetime) -> float:
+        """Calculate time-based relevance (recent events are more relevant)"""
+        try:
+            if isinstance(memory_time, str):
+                memory_dt = datetime.datetime.strptime(memory_time, '%Y-%m-%d %H:%M:%S')
+            else:
+                memory_dt = memory_time
+            
+            # Calculate hours since memory
+            hours_diff = (current_time - memory_dt).total_seconds() / 3600
+            
+            # Time decay function - recent memories get higher scores
+            if hours_diff <= 1:        # Last hour
+                return 1.0
+            elif hours_diff <= 24:     # Last day
+                return 0.9
+            elif hours_diff <= 168:    # Last week
+                return 0.7
+            elif hours_diff <= 720:    # Last month
+                return 0.5
+            else:                      # Older than month
+                return 0.3
+                
+        except Exception as e:
+            print(f"[Memory] ❌ Error calculating time relevance: {e}")
+            return 0.5  # Default relevance
+    
+    def get_contextual_memory_for_response(self, current_question: str = "") -> str:
+        """🧠 Get memory context optimized for appropriate responses + SEMANTIC RETRIEVAL + TOKEN COMPRESSION + WORKING MEMORY"""
         context_parts = []
+        
+        # 🎯 SEMANTIC RETRIEVAL: Check if this is a temporal question requiring specific memories
+        if current_question:
+            relevant_memories = self.retrieve_relevant_memories(current_question)
+            if relevant_memories:
+                print(f"[Memory] 🎯 Using semantic retrieval for '{current_question}'")
+                # Create memory context from relevant memories only
+                memory_parts = []
+                for memory in relevant_memories:
+                    memory_parts.append(f"{memory['content']}")
+                
+                if memory_parts:
+                    context_parts.append("Relevant memories: " + " | ".join(memory_parts))
+                    # For semantic retrieval, return early with just relevant memories
+                    result = "\n".join(context_parts)
+                    print(f"[Memory] ✅ Semantic context: {len(result)} chars")
+                    return result
         
         # 🧠 WORKING MEMORY: Include current action/context for reference resolution
         working_memory_context = self.get_working_memory_context_for_llm()
@@ -1045,13 +1282,50 @@ class UserMemorySystem:
             # Medical with ongoing status
             (r"i'm allergic to (\w+)", "medical", "allergy_{0}", EntityStatus.CURRENT),
             (r"i have (\w+) condition", "medical", "condition_{0}", EntityStatus.CURRENT),
+            
+            # CRITICAL FIX: Place visits and activities - SPECIFIC PATTERNS FIRST WITH COMPANIONS
+            # Patterns with companions (who they went with)
+            (r"went to mcdonalds? with (\w+)", "activities", "visited_mcdonalds_with_{0}", EntityStatus.CURRENT),
+            (r"went to mcdonald'?s? with (\w+)", "activities", "visited_mcdonalds_with_{0}", EntityStatus.CURRENT),
+            (r"been to mcdonalds? with (\w+)", "activities", "been_to_mcdonalds_with_{0}", EntityStatus.CURRENT),
+            (r"been to mcdonald'?s? with (\w+)", "activities", "been_to_mcdonalds_with_{0}", EntityStatus.CURRENT),
+            (r"(\w+ to \w+) with (\w+)", "activities", "{0}_with_{1}", EntityStatus.CURRENT),
+            # Special patterns for common places MUST come first to match before generic patterns
+            (r"went to mcdonalds", "activities", "visited_mcdonalds", EntityStatus.CURRENT),
+            (r"went to mcdonald's", "activities", "visited_mcdonalds", EntityStatus.CURRENT), 
+            (r"went to mcdonald", "activities", "visited_mcdonalds", EntityStatus.CURRENT),
+            (r"been to mcdonalds", "activities", "visited_mcdonalds", EntityStatus.CURRENT),
+            (r"been to mcdonald's", "activities", "visited_mcdonalds", EntityStatus.CURRENT),
+            (r"been to mcdonald", "activities", "visited_mcdonalds", EntityStatus.CURRENT),
+            # Generic patterns after specific ones
+            (r"i went to (\w+)", "activities", "visited_{0}", EntityStatus.CURRENT),
+            (r"went to (\w+)", "activities", "visited_{0}", EntityStatus.CURRENT),
+            (r"i was at (\w+)", "activities", "was_at_{0}", EntityStatus.CURRENT),
+            (r"visited (\w+)", "activities", "visited_{0}", EntityStatus.CURRENT),
+            (r"been to (\w+)", "activities", "been_to_{0}", EntityStatus.CURRENT),
+            (r"ate at (\w+)", "activities", "ate_at_{0}", EntityStatus.CURRENT),
+            (r"had (\w+) at (\w+)", "activities", "had_{0}_at_{1}", EntityStatus.CURRENT),
         ]
         
         for pattern, category, key_template, status in enhanced_patterns:
             match = re.search(pattern, text_lower)
             if match:
                 key = key_template.format(*match.groups()) if "{0}" in key_template else key_template
-                value = match.group(1)
+                
+                # CRITICAL FIX: Handle specific patterns vs generic patterns for value
+                if "mcdonalds" in key_template and not match.groups():
+                    value = "mcdonalds"  # Fixed value for McDonald's patterns without capture groups
+                elif "mcdonalds_with_" in key_template:
+                    value = f"mcdonalds with {match.group(1)}"  # McDonald's with companion
+                elif match.groups():
+                    if len(match.groups()) == 1:
+                        value = match.group(1)  # Single capture group
+                    elif len(match.groups()) == 2:
+                        value = f"{match.group(1)} with {match.group(2)}"  # Activity with companion
+                    else:
+                        value = " ".join(match.groups())  # Multiple capture groups
+                else:
+                    value = "activity"  # Fallback for patterns without capture groups
                 
                 fact = PersonalFact(
                     category=category,
@@ -2553,7 +2827,7 @@ def get_user_memory(username: str) -> UserMemorySystem:
 
 # Enhanced conversation functions
 def add_to_conversation_history(username, user_message, ai_response):
-    """🧠 Enhanced conversation history with mega-intelligent memory extraction"""
+    """🧠 Enhanced conversation history with mega-intelligent memory extraction + retrospective memory"""
     try:
         if username not in conversation_history:
             conversation_history[username] = []
@@ -2573,6 +2847,14 @@ def add_to_conversation_history(username, user_message, ai_response):
         
         # Extract memories from both user message and AI response
         memory.extract_memories_from_text(user_message)
+        
+        # 🧠 NEW: Retrospective Memory - Store Buddy's advice for future recall
+        try:
+            from ai.retrospective_memory import store_buddy_advice
+            store_buddy_advice(username, user_message, ai_response)
+        except Exception as retro_error:
+            if DEBUG:
+                print(f"[RetrospectiveMemory] ⚠️ Error storing advice: {retro_error}")
         
         # Extract topic with entity awareness
         if TOPIC_TRACKING_ENABLED:

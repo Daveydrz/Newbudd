@@ -1,7 +1,8 @@
-# ai/chat_enhanced_smart_with_fusion.py - Enhanced chat with intelligent memory fusion
-from ai.human_memory_smart import SmartHumanLikeMemory
+# ai/chat_enhanced_smart_with_fusion.py - Enhanced chat with intelligent memory fusion and unified extraction
 from ai.chat import generate_response_streaming
 from ai.memory_fusion_intelligent import get_intelligent_unified_username
+from ai.memory_manager import extract_once
+from ai.comprehensive_memory_extractor import get_cached_extraction_result
 import random
 
 # ✅ ENTROPY SYSTEM: Import consciousness emergence components
@@ -14,17 +15,8 @@ except ImportError as e:
     print(f"[ChatFusion] ⚠️ Entropy system not available: {e}")
     ENTROPY_AVAILABLE = False
 
-# Global memory instances
-smart_memories = {}
-
-def get_smart_memory(username: str) -> SmartHumanLikeMemory:
-    """Get or create smart memory for user"""
-    if username not in smart_memories:
-        smart_memories[username] = SmartHumanLikeMemory(username)
-    return smart_memories[username]
-
 def generate_response_streaming_with_intelligent_fusion(question: str, username: str, lang="en", context=None):
-    """🧠 Generate response with intelligent memory fusion, smart memory + CONSCIOUSNESS ENTROPY + TOKEN OPTIMIZATION"""
+    """🧠 Generate response with intelligent memory fusion, unified extraction + CONSCIOUSNESS ENTROPY + TOKEN OPTIMIZATION"""
     
     # ✅ NEW: Use cognitive context if provided
     cognitive_context_summary = ""
@@ -68,9 +60,8 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
         print(f"[ChatFusion] ⚠️ Budget check error: {budget_error}")
         optimization_level = "standard"
     
-    # ✅ ENTROPY SYSTEM: Process emotional and uncertainty context
+    # ✅ ENTROPY SYSTEM: Keep existing entropy processing for uncertainty 
     emotional_context = {}
-    consciousness_summary = ""
     if ENTROPY_AVAILABLE:
         try:
             emotional_context = process_emotional_context(question, f"fusion_{username}")
@@ -79,28 +70,15 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
             print(f"[ChatFusion] 🎭 Emotional state: {emotional_context.get('primary_emotion', 'neutral')}")
             print(f"[ChatFusion] 🌀 Consciousness score: {consciousness_score:.2f}")
             
-            # ✅ TOKEN OPTIMIZATION: Create compressed consciousness summary
-            if optimization_level in ["high", "ultra"]:
-                # Ultra-compressed consciousness for high optimization
-                emotion = emotional_context.get('primary_emotion', 'neutral')[:4]  # Abbreviate
-                consciousness_summary = f"[C:{emotion}|s:{consciousness_score:.1f}]"
-            else:
-                # Standard consciousness summary
-                consciousness_summary = get_consciousness_summary_for_llm({
-                    'emotion_engine': {'primary_emotion': emotional_context.get('primary_emotion', 'neutral')},
-                    'entropy_level': consciousness_score
-                })
-            
-            print(f"[ChatFusion] 🏷️ Consciousness summary: {consciousness_summary}")
-            
         except Exception as entropy_error:
             print(f"[ChatFusion] ⚠️ Entropy processing error: {entropy_error}")
-            consciousness_summary = "[C:engaged]" if optimization_level in ["high", "ultra"] else "[CONSCIOUSNESS:engaged]"
     
-    # 🔧 FIX: Check for unified username from memory fusion
+    # 🔧 FIX: Check for unified username from memory fusion - BUT SKIP DURING EXTRACTION TO PREVENT LOOPS
     print(f"[ChatFusion] 🔍 Checking memory fusion for user: {username}")
     try:
-        unified_username = get_intelligent_unified_username(username)
+        # ✅ CRITICAL: Skip fusion during this operation to prevent infinite loops during memory extraction
+        # Only do fusion for major conversation turns, not during memory extraction
+        unified_username = get_intelligent_unified_username(username, skip_fusion=True)
         
         if unified_username != username:
             print(f"[ChatFusion] 🎯 MEMORY FUSION: {username} → {unified_username}")
@@ -116,14 +94,77 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
     except Exception as e:
         print(f"[ChatFusion] ❌ Memory fusion error: {e}, using original username: {username}")
     
-    # Step 2: Use unified username for all memory operations
-    smart_memory = get_smart_memory(username)
+    # Step 2: Check context window limits before processing (8k token management)
+    try:
+        from ai.context_window_manager import check_context_window_rollover, create_context_snapshot_for_user
+        
+        # Build current context from previous conversation if available
+        current_context = context.get("current_context", "") if context else ""
+        if not current_context:
+            # Build minimal context for new conversations
+            current_context = f"System: You are Buddy, an AI assistant.\nUser: {question}"
+        
+        needs_rollover, fresh_context = check_context_window_rollover(username, current_context, question)
+        
+        if needs_rollover:
+            print(f"[ChatFusion] 🔄 Context window rollover triggered for {username}")
+            
+            # Create snapshot to preserve memory context
+            conversation_history = context.get("conversation_history", []) if context else []
+            working_memory = context.get("working_memory", {}) if context else {}
+            
+            snapshot_created = create_context_snapshot_for_user(
+                username, current_context, working_memory, conversation_history
+            )
+            
+            if snapshot_created:
+                print(f"[ChatFusion] 📸 Context snapshot created - memories preserved across 8k limit")
+                # Update context to use fresh compressed context with memory injection
+                if context:
+                    context["current_context"] = fresh_context
+                    context["context_rollover_occurred"] = True
+                else:
+                    context = {"current_context": fresh_context, "context_rollover_occurred": True}
+            else:
+                print(f"[ChatFusion] ⚠️ Context snapshot failed - using standard compression")
+        
+    except ImportError:
+        print(f"[ChatFusion] ⚠️ Context window manager not available - using standard processing")
     
-    # Step 3: Extract and store memories from current message
-    smart_memory.extract_and_store_human_memories(question)
+    # ✅ UNIFIED MEMORY EXTRACTION - Single extraction point across all systems  
+    conversation_context = context.get("current_context", "") if context else ""
+    extraction_result = extract_once(
+        text=question,
+        username=username, 
+        cooldown_seconds=10,
+        context=conversation_context,
+        extraction_type="fusion"
+    )
     
-    # Step 4: Check for natural context responses (reminders, follow-ups)
-    context_response = smart_memory.check_for_natural_context_response()
+    # Handle case where extraction was skipped due to cooldown
+    if extraction_result is None:
+        # Try to get cached result from previous extraction
+        extraction_result = get_cached_extraction_result(question)
+        if extraction_result is None:
+            # Create empty result as fallback
+            from ai.comprehensive_memory_extractor import ExtractionResult
+            extraction_result = ExtractionResult([], "casual_conversation", {}, None, [], [], [])
+    
+    print(f"[ChatFusion] 🧠 Unified extraction complete: {len(extraction_result.memory_events)} events, intent={extraction_result.intent_classification}")
+    
+    # Check if this is a conversation threading scenario
+    if extraction_result.memory_enhancements or extraction_result.conversation_thread_id:
+        print(f"[ChatFusion] 🔗 Conversation threading detected: {extraction_result.conversation_thread_id}")
+    
+    # Check for natural context responses (reminders, follow-ups) based on extraction
+    context_response = None
+    if extraction_result.memory_events:
+        # Generate natural context based on recent memory events or threading
+        recent_events = extraction_result.memory_events[-3:]  # Last 3 events  
+        if recent_events:
+            event_topics = [event.get('topic', '') for event in recent_events]
+            if any(topic for topic in event_topics):
+                context_response = f"Speaking of {', '.join([t for t in event_topics if t])}, "
     
     if context_response:
         print(f"[ChatFusion] 🎯 Context response triggered: {context_response}")
@@ -188,6 +229,15 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
                 connector = inject_consciousness_entropy("response", connector)
             yield connector
     
+    # ✅ UNIFIED CONSCIOUSNESS INJECTION - Batched consciousness context
+    consciousness_context = ""
+    try:
+        from ai.context_injector import get_consciousness_for_system_message
+        consciousness_context = get_consciousness_for_system_message(username)
+        print(f"[ChatFusion] 🧠 Unified consciousness context: {len(consciousness_context)} chars")
+    except Exception as consciousness_error:
+        print(f"[ChatFusion] ⚠️ Consciousness injection error: {consciousness_error}")
+    
     # ✅ ENHANCED ENTROPY SYSTEM: Multiple response pathway generation for consciousness emergence + CONVERSATION CONTEXT
     response_pathways = []
     optimized_question = question
@@ -196,7 +246,8 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
     try:
         from ai.memory import get_user_memory
         user_memory = get_user_memory(username)
-        conversation_context = user_memory.get_conversation_context_for_llm(question)
+        # 🎯 CRITICAL FIX: Use semantic retrieval method instead of conversation context
+        conversation_context = user_memory.get_contextual_memory_for_response(question)
         
         if conversation_context:
             print(f"[ChatFusion] 💬 Adding conversation context: {len(conversation_context)} chars")
@@ -206,31 +257,32 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
     except Exception as e:
         print(f"[ChatFusion] ⚠️ Conversation context error: {e}")
     
+    # Add unified consciousness context to the optimized question
+    if consciousness_context:
+        optimized_question_with_consciousness = f"{consciousness_context}\n\n{optimized_question}"
+    else:
+        optimized_question_with_consciousness = optimized_question
+    
     if ENTROPY_AVAILABLE:
         try:
-            # ✅ TOKEN OPTIMIZATION: Create optimized question with consciousness context + cognitive context
-            full_consciousness_summary = consciousness_summary
-            if cognitive_context_summary:
-                full_consciousness_summary = f"{consciousness_summary} {cognitive_context_summary}"
-            
             if optimization_level in ["high", "ultra"]:
                 # Ultra-compressed prompt optimization
-                optimized_question = f"{question} {full_consciousness_summary}"
-                print(f"[ChatFusion] 🏷️ Ultra-optimized prompt: +{len(full_consciousness_summary)} chars")
+                optimized_question_final = f"{optimized_question_with_consciousness}"
+                print(f"[ChatFusion] 🏷️ Ultra-optimized prompt with consciousness: +{len(consciousness_context)} chars")
             elif optimization_level == "medium":
                 # Medium optimization with abbreviated consciousness
-                consciousness_abbreviated = full_consciousness_summary[:50] + "..." if len(full_consciousness_summary) > 50 else full_consciousness_summary
-                optimized_question = f"{question} {consciousness_abbreviated}"
+                consciousness_abbreviated = consciousness_context[:50] + "..." if len(consciousness_context) > 50 else consciousness_context
+                optimized_question_final = f"{consciousness_abbreviated}\n\n{optimized_question}"
                 print(f"[ChatFusion] 🏷️ Medium-optimized prompt: +{len(consciousness_abbreviated)} chars")
             else:
                 # Standard optimization
-                optimized_question = f"{question} {full_consciousness_summary}"
-                print(f"[ChatFusion] 🏷️ Standard-optimized prompt: +{len(full_consciousness_summary)} chars")
+                optimized_question_final = optimized_question_with_consciousness
+                print(f"[ChatFusion] 🏷️ Standard-optimized prompt: +{len(consciousness_context)} chars")
             
             print(f"[ChatFusion] 🌀 Generating multiple consciousness pathways...")
             
             # Primary pathway (main response) with optimized prompt
-            response_pathways.append(("primary", generate_response_streaming(optimized_question, username, lang)))
+            response_pathways.append(("primary", generate_response_streaming(optimized_question_final, username, lang)))
             
             # Check for alternative pathways based on uncertainty (only if not ultra-optimized)
             if optimization_level != "ultra":
@@ -238,9 +290,9 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
                 if uncertainty_state.value in ["uncertain", "confused"]:
                     # Generate uncertainty-flavored response with optimization
                     if optimization_level == "high":
-                        uncertain_question = f"Uncertain: '{question}' {full_consciousness_summary[:30]}"
+                        uncertain_question = f"Uncertain: '{question}' {consciousness_context[:30]}"
                     else:
-                        uncertain_question = f"I'm not entirely sure, but regarding '{question}' {full_consciousness_summary}"
+                        uncertain_question = f"I'm not entirely sure, but regarding '{question}' {consciousness_context}"
                     response_pathways.append(("uncertain", generate_response_streaming(uncertain_question, username, lang)))
             
             # Probabilistic pathway selection
@@ -255,17 +307,15 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
         except Exception as pathway_error:
             print(f"[ChatFusion] ⚠️ Pathway generation error: {pathway_error}")
             # Fallback with basic optimization
-            fallback_question = f"{question} {full_consciousness_summary if 'full_consciousness_summary' in locals() else consciousness_summary}" if consciousness_summary else question
+            fallback_question = optimized_question_with_consciousness if consciousness_context else question
             chosen_generator = generate_response_streaming(fallback_question, username, lang)
     else:
         # No entropy system available - use basic consciousness optimization
-        full_consciousness_summary = consciousness_summary
-        if cognitive_context_summary:
-            full_consciousness_summary = f"{consciousness_summary} {cognitive_context_summary}"
-        
-        if full_consciousness_summary:
-            optimized_question = f"{question} {full_consciousness_summary}"
-        chosen_generator = generate_response_streaming(optimized_question, username, lang)
+        if consciousness_context:
+            optimized_question_final = optimized_question_with_consciousness
+        else:
+            optimized_question_final = question
+        chosen_generator = generate_response_streaming(optimized_question_final, username, lang)
     
     # Step 5: Generate main response with unified memory context + CONSCIOUSNESS ENTROPY + TOKEN OPTIMIZATION
     print(f"[ChatFusion] 💭 Generating CONSCIOUSNESS response with unified memory for {username}")
@@ -292,6 +342,52 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
                 print(f"[ChatFusion] 🏷️ Ultra-optimized chunk {chunk_count}: {total_chars} chars")
             
         yield chunk
+    
+    # ✅ Store Buddy's response for retrospective memory
+    full_response = ""
+    try:
+        # Collect all chunks into full response for storage
+        response_chunks = []
+        for chunk in chosen_generator:
+            # ✅ ENTROPY SYSTEM: Inject consciousness into each chunk
+            if ENTROPY_AVAILABLE:
+                try:
+                    chunk = inject_consciousness_entropy("response", chunk, EntropyLevel.MEDIUM)
+                except Exception as chunk_error:
+                    print(f"[ChatFusion] ⚠️ Chunk entropy error: {chunk_error}")
+            
+            # ✅ TOKEN OPTIMIZATION: Track optimization metrics
+            if chunk:
+                chunk_count += 1
+                total_chars += len(chunk)
+                response_chunks.append(chunk)
+                
+                # For ultra optimization, log every 5th chunk
+                if optimization_level == "ultra" and chunk_count % 5 == 0:
+                    print(f"[ChatFusion] 🏷️ Ultra-optimized chunk {chunk_count}: {total_chars} chars")
+                
+            yield chunk
+        
+        # Store complete response for retrospective memory
+        full_response = ''.join(response_chunks)
+        if full_response.strip():
+            from ai.retrospective_memory import RetrospectiveMemoryManager
+            retro_manager = RetrospectiveMemoryManager(username)
+            retro_manager.store_buddy_response(question, full_response.strip())
+        
+    except Exception as retro_store_error:
+        print(f"[ChatFusion] ⚠️ Retrospective storage error: {retro_store_error}")
+        # Fallback: still yield chunks even if storage fails
+        for chunk in chosen_generator:
+            if ENTROPY_AVAILABLE:
+                try:
+                    chunk = inject_consciousness_entropy("response", chunk, EntropyLevel.MEDIUM)
+                except:
+                    pass
+            if chunk:
+                chunk_count += 1
+                total_chars += len(chunk)
+            yield chunk
     
     # ✅ TOKEN OPTIMIZATION: Final optimization metrics
     if chunk_count > 0:

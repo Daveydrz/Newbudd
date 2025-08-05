@@ -2,8 +2,7 @@
 import random
 from ai.chat import generate_response_streaming, ask_kobold_streaming, get_current_brisbane_time
 from ai.memory import add_to_conversation_history
-from ai.session_memory_manager import get_session_memory_extraction
-from ai.unified_consciousness_builder import get_consciousness_injection
+from ai.unified_memory_manager import extract_all_from_text, get_cached_extraction_result, check_conversation_threading
 
 def reset_session_for_user_smart(username: str):
     """Reset session when conversation starts"""
@@ -51,21 +50,13 @@ def generate_response_streaming_with_smart_memory(question, username, lang="en",
         except ImportError:
             print(f"[SmartChat] ⚠️ Context window manager not available - using standard processing")
         
-        # ✅ UNIFIED MEMORY EXTRACTION - Single LLM call for all extraction types (SESSION-MANAGED)
+        # ✅ UNIFIED MEMORY EXTRACTION - Single LLM call for all extraction types
         conversation_context = context.get("current_context", "") if context else ""
-        print(f"[SmartChat] 🧠 Using session-managed memory extraction")
-        extraction_result = get_session_memory_extraction(username, question, conversation_context)
-        
-        # ✅ UNIFIED CONSCIOUSNESS INJECTION - Single batch operation for all consciousness systems
-        consciousness_context = get_consciousness_injection(username)
-        print(f"[SmartChat] 🧠 Consciousness context injected: {consciousness_context[:50]}...")
+        extraction_result = extract_all_from_text(username, question, conversation_context)
         
         # Check if this is a conversation threading scenario (McDonald's → McFlurry example)
         if extraction_result.memory_enhancements or extraction_result.conversation_thread_id:
             print(f"[SmartChat] 🔗 Conversation threading detected: {extraction_result.conversation_thread_id}")
-            # Check threading with existing function (now called once)
-            from ai.unified_memory_manager import check_conversation_threading
-            check_conversation_threading(username, extraction_result)
         
         # Handle different intent types appropriately
         if extraction_result.intent_classification == "memory_recall":
@@ -125,37 +116,19 @@ def generate_response_streaming_with_smart_memory(question, username, lang="en",
             connectors = [" ", "Also, ", "And ", "By the way, ", "Oh, and "]
             yield random.choice(connectors)
         
-        # Add emotional context and consciousness to response if available
+        # Add emotional context to response if available
         enhanced_question = question
         if extraction_result.emotional_state.get('primary_emotion') not in ['neutral', 'casual']:
             emotion = extraction_result.emotional_state['primary_emotion']
             enhanced_question = f"[User emotion: {emotion}] {question}"
             print(f"[SmartChat] 😊 Enhanced question with emotion: {emotion}")
         
-        # Add consciousness context to prompt
-        enhanced_question = f"{consciousness_context}\n{enhanced_question}"
-        
-        # ✅ START STREAMING TTS SESSION - TTS begins immediately as tokens arrive
-        from ai.streaming_tts_manager import start_streaming_tts_session, add_llm_chunk_to_tts, finish_streaming_tts_session
-        start_streaming_tts_session()
-        
-        try:
-            # Use existing streaming generation with enhanced context
-            full_response = ""
-            for chunk in generate_response_streaming(enhanced_question, username, lang):
-                if chunk and chunk.strip():
-                    full_response += chunk.strip() + " "
-                    # ✅ IMMEDIATE TTS: Add chunk to streaming TTS as it arrives
-                    add_llm_chunk_to_tts(chunk.strip())
-                    yield chunk.strip()
-            
-            # ✅ FINISH TTS SESSION: Speak any remaining content
-            finish_streaming_tts_session()
-            
-        except Exception as streaming_error:
-            print(f"[SmartChat] ❌ Streaming error: {streaming_error}")
-            finish_streaming_tts_session()
-            raise
+        # Use existing streaming generation with enhanced context
+        full_response = ""
+        for chunk in generate_response_streaming(enhanced_question, username, lang):
+            if chunk and chunk.strip():
+                full_response += chunk.strip() + " "
+                yield chunk.strip()
         
         # ✅ Store Buddy's response for retrospective memory
         try:

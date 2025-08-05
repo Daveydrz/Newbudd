@@ -1,8 +1,7 @@
 # ai/chat_enhanced_smart_with_fusion.py - Enhanced chat with intelligent memory fusion and unified extraction
 from ai.chat import generate_response_streaming
 from ai.memory_fusion_intelligent import get_intelligent_unified_username
-from ai.session_memory_manager import get_session_memory_extraction
-from ai.unified_consciousness_builder import get_consciousness_injection
+from ai.unified_memory_manager import extract_all_from_text, get_cached_extraction_result
 import random
 
 # ✅ ENTROPY SYSTEM: Import consciousness emergence components
@@ -147,23 +146,15 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
     except ImportError:
         print(f"[ChatFusion] ⚠️ Context window manager not available - using standard processing")
     
-    # ✅ UNIFIED MEMORY EXTRACTION - Single LLM call for all extraction types (SESSION-MANAGED)
+    # ✅ UNIFIED MEMORY EXTRACTION - Single LLM call for all extraction types
     conversation_context = context.get("current_context", "") if context else ""
-    print(f"[ChatFusion] 🧠 Using session-managed memory extraction")
-    extraction_result = get_session_memory_extraction(username, question, conversation_context)
-    
-    # ✅ UNIFIED CONSCIOUSNESS INJECTION - Single batch operation for all consciousness systems
-    consciousness_context = get_consciousness_injection(username)
-    print(f"[ChatFusion] 🧠 Consciousness context injected: {consciousness_context[:50]}...")
+    extraction_result = extract_all_from_text(username, question, conversation_context)
     
     print(f"[ChatFusion] 🧠 Unified extraction complete: {len(extraction_result.memory_events)} events, intent={extraction_result.intent_classification}")
     
     # Check if this is a conversation threading scenario
     if extraction_result.memory_enhancements or extraction_result.conversation_thread_id:
         print(f"[ChatFusion] 🔗 Conversation threading detected: {extraction_result.conversation_thread_id}")
-        # Check threading with existing function (now called once)
-        from ai.unified_memory_manager import check_conversation_threading
-        check_conversation_threading(username, extraction_result)
     
     # Check for natural context responses (reminders, follow-ups) based on extraction
     context_response = None
@@ -271,11 +262,11 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
             elif optimization_level == "medium":
                 # Medium optimization with abbreviated consciousness
                 consciousness_abbreviated = full_consciousness_summary[:50] + "..." if len(full_consciousness_summary) > 50 else full_consciousness_summary
-                optimized_question = f"{consciousness_context}\n{question} {consciousness_abbreviated}"
+                optimized_question = f"{question} {consciousness_abbreviated}"
                 print(f"[ChatFusion] 🏷️ Medium-optimized prompt: +{len(consciousness_abbreviated)} chars")
             else:
-                # Standard optimization with full consciousness context
-                optimized_question = f"{consciousness_context}\n{question} {full_consciousness_summary}"
+                # Standard optimization
+                optimized_question = f"{question} {full_consciousness_summary}"
                 print(f"[ChatFusion] 🏷️ Standard-optimized prompt: +{len(full_consciousness_summary)} chars")
             
             print(f"[ChatFusion] 🌀 Generating multiple consciousness pathways...")
@@ -322,43 +313,27 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
     print(f"[ChatFusion] 💭 Generating CONSCIOUSNESS response with unified memory for {username}")
     print(f"[ChatFusion] 🏷️ Token optimization level: {optimization_level}")
     
-    # ✅ START STREAMING TTS SESSION - TTS begins immediately as tokens arrive
-    from ai.streaming_tts_manager import start_streaming_tts_session, add_llm_chunk_to_tts, finish_streaming_tts_session
-    start_streaming_tts_session()
-    
     chunk_count = 0
     total_chars = 0
     
-    try:
-        for chunk in chosen_generator:
-            # ✅ ENTROPY SYSTEM: Inject consciousness into each chunk
-            if ENTROPY_AVAILABLE:
-                try:
-                    chunk = inject_consciousness_entropy("response", chunk, EntropyLevel.MEDIUM)
-                except Exception as chunk_error:
-                    print(f"[ChatFusion] ⚠️ Chunk entropy error: {chunk_error}")
+    for chunk in chosen_generator:
+        # ✅ ENTROPY SYSTEM: Inject consciousness into each chunk
+        if ENTROPY_AVAILABLE:
+            try:
+                chunk = inject_consciousness_entropy("response", chunk, EntropyLevel.MEDIUM)
+            except Exception as chunk_error:
+                print(f"[ChatFusion] ⚠️ Chunk entropy error: {chunk_error}")
+        
+        # ✅ TOKEN OPTIMIZATION: Track optimization metrics
+        if chunk:
+            chunk_count += 1
+            total_chars += len(chunk)
             
-            # ✅ TOKEN OPTIMIZATION: Track optimization metrics
-            if chunk:
-                chunk_count += 1
-                total_chars += len(chunk)
-                
-                # ✅ IMMEDIATE TTS: Add chunk to streaming TTS as it arrives
-                add_llm_chunk_to_tts(chunk)
-                
-                # For ultra optimization, log every 5th chunk
-                if optimization_level == "ultra" and chunk_count % 5 == 0:
-                    print(f"[ChatFusion] 🏷️ Ultra-optimized chunk {chunk_count}: {total_chars} chars")
-                
-            yield chunk
-        
-        # ✅ FINISH TTS SESSION: Speak any remaining content
-        finish_streaming_tts_session()
-        
-    except Exception as streaming_error:
-        print(f"[ChatFusion] ❌ Streaming error: {streaming_error}")
-        finish_streaming_tts_session()
-        raise
+            # For ultra optimization, log every 5th chunk
+            if optimization_level == "ultra" and chunk_count % 5 == 0:
+                print(f"[ChatFusion] 🏷️ Ultra-optimized chunk {chunk_count}: {total_chars} chars")
+            
+        yield chunk
     
     # ✅ Store Buddy's response for retrospective memory
     full_response = ""

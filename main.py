@@ -671,9 +671,26 @@ def handle_streaming_response(text, current_user):
     try:
         print(f"[AdvancedResponse] 🎭 Starting ADVANCED AI streaming for: '{text}'")
         
-        # ✅ MEMORY EXTRACTION: Handled by advanced chat systems (chat_enhanced_smart.py and chat_enhanced_smart_with_fusion.py)
-        # No memory extraction here to prevent duplicates - advanced systems handle this automatically
-        print(f"[AdvancedResponse] 🧠 Memory extraction will be handled by advanced chat systems")
+        # ✅ UNIFIED MEMORY EXTRACTION: Safety call to ensure extraction happens once
+        # This will be skipped if chat systems already extracted (due to cooldown)
+        try:
+            from ai.memory_manager import extract_once
+            safety_extraction = extract_once(
+                text=text,
+                username=current_user,
+                cooldown_seconds=10,
+                extraction_type="main_safety"
+            )
+            if safety_extraction:
+                print(f"[AdvancedResponse] 🧠 Safety memory extraction completed: {len(safety_extraction.memory_events)} events")
+            else:
+                print(f"[AdvancedResponse] 🔄 Memory extraction skipped (already done by chat systems)")
+        except Exception as mem_error:
+            print(f"[AdvancedResponse] ⚠️ Memory extraction error: {mem_error}")
+        
+        # ✅ MEMORY EXTRACTION: Advanced chat systems handle comprehensive extraction
+        # This safety call above ensures extraction happens once even if chat systems fail
+        print(f"[AdvancedResponse] 🧠 Memory extraction handled by unified system")
         
         # ✅ NEW: Get voice-based identity FIRST (overrides system login)
         voice_identified_user = None

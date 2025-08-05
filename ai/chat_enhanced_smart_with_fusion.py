@@ -1,7 +1,8 @@
 # ai/chat_enhanced_smart_with_fusion.py - Enhanced chat with intelligent memory fusion and unified extraction
 from ai.chat import generate_response_streaming
 from ai.memory_fusion_intelligent import get_intelligent_unified_username
-from ai.unified_memory_manager import extract_all_from_text, get_cached_extraction_result
+from ai.memory_manager import extract_once
+from ai.unified_memory_manager import get_cached_extraction_result
 import random
 
 # ✅ ENTROPY SYSTEM: Import consciousness emergence components
@@ -146,9 +147,24 @@ def generate_response_streaming_with_intelligent_fusion(question: str, username:
     except ImportError:
         print(f"[ChatFusion] ⚠️ Context window manager not available - using standard processing")
     
-    # ✅ UNIFIED MEMORY EXTRACTION - Single LLM call for all extraction types
+    # ✅ UNIFIED MEMORY EXTRACTION - Single extraction point across all systems  
     conversation_context = context.get("current_context", "") if context else ""
-    extraction_result = extract_all_from_text(username, question, conversation_context)
+    extraction_result = extract_once(
+        text=question,
+        username=username, 
+        cooldown_seconds=10,
+        context=conversation_context,
+        extraction_type="fusion"
+    )
+    
+    # Handle case where extraction was skipped due to cooldown
+    if extraction_result is None:
+        # Try to get cached result from previous extraction
+        extraction_result = get_cached_extraction_result(question)
+        if extraction_result is None:
+            # Create empty result as fallback
+            from ai.comprehensive_memory_extractor import ExtractionResult
+            extraction_result = ExtractionResult([], "casual_conversation", {}, None, [], [], [])
     
     print(f"[ChatFusion] 🧠 Unified extraction complete: {len(extraction_result.memory_events)} events, intent={extraction_result.intent_classification}")
     

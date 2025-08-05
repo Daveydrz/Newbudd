@@ -2,7 +2,8 @@
 import random
 from ai.chat import generate_response_streaming, ask_kobold_streaming, get_current_brisbane_time
 from ai.memory import add_to_conversation_history
-from ai.unified_memory_manager import extract_all_from_text, get_cached_extraction_result, check_conversation_threading
+from ai.memory_manager import extract_once
+from ai.unified_memory_manager import get_cached_extraction_result, check_conversation_threading
 
 def reset_session_for_user_smart(username: str):
     """Reset session when conversation starts"""
@@ -50,9 +51,24 @@ def generate_response_streaming_with_smart_memory(question, username, lang="en",
         except ImportError:
             print(f"[SmartChat] ⚠️ Context window manager not available - using standard processing")
         
-        # ✅ UNIFIED MEMORY EXTRACTION - Single LLM call for all extraction types
+        # ✅ UNIFIED MEMORY EXTRACTION - Single extraction point across all systems
         conversation_context = context.get("current_context", "") if context else ""
-        extraction_result = extract_all_from_text(username, question, conversation_context)
+        extraction_result = extract_once(
+            text=question, 
+            username=username, 
+            cooldown_seconds=10,
+            context=conversation_context,
+            extraction_type="smart_memory"
+        )
+        
+        # Handle case where extraction was skipped due to cooldown
+        if extraction_result is None:
+            # Try to get cached result from previous extraction
+            extraction_result = get_cached_extraction_result(question)
+            if extraction_result is None:
+                # Create empty result as fallback
+                from ai.comprehensive_memory_extractor import ExtractionResult
+                extraction_result = ExtractionResult([], "casual_conversation", {}, None, [], [], [])
         
         # Check if this is a conversation threading scenario (McDonald's → McFlurry example)
         if extraction_result.memory_enhancements or extraction_result.conversation_thread_id:
